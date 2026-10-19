@@ -1,0 +1,209 @@
+@import "tailwindcss";
+
+/* Velvet Noir: a private members' club after midnight. Plum-black ink, champagne for action,
+   brushed gold only where money or status lives, oxblood for warmth. */
+@theme {
+  --color-ink-950: #0a090d;
+  --color-ink-900: #110f15;
+  --color-ink-850: #16131b;
+  --color-ink-800: #1d1923;
+  --color-ink-700: #29232f;
+  --color-ink-600: #3a3242;
+
+  --color-ivory: #efe8df;
+  --color-muted: #ada39c;
+  --color-faint: #908680;
+
+  --color-champagne: #e8d6b6;
+  --color-champagne-hi: #f4e8d2;
+  --color-champagne-lo: #c9a46a;
+  --color-gold: #c9a46a;
+  --color-plum: #3a1f3d;
+  --color-plum-hi: #6b3a6e;
+  --color-oxblood: #6e1f2e;
+  --color-rose: #e58a99;
+  --color-sage: #9cc9a4;
+
+  --color-line: rgb(237 231 223 / 0.08);
+  --color-line-strong: rgb(237 231 223 / 0.16);
+
+  --font-display: var(--font-zodiak), "Times New Roman", serif;
+  --font-sans: var(--font-general-sans), system-ui, sans-serif;
+
+  --radius-card: 1.5rem;
+  --radius-sheet: 2rem;
+
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --shadow-lift: 0 24px 60px -24px rgb(0 0 0 / 0.85), 0 2px 8px -2px rgb(0 0 0 / 0.5);
+  --shadow-glow: 0 10px 40px -10px rgb(201 164 106 / 0.45);
+}
+
+html {
+  color-scheme: dark;
+  -webkit-text-size-adjust: 100%;
+  /* App, not a document: no pull-to-refresh or page rubber-band; inner scrollers use overscroll-contain. */
+  overscroll-behavior: none;
+  background: var(--color-ink-950);
+  -webkit-tap-highlight-color: transparent;
+  scrollbar-color: var(--color-ink-600) transparent;
+}
+
+body {
+  background: var(--color-ink-950);
+  color: var(--color-ivory);
+  font-family: var(--font-sans);
+  font-feature-settings: "ss01";
+  text-rendering: optimizeLegibility;
+}
+
+/* Display voice: light, tight, set like a magazine masthead. */
+.font-display {
+  font-weight: 300;
+  letter-spacing: -0.03em;
+}
+.font-display em {
+  font-style: italic;
+  font-weight: 300;
+}
+
+::selection {
+  background: var(--color-plum-hi);
+  color: var(--color-champagne-hi);
+}
+
+:focus-visible {
+  outline: 1.5px solid var(--color-champagne);
+  outline-offset: 3px;
+}
+
+input,
+textarea {
+  caret-color: var(--color-champagne);
+}
+
+/* Controls fire instantly and never select their label on long-press; content stays selectable. */
+button,
+[role="button"],
+[role="switch"],
+[role="radio"],
+summary {
+  touch-action: manipulation;
+  user-select: none;
+  -webkit-user-select: none;
+}
+a {
+  touch-action: manipulation;
+}
+
+/* Film grain. Fixed to the viewport so tall pages never blend a huge layer; inside a transformed sheet it pins to the sheet. */
+@utility grain {
+  position: relative;
+  isolation: isolate;
+  &::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 1;
+    opacity: 0.08;
+    mix-blend-mode: overlay;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+}
+
+/* The room: plum light from above, oxblood from the side, a low gold ember. Text always sits on the calm middle. */
+@utility velvet {
+  background:
+    radial-gradient(65% 50% at 88% -8%, rgb(107 58 110 / 0.5), transparent 70%),
+    radial-gradient(55% 45% at -12% 35%, rgb(110 31 46 / 0.38), transparent 72%),
+    radial-gradient(45% 35% at 55% 108%, rgb(201 164 106 / 0.14), transparent 70%),
+    var(--color-ink-950);
+}
+
+/* A smaller aura for cards and panels that need their own light. */
+@utility aura {
+  background:
+    radial-gradient(120% 90% at 100% 0%, rgb(107 58 110 / 0.55), transparent 60%),
+    radial-gradient(90% 80% at 0% 100%, rgb(110 31 46 / 0.45), transparent 65%),
+    var(--color-ink-900);
+}
+
+/* Brushed champagne gold: money and membership only. */
+@utility foil {
+  background: linear-gradient(115deg, #8c6a3a 0%, #c9a46a 28%, #f3e2be 50%, #c9a46a 72%, #8c6a3a 100%);
+  color: var(--color-ink-950);
+}
+
+/* Specular sweep across a foil or glass surface. One slow pass, then rest. */
+@keyframes sheen {
+  0% { transform: translateX(-120%) skewX(-18deg); }
+  60%, 100% { transform: translateX(220%) skewX(-18deg); }
+}
+@utility sheen {
+  position: relative;
+  overflow: hidden;
+  &::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    width: 45%;
+    background: linear-gradient(90deg, transparent, rgb(255 255 255 / 0.35), transparent);
+    animation: sheen 5.5s var(--ease-out-expo) 1.2s infinite;
+    pointer-events: none;
+  }
+}
+
+/* Glass for supporting surfaces only: bars, sheets, composer, chips over photos. */
+@utility glass {
+  background: rgb(29 25 35 / 0.55);
+  backdrop-filter: blur(20px) saturate(150%);
+  -webkit-backdrop-filter: blur(20px) saturate(150%);
+  border: 1px solid rgb(237 231 223 / 0.1);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.06);
+}
+
+/* Gold hairline: a 1px gradient border that catches light at the top edge. */
+@utility hairline {
+  border: 1px solid transparent;
+  background-clip: padding-box;
+  box-shadow: inset 0 0 0 1px rgb(201 164 106 / 0.28), inset 0 1px 0 rgb(243 226 190 / 0.25);
+}
+
+@utility vignette {
+  box-shadow: inset 0 0 140px 30px rgb(10 9 13 / 0.65);
+}
+
+/* Typing dots breathe rather than bounce. */
+@keyframes breathe {
+  0%, 100% { opacity: 0.35; transform: scale(0.85); }
+  50% { opacity: 1; transform: scale(1); }
+}
+@keyframes bubble-in {
+  from { opacity: 0; transform: translateY(8px) scale(0.98); filter: blur(4px); }
+}
+@utility animate-bubble-in {
+  animation: bubble-in 420ms var(--ease-out-expo) both;
+}
+/* Unlock: the photo comes into focus and a gold ring passes over it once. */
+@keyframes develop {
+  from { filter: blur(24px) saturate(0.6); transform: scale(1.12); }
+}
+@utility animate-develop {
+  animation: develop 900ms var(--ease-out-expo) both;
+}
+
+/* Age gate visibility is decided before paint by the inline script in layout.tsx. */
+[data-age-ok] .age-gate { display: none; }
+html:not([data-age-ok]):has(.age-gate) { overflow: hidden; }
+
+/* Reduced motion: keep state changes, drop the movement. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  ::before,
+  ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
