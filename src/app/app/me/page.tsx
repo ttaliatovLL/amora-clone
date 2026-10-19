@@ -15,7 +15,7 @@ function Toggle({ label, hint, on, onChange, icon: I }: { label: string; hint: s
     <div className="flex items-center justify-between gap-6 py-4">
       <div>
         <p className="flex items-center gap-2.5 text-ivory">
-          <I weight="light" className="size-5 text-champagne" aria-hidden />
+          <I weight="regular" className="size-5 text-muted" aria-hidden />
           {label}
         </p>
         <p className="mt-0.5 pl-[1.875rem] text-sm text-muted">{hint}</p>
@@ -26,9 +26,9 @@ function Toggle({ label, hint, on, onChange, icon: I }: { label: string; hint: s
         aria-checked={on}
         aria-label={label}
         onClick={() => onChange(!on)}
-        className={`relative h-7 w-12 shrink-0 rounded-full transition-colors duration-200 ${on ? "foil" : "bg-ink-700"}`}
+        className={`relative h-[1.9rem] w-[3.1rem] shrink-0 rounded-full transition-colors duration-200 ${on ? "bg-sage" : "bg-white/15"}`}
       >
-        <span className={`absolute top-1 left-1 size-5 rounded-full bg-ink-950 shadow transition-transform duration-200 ease-out-expo ${on ? "translate-x-5" : ""}`} />
+        <span className={`absolute top-0.5 left-0.5 size-[1.65rem] rounded-full bg-white shadow-[0_2px_6px_rgb(0_0_0/0.35)] transition-transform duration-300 ease-out-expo ${on ? "translate-x-5" : ""}`} />
       </button>
     </div>
   );
@@ -53,9 +53,9 @@ export default function Me() {
   };
 
   return (
-    <main className="mx-auto max-w-2xl px-4 pt-6 pb-28 sm:px-8 md:pt-10">
+    <main className="mx-auto max-w-2xl px-4 pt-3 pb-36 sm:px-8 md:pt-10">
       <div className="flex items-center gap-4">
-        <span className="grid size-16 place-items-center rounded-full foil font-display text-3xl italic shadow-glow" aria-hidden>
+        <span className="pearl chrome grid size-16 place-items-center rounded-full font-display text-2xl" aria-hidden>
           {w.name[0]}
         </span>
         <div className="min-w-0">
@@ -65,13 +65,13 @@ export default function Me() {
       </div>
 
       <section className="mt-8 grid gap-3 sm:grid-cols-2">
-        <div className={`relative rounded-card p-5 ${w.premium ? "aura sheen ring-1 ring-gold/35" : "glass"}`}>
-          <Crown weight="duotone" className="absolute top-5 right-5 size-6 text-gold" aria-hidden />
+        <div className={`relative rounded-card p-5 ${w.premium ? "panel gilt sheen" : "glass"}`}>
+          <Crown weight="fill" className="absolute top-5 right-5 size-5 text-gold" aria-hidden />
           <p className="text-sm text-muted">Membership</p>
           <p className="mt-1 font-display text-3xl">{w.premium ? "Premium" : "Free"}</p>
           <p className="mt-1 text-sm text-muted">{w.premium ? "Every photo unlocked. Prepaid, no auto-renew." : "20 messages a day, one free photo."}</p>
           {!w.premium && (
-            <Button className="mt-4 w-full" onClick={() => setPaywall(true)}>
+            <Button variant="premium" className="mt-4 w-full" onClick={() => setPaywall(true)}>
               Go Premium
             </Button>
           )}
@@ -79,7 +79,9 @@ export default function Me() {
         <div id="coins" className="glass scroll-mt-20 rounded-card p-5">
           <p className="text-sm text-muted">Coins</p>
           <p className="mt-1 flex items-center gap-2 font-display text-3xl tabular-nums">
-            <Coins weight="duotone" className="size-7 text-gold" aria-hidden />
+            <span className="grid size-7 place-items-center rounded-full bg-linear-to-b from-[#f6e6c4] to-[#a7854c] text-ink-950 shadow-[inset_0_1px_0_#fff8]">
+              <Coins weight="bold" className="size-4" aria-hidden />
+            </span>
             {w.coins.toLocaleString()}
           </p>
           <p className="mt-1 text-sm text-muted">For one-off unlocks and gifts.</p>
@@ -100,12 +102,12 @@ export default function Me() {
       <section className="mt-10">
         <h2 className="text-sm font-medium text-muted">Account</h2>
         <div className="mt-2 divide-y divide-line border-y border-line">
-          <Link href="/login" className="flex items-center gap-2.5 py-4 text-ivory hover:text-champagne">
-            <SignOut weight="light" className="size-5 text-champagne" aria-hidden />
+          <Link href="/login" className="flex items-center gap-2.5 py-4 text-ivory hover:text-blush">
+            <SignOut weight="regular" className="size-5 text-muted" aria-hidden />
             Sign out
           </Link>
           <button type="button" onClick={() => setDel("confirm")} className="flex w-full items-center gap-2.5 py-4 text-left text-rose hover:underline hover:underline-offset-4">
-            <Trash weight="light" className="size-5" aria-hidden />
+            <Trash weight="regular" className="size-5" aria-hidden />
             Delete account
           </button>
         </div>
@@ -151,13 +153,13 @@ export default function Me() {
                 onChange={(e) => setTyped(e.target.value)}
                 autoComplete="off"
                 autoCapitalize="characters"
-                className="mt-2 h-12 w-full rounded-2xl border border-line-strong bg-ink-850 px-4 text-base text-ivory focus:border-rose focus:outline-none"
+                className="mt-2 h-12 w-full rounded-2xl border border-line-strong bg-black/30 px-4 text-base text-ivory focus:border-rose focus:outline-none"
               />
             </label>
             <button
               type="submit"
               disabled={typed !== "DELETE" || del === "working"}
-              className="mt-6 h-14 w-full rounded-full border border-rose text-base font-medium text-rose transition-[background-color,opacity] duration-150 hover:bg-oxblood/20 active:scale-[0.98] disabled:opacity-40"
+              className="mt-6 h-14 w-full rounded-full border border-rose text-base font-medium text-rose transition-[background-color,opacity] duration-150 hover:bg-wine/20 active:scale-[0.98] disabled:opacity-40"
             >
               {del === "working" ? "Deleting…" : "Delete my account"}
             </button>

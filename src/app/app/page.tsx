@@ -5,67 +5,88 @@ import { ArrowRight, Fire, Heart, MoonStars, Sparkle, SquaresFour } from "@phosp
 import Link from "next/link";
 import { useState } from "react";
 import { Portrait } from "@/components/portrait";
-import { Avatar, Chip, CompanionCard } from "@/components/ui";
+import { Avatar, Chip, CompanionCard, OnlinePill, Tags } from "@/components/ui";
 import { companions, vibes } from "@/lib/companions";
 
 const stories = [...companions.filter((c) => c.isNew), ...companions.filter((c) => c.online && !c.isNew)];
 const vibeIcon: Record<(typeof vibes)[number], Icon> = { Sweet: Heart, Playful: Sparkle, Mysterious: MoonStars, Bold: Fire };
 // shortcut: fixed editor's pick until there's a ranking signal.
 const pick = companions.find((c) => c.id === "katya")!;
+// Every seventh card opens up into a landscape feature, so the grid has a rhythm instead of a wall.
+const isWide = (i: number) => i % 7 === 4;
 
 export default function Discover() {
   const [vibe, setVibe] = useState<string | null>(null);
   const [onlineOnly, setOnlineOnly] = useState(false);
   const shown = companions.filter((c) => (!vibe || c.vibe === vibe) && (!onlineOnly || c.online));
+  const online = companions.filter((c) => c.online).length;
   const clear = () => {
     setVibe(null);
     setOnlineOnly(false);
   };
 
   return (
-    <main className="mx-auto max-w-6xl px-4 pt-6 pb-32 sm:px-8 md:pt-10 md:pb-16">
-      <h1 className="font-display text-[clamp(2.5rem,8vw,4rem)] leading-[0.92]">
-        Who&apos;s up <em className="text-champagne">tonight?</em>
-      </h1>
+    <main className="mx-auto max-w-6xl px-4 pt-3 pb-36 sm:px-8 md:pt-10 md:pb-16">
+      <div className="rise flex items-end justify-between gap-4">
+        <h1 className="font-display text-[clamp(2.25rem,9vw,3.75rem)] leading-[0.95]">
+          Who&apos;s up
+          <br className="sm:hidden" /> <em>tonight.</em>
+        </h1>
+        <p className="mb-1.5 flex shrink-0 items-center gap-1.5 text-[0.8125rem] text-muted tabular-nums">
+          <span className="live-dot size-1.5 rounded-full bg-sage" aria-hidden />
+          {online} online
+        </p>
+      </div>
 
-      <section aria-label="Online and new" className="-mx-4 mt-7 sm:-mx-8">
-        <div className="flex gap-4 overflow-x-auto px-4 pb-2 [scrollbar-width:none] sm:px-8">
+      <section aria-label="Online and new" className="rise -mx-4 mt-6 sm:-mx-8" style={{ ["--i" as string]: 1 }}>
+        <div className="flex gap-3.5 overflow-x-auto px-4 pb-2 [scrollbar-width:none] sm:px-8">
           {stories.map((c) => (
-            <Link key={c.id} href={`/app/${c.id}`} className="flex w-[4.75rem] shrink-0 flex-col items-center gap-2 transition-transform active:scale-[0.96]">
+            <Link key={c.id} href={`/app/${c.id}`} className="flex w-[4.5rem] shrink-0 flex-col items-center gap-2 transition-transform active:scale-[0.94]">
               <Avatar companion={c} size="lg" story showOnline={false} />
-              <span className="w-full truncate text-center text-xs text-muted">{c.isNew ? `New · ${c.name}` : c.name}</span>
+              <span className={`w-full truncate text-center text-[0.75rem] ${c.isNew ? "text-blush" : "text-muted"}`}>{c.isNew ? "New" : c.name}</span>
             </Link>
           ))}
         </div>
       </section>
 
-      {/* Tonight's pick: one editorial moment before the grid. */}
+      {/* Tonight's pick: one cinematic moment before the grid. */}
       <Link
         href={`/app/${pick.id}`}
-        className="aura group relative mt-8 grid overflow-hidden rounded-[2rem] ring-1 ring-gold/25 transition-transform active:scale-[0.99] sm:grid-cols-[1.1fr_1fr]"
+       
+        className="rise group relative mt-6 block aspect-[4/5] overflow-hidden rounded-[2rem] shadow-lift transition-transform duration-200 ease-out active:scale-[0.99] sm:aspect-[16/8]"
+        style={{ ["--i" as string]: 2 }}
       >
-        <div className="relative z-[2] order-2 flex flex-col justify-end p-6 sm:order-1 sm:p-9">
-          <p className="flex items-center gap-1.5 text-sm text-champagne">
-            <Sparkle weight="fill" className="size-4" aria-hidden />
+        <Portrait companion={pick} priority sizes="(max-width: 640px) 100vw, 1100px" className="transition-transform duration-[1400ms] ease-out-expo sm:object-[50%_22%] [@media(hover:hover)]:group-hover:scale-[1.03]" />
+        <div className="absolute inset-0 bg-linear-to-t from-ink-950/90 via-ink-950/10 to-black/20" />
+        <div className="pointer-events-none absolute inset-0 rounded-[2rem] ring-1 ring-inset ring-white/12" />
+        <div className="absolute inset-x-3 top-3 flex items-center justify-between">
+          <span className="glass inline-flex h-7 items-center gap-1.5 rounded-full px-3 text-xs font-medium text-ivory">
+            <Sparkle weight="fill" className="size-3.5 text-blush" aria-hidden />
             Tonight&apos;s pick
-          </p>
-          <p className="mt-3 font-display text-5xl leading-none sm:text-6xl">{pick.name}</p>
-          <p className="mt-3 max-w-[34ch] text-muted">{pick.tagline}.</p>
-          <span className="mt-6 inline-flex items-center gap-2 text-sm text-ivory">
-            Say hi
-            <ArrowRight weight="light" className="size-4 transition-transform group-hover:translate-x-1" aria-hidden />
           </span>
+          {pick.online && <OnlinePill />}
         </div>
-        <div className="relative order-1 aspect-[16/11] sm:order-2 sm:aspect-auto sm:min-h-80">
-          <Portrait companion={pick} sizes="(max-width: 640px) 100vw, 480px" className="transition-transform duration-[1200ms] ease-out-expo group-hover:scale-[1.04]" />
-          <div className="absolute inset-0 bg-linear-to-t from-ink-900 via-transparent to-transparent sm:bg-linear-to-r" />
+        <div className="glass absolute inset-x-3 bottom-3 flex items-end justify-between gap-4 rounded-[1.5rem] p-4 sm:inset-x-auto sm:right-4 sm:bottom-4 sm:w-[24rem] sm:p-5">
+          <div className="min-w-0">
+            <p className="font-display text-[2.25rem] leading-none">
+              {pick.name}
+              <span className="ml-2 text-[0.55em] font-normal text-ivory/55">{pick.age}</span>
+            </p>
+            <p className="mt-1.5 line-clamp-2 text-sm text-ivory/75">{pick.tagline}.</p>
+            <Tags tags={pick.tags} className="mt-3" />
+          </div>
+          <span className="pearl chrome grid size-12 shrink-0 place-items-center rounded-full transition-transform duration-200 group-active:scale-95" aria-hidden>
+            <ArrowRight weight="bold" className="size-5 transition-transform duration-300 ease-out group-hover:translate-x-0.5" />
+          </span>
+          <span className="sr-only">Say hi to {pick.name}</span>
         </div>
       </Link>
 
-      <div className="sticky top-14 z-30 -mx-4 mt-8 bg-ink-950/70 py-3 backdrop-blur-xl sm:-mx-8 md:top-0">
-        <div className="flex gap-2 overflow-x-auto px-4 [scrollbar-width:none] sm:px-8" role="group" aria-label="Filter companions">
+      <div className="sticky top-[calc(3.5rem+env(safe-area-inset-top))] z-30 -mx-4 mt-8 py-3 sm:-mx-8 md:top-0">
+        <div className="pointer-events-none absolute inset-0 bg-linear-to-b from-ink-950 via-ink-950/85 to-transparent" aria-hidden />
+        <div className="relative flex gap-2 overflow-x-auto px-4 [scrollbar-width:none] sm:px-8" role="group" aria-label="Filter companions">
           <Chip pressed={vibe === null && !onlineOnly} onClick={clear}>
-            <SquaresFour weight="light" className="size-4" aria-hidden />
+            <SquaresFour weight="regular" className="size-4" aria-hidden />
             All
           </Chip>
           <Chip pressed={onlineOnly} onClick={() => setOnlineOnly(!onlineOnly)}>
@@ -76,7 +97,7 @@ export default function Discover() {
             const I = vibeIcon[v];
             return (
               <Chip key={v} pressed={vibe === v} onClick={() => setVibe(vibe === v ? null : v)}>
-                <I weight={vibe === v ? "fill" : "light"} className="size-4" aria-hidden />
+                <I weight={vibe === v ? "fill" : "regular"} className="size-4" aria-hidden />
                 {v}
               </Chip>
             );
@@ -84,21 +105,21 @@ export default function Discover() {
         </div>
       </div>
 
-      <p className="mt-3 text-sm text-faint" aria-live="polite">
+      <p className="mt-1 text-[0.8125rem] text-faint tabular-nums" aria-live="polite">
         {shown.length} {shown.length === 1 ? "companion" : "companions"}
       </p>
 
       {shown.length ? (
-        <div className="mt-4 grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3 xl:grid-cols-4">
+        <div className="mt-3 grid grid-flow-dense grid-cols-2 gap-2.5 sm:gap-4 lg:grid-cols-3 xl:grid-cols-4">
           {shown.map((c, i) => (
-            <CompanionCard key={c.id} companion={c} href={`/app/${c.id}`} priority={i < 4} />
+            <CompanionCard key={c.id} companion={c} href={`/app/${c.id}`} priority={i < 4} wide={isWide(i)} morph className="reveal" />
           ))}
         </div>
       ) : (
         <div className="mt-16 text-center">
-          <MoonStars weight="thin" className="mx-auto size-14 text-gold" aria-hidden />
-          <p className="mt-4 font-display text-3xl">Nobody like that is up right now.</p>
-          <button type="button" onClick={clear} className="mt-4 text-champagne underline underline-offset-4">
+          <MoonStars weight="light" className="mx-auto size-12 text-muted" aria-hidden />
+          <p className="mt-4 font-display text-2xl">Nobody like that is up right now.</p>
+          <button type="button" onClick={clear} className="mt-3 text-blush underline underline-offset-4">
             Show everyone
           </button>
         </div>

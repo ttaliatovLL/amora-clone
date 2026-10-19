@@ -30,11 +30,11 @@ export default function Login() {
   return (
     <>
       <AgeGate />
-      <main className="grain velvet grid min-h-dvh md:grid-cols-2">
+      <main className="grain room grid min-h-dvh md:grid-cols-2">
         <div className="vignette relative hidden overflow-hidden md:block">
           <Portrait companion={luna} priority sizes="50vw" />
-          <div className="absolute inset-0 bg-linear-to-t from-ink-950 via-plum/20 to-transparent" />
-          <p className="absolute bottom-10 left-10 z-[2] max-w-[18ch] font-display text-5xl leading-[0.95] italic text-ivory">She&apos;s been waiting.</p>
+          <div className="absolute inset-0 bg-linear-to-t from-ink-950 via-ink-950/40 to-transparent" />
+          <p className="absolute bottom-10 left-10 z-[2] max-w-[18ch] font-display text-5xl leading-[0.95] text-ivory">She&apos;s been waiting.</p>
         </div>
 
         {/* Phones: she watches from the top of the screen and fades into the form. */}
@@ -71,7 +71,7 @@ export default function Login() {
               </div>
               {mode === "up" && (
                 <label className="flex gap-3 text-sm text-muted">
-                  <input type="checkbox" required className="mt-0.5 size-5 shrink-0 accent-[var(--color-champagne)]" />
+                  <input type="checkbox" required className="mt-0.5 size-5 shrink-0 accent-[var(--color-blush)]" />
                   <span>
                     I&apos;m 18 or older and accept the{" "}
                     <Link href="#" className="text-ivory underline underline-offset-4">
@@ -106,7 +106,7 @@ export default function Login() {
 
             <p className="mt-8 text-center text-sm text-muted">
               {mode === "up" ? "Already have an account?" : "New here?"}{" "}
-              <button type="button" onClick={() => (setMode(mode === "up" ? "in" : "up"), setError(""))} className="text-champagne underline underline-offset-4">
+              <button type="button" onClick={() => (setMode(mode === "up" ? "in" : "up"), setError(""))} className="text-blush underline underline-offset-4">
                 {mode === "up" ? "Sign in" : "Create one"}
               </button>
             </p>

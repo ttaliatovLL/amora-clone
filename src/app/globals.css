@@ -1,41 +1,41 @@
 @import "tailwindcss";
 
-/* Velvet Noir: a private members' club after midnight. Plum-black ink, champagne for action,
-   brushed gold only where money or status lives, oxblood for warmth. */
+/* Graphite: a dark glass room at night. Neutral cool blacks, liquid glass for chrome, pearl for action,
+   polished steel hairlines on what matters, warm blush only where she is. Gold is a rim, never a fill. */
 @theme {
-  --color-ink-950: #0a090d;
-  --color-ink-900: #110f15;
-  --color-ink-850: #16131b;
-  --color-ink-800: #1d1923;
-  --color-ink-700: #29232f;
-  --color-ink-600: #3a3242;
+  --color-ink-950: #070708;
+  --color-ink-900: #0c0c0e;
+  --color-ink-850: #111114;
+  --color-ink-800: #17171b;
+  --color-ink-700: #222227;
+  --color-ink-600: #313138;
 
-  --color-ivory: #efe8df;
-  --color-muted: #ada39c;
-  --color-faint: #908680;
+  --color-ivory: #f4f2ef;
+  --color-muted: #a6a4a9;
+  --color-faint: #8a888f;
 
-  --color-champagne: #e8d6b6;
-  --color-champagne-hi: #f4e8d2;
-  --color-champagne-lo: #c9a46a;
-  --color-gold: #c9a46a;
-  --color-plum: #3a1f3d;
-  --color-plum-hi: #6b3a6e;
-  --color-oxblood: #6e1f2e;
-  --color-rose: #e58a99;
-  --color-sage: #9cc9a4;
+  --color-blush: #f1c6ba;
+  --color-blush-hi: #fbe4dd;
+  --color-blush-lo: #c99083;
+  --color-wine: #4a1c26;
+  --color-gold: #d8b77c;
+  --color-rose: #ff8e9b;
+  --color-sage: #6fe39a;
 
-  --color-line: rgb(237 231 223 / 0.08);
-  --color-line-strong: rgb(237 231 223 / 0.16);
+  --color-line: rgb(255 255 255 / 0.07);
+  --color-line-strong: rgb(255 255 255 / 0.14);
 
-  --font-display: var(--font-zodiak), "Times New Roman", serif;
+  --font-display: var(--font-general-sans), system-ui, sans-serif;
   --font-sans: var(--font-general-sans), system-ui, sans-serif;
 
-  --radius-card: 1.5rem;
-  --radius-sheet: 2rem;
+  --radius-card: 1.75rem;
+  --radius-sheet: 2.25rem;
 
   --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
-  --shadow-lift: 0 24px 60px -24px rgb(0 0 0 / 0.85), 0 2px 8px -2px rgb(0 0 0 / 0.5);
-  --shadow-glow: 0 10px 40px -10px rgb(201 164 106 / 0.45);
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+  --shadow-lift: 0 30px 60px -30px rgb(0 0 0 / 0.9), 0 8px 20px -10px rgb(0 0 0 / 0.6);
+  --shadow-glow: 0 12px 32px -12px rgb(0 0 0 / 0.8), 0 2px 6px -2px rgb(0 0 0 / 0.5);
 }
 
 html {
@@ -52,33 +52,32 @@ body {
   background: var(--color-ink-950);
   color: var(--color-ivory);
   font-family: var(--font-sans);
-  font-feature-settings: "ss01";
   text-rendering: optimizeLegibility;
 }
 
-/* Display voice: light, tight, set like a magazine masthead. */
+/* Display voice: one family, set tight like a product keynote. The second half of a headline steps back in grey. */
 .font-display {
-  font-weight: 300;
-  letter-spacing: -0.03em;
+  font-weight: 500;
+  letter-spacing: -0.035em;
 }
 .font-display em {
-  font-style: italic;
-  font-weight: 300;
+  font-style: normal;
+  color: var(--color-muted);
 }
 
 ::selection {
-  background: var(--color-plum-hi);
-  color: var(--color-champagne-hi);
+  background: rgb(241 198 186 / 0.35);
+  color: var(--color-ivory);
 }
 
 :focus-visible {
-  outline: 1.5px solid var(--color-champagne);
+  outline: 1.5px solid var(--color-blush);
   outline-offset: 3px;
 }
 
 input,
 textarea {
-  caret-color: var(--color-champagne);
+  caret-color: var(--color-blush);
 }
 
 /* Controls fire instantly and never select their label on long-press; content stays selectable. */
@@ -95,7 +94,7 @@ a {
   touch-action: manipulation;
 }
 
-/* Film grain. Fixed to the viewport so tall pages never blend a huge layer; inside a transformed sheet it pins to the sheet. */
+/* Film grain, barely there. Fixed to the viewport so tall pages never blend a huge layer. */
 @utility grain {
   position: relative;
   isolation: isolate;
@@ -105,39 +104,90 @@ a {
     inset: 0;
     pointer-events: none;
     z-index: 1;
-    opacity: 0.08;
+    opacity: 0.045;
     mix-blend-mode: overlay;
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
   }
 }
 
-/* The room: plum light from above, oxblood from the side, a low gold ember. Text always sits on the calm middle. */
-@utility velvet {
+/* The room: a cool overhead light and one warm blush bounce, low and off to the side. */
+@utility room {
   background:
-    radial-gradient(65% 50% at 88% -8%, rgb(107 58 110 / 0.5), transparent 70%),
-    radial-gradient(55% 45% at -12% 35%, rgb(110 31 46 / 0.38), transparent 72%),
-    radial-gradient(45% 35% at 55% 108%, rgb(201 164 106 / 0.14), transparent 70%),
+    radial-gradient(70% 45% at 50% -12%, rgb(255 255 255 / 0.07), transparent 70%),
+    radial-gradient(50% 40% at 100% 85%, rgb(241 198 186 / 0.06), transparent 70%),
     var(--color-ink-950);
 }
 
-/* A smaller aura for cards and panels that need their own light. */
-@utility aura {
+/* A raised panel with its own soft top light. */
+@utility panel {
   background:
-    radial-gradient(120% 90% at 100% 0%, rgb(107 58 110 / 0.55), transparent 60%),
-    radial-gradient(90% 80% at 0% 100%, rgb(110 31 46 / 0.45), transparent 65%),
+    radial-gradient(120% 70% at 50% 0%, rgb(255 255 255 / 0.06), transparent 60%),
     var(--color-ink-900);
 }
 
-/* Brushed champagne gold: money and membership only. */
-@utility foil {
-  background: linear-gradient(115deg, #8c6a3a 0%, #c9a46a 28%, #f3e2be 50%, #c9a46a 72%, #8c6a3a 100%);
-  color: var(--color-ink-950);
+/* Liquid glass: refracting blur, a bright specular top edge, a dim lower edge, real depth below. */
+@utility glass {
+  /* The tint underneath keeps text legible over bright photos. */
+  background: linear-gradient(180deg, rgb(255 255 255 / 0.1), rgb(255 255 255 / 0.03)), rgb(18 18 22 / 0.42);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border: 1px solid rgb(255 255 255 / 0.1);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.2),
+    inset 0 -1px 0 rgb(255 255 255 / 0.04),
+    0 10px 30px -14px rgb(0 0 0 / 0.7);
 }
 
-/* Specular sweep across a foil or glass surface. One slow pass, then rest. */
+/* Polished steel hairline: a 1px metal rim with light catching top-left and bottom-right. */
+@utility chrome {
+  position: relative;
+  &::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 1px;
+    background: linear-gradient(150deg, #ffffff 0%, #7a7a83 24%, #e9e9ee 46%, #4d4d55 64%, #cfcfd6 84%, #6a6a72 100%);
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+    opacity: 0.55;
+  }
+}
+
+/* Gilt: the same rim in white gold. Premium and its purchase button only. */
+@utility gilt {
+  position: relative;
+  &::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 1px;
+    background: linear-gradient(150deg, #fff6e2 0%, #a7854c 26%, #f6e6c4 48%, #7d6236 66%, #e9d3a6 86%, #9b7b45 100%);
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+  }
+}
+
+/* Pearl: the one action surface. Lit from above, pressed into the page, with a steel rim. */
+@utility pearl {
+  background: linear-gradient(180deg, #ffffff 0%, #ecebe8 55%, #dcdad6 100%);
+  color: var(--color-ink-950);
+  box-shadow:
+    inset 0 1px 0 #fff,
+    inset 0 -1px 1px rgb(0 0 0 / 0.12),
+    0 0 0 1px rgb(255 255 255 / 0.35),
+    0 10px 28px -10px rgb(0 0 0 / 0.9);
+}
+
+/* Specular sweep across a membership surface. One slow pass, then rest. */
 @keyframes sheen {
-  0% { transform: translateX(-120%) skewX(-18deg); }
-  60%, 100% { transform: translateX(220%) skewX(-18deg); }
+  0% { transform: translateX(-140%) skewX(-18deg); }
+  55%, 100% { transform: translateX(260%) skewX(-18deg); }
 }
 @utility sheen {
   position: relative;
@@ -146,31 +196,37 @@ a {
     content: "";
     position: absolute;
     inset: 0;
-    width: 45%;
-    background: linear-gradient(90deg, transparent, rgb(255 255 255 / 0.35), transparent);
-    animation: sheen 5.5s var(--ease-out-expo) 1.2s infinite;
+    width: 40%;
+    background: linear-gradient(90deg, transparent, rgb(255 255 255 / 0.12), transparent);
+    animation: sheen 7s var(--ease-out-expo) 1.5s infinite;
     pointer-events: none;
   }
 }
 
-/* Glass for supporting surfaces only: bars, sheets, composer, chips over photos. */
-@utility glass {
-  background: rgb(29 25 35 / 0.55);
-  backdrop-filter: blur(20px) saturate(150%);
-  -webkit-backdrop-filter: blur(20px) saturate(150%);
-  border: 1px solid rgb(237 231 223 / 0.1);
-  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.06);
+/* Online: a soft pulse ring, like a status light breathing. */
+@keyframes ping-soft {
+  0% { transform: scale(1); opacity: 0.6; }
+  80%, 100% { transform: scale(2.4); opacity: 0; }
+}
+@utility live-dot {
+  position: relative;
+  &::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: inherit;
+    animation: ping-soft 2.4s var(--ease-out) infinite;
+  }
 }
 
-/* Gold hairline: a 1px gradient border that catches light at the top edge. */
-@utility hairline {
-  border: 1px solid transparent;
-  background-clip: padding-box;
-  box-shadow: inset 0 0 0 1px rgb(201 164 106 / 0.28), inset 0 1px 0 rgb(243 226 190 / 0.25);
+/* Hashtag rows fade out at the right edge instead of wrapping or clipping hard. */
+@utility fade-r {
+  mask-image: linear-gradient(90deg, #000 78%, transparent);
 }
 
 @utility vignette {
-  box-shadow: inset 0 0 140px 30px rgb(10 9 13 / 0.65);
+  box-shadow: inset 0 0 140px 30px rgb(7 7 8 / 0.6);
 }
 
 /* Typing dots breathe rather than bounce. */
@@ -179,17 +235,103 @@ a {
   50% { opacity: 1; transform: scale(1); }
 }
 @keyframes bubble-in {
-  from { opacity: 0; transform: translateY(8px) scale(0.98); filter: blur(4px); }
+  from { opacity: 0; transform: translateY(10px) scale(0.97); filter: blur(4px); }
 }
 @utility animate-bubble-in {
-  animation: bubble-in 420ms var(--ease-out-expo) both;
+  animation: bubble-in 380ms var(--ease-out) both;
+  transform-origin: bottom left;
 }
-/* Unlock: the photo comes into focus and a gold ring passes over it once. */
+/* Unlock: the photo comes into focus. */
 @keyframes develop {
   from { filter: blur(24px) saturate(0.6); transform: scale(1.12); }
 }
 @utility animate-develop {
   animation: develop 900ms var(--ease-out-expo) both;
+}
+
+/* Page content settles in once on load. */
+@keyframes rise {
+  from { opacity: 0; transform: translateY(14px); filter: blur(6px); }
+}
+@utility rise {
+  animation: rise 700ms var(--ease-out-expo) both;
+  animation-delay: calc(var(--i, 0) * 60ms);
+}
+
+/* Scroll-driven motion (CSS only, off the main thread). Content is visible by default; where the
+   browser supports scroll timelines it rises into place as it enters, and chrome condenses on scroll. */
+@keyframes reveal {
+  from { opacity: 0; transform: translateY(32px) scale(0.96); filter: blur(8px); }
+}
+@keyframes condense {
+  to {
+    background-color: rgb(7 7 8 / 0.72);
+    border-color: var(--color-line);
+    backdrop-filter: blur(24px) saturate(180%);
+  }
+}
+@keyframes drift {
+  to { transform: translateY(18%) scale(1.08); }
+}
+@keyframes fade-out {
+  to { opacity: 0; transform: translateY(-24px); }
+}
+@keyframes focus-in {
+  0% { transform: scale(0.88); opacity: 0.45; }
+  40%, 60% { transform: scale(1); opacity: 1; }
+  100% { transform: scale(0.88); opacity: 0.45; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  @supports (animation-timeline: view()) {
+    .reveal {
+      animation: reveal linear both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 55%;
+    }
+    .drift {
+      animation: drift linear both;
+      animation-timeline: scroll();
+      animation-range: 0 100svh;
+    }
+    .drift-out {
+      animation: fade-out linear both;
+      animation-timeline: scroll();
+      animation-range: 0 60svh;
+    }
+    /* Rail cards focus as they pass the middle of their scroller. */
+    .rail-focus {
+      animation: focus-in linear both;
+      animation-timeline: view(inline);
+    }
+  }
+}
+
+/* Bars start clear over the page and condense into glass once content slides under them. */
+@supports (animation-timeline: scroll()) {
+  .condense {
+    animation: condense linear both;
+    animation-timeline: scroll();
+    animation-range: 0 96px;
+  }
+}
+@supports not (animation-timeline: scroll()) {
+  .condense {
+    background-color: rgb(7 7 8 / 0.72);
+    backdrop-filter: blur(24px) saturate(180%);
+    -webkit-backdrop-filter: blur(24px) saturate(180%);
+  }
+}
+
+/* Route morph: the portrait you tapped becomes the page you land on. */
+::view-transition-group(.morph) {
+  animation-duration: 450ms;
+  animation-timing-function: var(--ease-drawer);
+}
+::view-transition-image-pair(.morph) {
+  animation-name: via-blur;
+}
+@keyframes via-blur {
+  35% { filter: blur(3px); }
 }
 
 /* Age gate visibility is decided before paint by the inline script in layout.tsx. */

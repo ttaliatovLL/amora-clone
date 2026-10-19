@@ -34,12 +34,12 @@ export function AgeGate() {
       {/* The door: her, out of focus, behind frosted glass. */}
       <div className="absolute inset-0 opacity-90" aria-hidden>
         <Portrait companion={katya} sizes="100vw" className="scale-105 blur-md" />
-        <div className="absolute inset-0 bg-linear-to-b from-ink-950/50 via-plum/30 to-ink-950/90" />
+        <div className="absolute inset-0 bg-linear-to-b from-ink-950/50 via-ink-950/40 to-ink-950/90" />
       </div>
-      <div className="glass relative z-[2] w-full max-w-sm rounded-[2rem] px-7 py-10 text-center shadow-lift">
+      <div className="glass rise relative z-[2] w-full max-w-sm rounded-[2rem] px-7 py-10 text-center shadow-lift">
         <Wordmark />
-        <h1 id="age-title" className="mt-10 font-display text-5xl leading-none">
-          Members <em className="text-champagne">only.</em>
+        <h1 id="age-title" className="mt-10 font-display text-5xl leading-none tracking-[-0.04em]">
+          Members <em>only.</em>
         </h1>
         <p className="mx-auto mt-4 max-w-[30ch] text-muted">Amora contains mature content for adults aged 18 and over.</p>
         <Button size="lg" className="mt-10 w-full" onClick={enter} autoFocus>
@@ -76,7 +76,7 @@ export function HeroChat() {
       <div className="glass flex items-center gap-3 rounded-full py-1.5 pr-4 pl-1.5">
         <Avatar companion={emma} size="sm" />
         <div className="min-w-0 leading-tight">
-          <p className="font-display text-lg">{emma.name}</p>
+          <p className="font-medium">{emma.name}</p>
           <p className="text-xs text-sage">online now</p>
         </div>
         <span className="ml-auto text-xs text-muted">1:04</span>
@@ -121,8 +121,8 @@ export function ChatDemo() {
 
   return (
     <div ref={root} className="relative mx-auto w-full max-w-md">
-      <div className="absolute -inset-10 rounded-full bg-plum-hi/30 blur-3xl" aria-hidden />
-      <div className="relative overflow-hidden rounded-[2.25rem] border border-line-strong shadow-lift">
+      <div className="absolute -inset-10 rounded-full bg-blush/[0.06] blur-3xl" aria-hidden />
+      <div className="chrome reveal relative overflow-hidden rounded-[2.25rem] shadow-lift">
         <div className="absolute inset-0" aria-hidden>
           <Portrait companion={gina} sizes="448px" className="scale-125 opacity-50 blur-2xl" />
           <div className="absolute inset-0 bg-ink-950/60" />
@@ -130,7 +130,7 @@ export function ChatDemo() {
         <div className="glass relative z-[2] flex items-center gap-3 rounded-none border-x-0 border-t-0 px-5 py-4">
           <Avatar companion={gina} size="sm" />
           <div className="leading-tight">
-            <p className="font-display text-xl">{gina.name}</p>
+            <p className="font-medium">{gina.name}</p>
             <p className="text-xs text-sage">online now</p>
           </div>
         </div>
@@ -141,7 +141,7 @@ export function ChatDemo() {
                 <Portrait companion={gina} sizes="176px" className={s.photo === "locked" ? "scale-125 blur-lg brightness-[1.6] saturate-150" : ""} />
                 {s.photo === "locked" && (
                   <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-ink-950/30">
-                    <LockSimple weight="duotone" className="size-6 text-champagne" aria-hidden />
+                    <LockSimple weight="fill" className="size-5 text-ivory" aria-hidden />
                     <ButtonLink href="#pricing" className="h-9 px-4 text-sm">
                       Unlock photo
                     </ButtonLink>
@@ -179,7 +179,7 @@ export function Pricing() {
             role="radio"
             aria-checked={annual === value}
             onClick={() => setAnnual(value as boolean)}
-            className={`h-9 rounded-full px-4 text-sm transition-colors duration-150 ${annual === value ? "foil" : "text-muted hover:text-ivory"}`}
+            className={`h-9 rounded-full px-4 text-sm transition-colors duration-150 ${annual === value ? "pearl font-medium" : "text-muted hover:text-ivory"}`}
           >
             {label as string}
           </button>
@@ -187,12 +187,12 @@ export function Pricing() {
       </div>
 
       <div className="mt-8 grid gap-4 md:grid-cols-[1.35fr_1fr]">
-        {/* The membership card: brushed gold edge, slow specular pass. */}
-        <article className="aura sheen relative overflow-hidden rounded-[2rem] p-6 shadow-lift ring-1 ring-gold/45 sm:p-9">
+        {/* The membership card: a white-gold rim and one slow specular pass. */}
+        <article className="panel gilt sheen relative overflow-hidden rounded-[2rem] p-6 shadow-lift sm:p-9">
           <div className="flex items-center justify-between">
             <h3 className="font-display text-4xl">Premium</h3>
-            <span className="foil inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium">
-              <Crown weight="fill" className="size-3.5" aria-hidden />
+            <span className="glass inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium text-ivory">
+              <Crown weight="fill" className="size-3.5 text-gold" aria-hidden />
               Most chosen
             </span>
           </div>
@@ -206,14 +206,14 @@ export function Pricing() {
           <ul className="mt-7 grid gap-3 sm:grid-cols-2">
             {plans.premium.perks.map((p) => (
               <li key={p} className="flex items-center gap-2.5 text-ivory">
-                <span className="foil grid size-5 shrink-0 place-items-center rounded-full">
+                <span className="pearl grid size-5 shrink-0 place-items-center rounded-full">
                   <Check weight="bold" className="size-3" aria-hidden />
                 </span>
                 {p}
               </li>
             ))}
           </ul>
-          <ButtonLink href="/app" size="lg" className="mt-9 w-full">
+          <ButtonLink href="/app" size="lg" variant="premium" className="relative z-[2] mt-9 w-full">
             Become a member
           </ButtonLink>
           <p className="mt-3 text-center text-[0.8125rem] text-faint">30-day money-back guarantee</p>
@@ -230,7 +230,7 @@ export function Pricing() {
           <ul className="mt-7 space-y-3">
             {plans.starter.perks.map((p) => (
               <li key={p} className="flex items-center gap-2.5 text-muted">
-                <Check weight="light" className="size-4 shrink-0 text-champagne" aria-hidden />
+                <Check weight="bold" className="size-3.5 shrink-0 text-ivory/50" aria-hidden />
                 {p}
               </li>
             ))}

@@ -39,7 +39,7 @@ export function Sheet({ open, onClose, title, children }: { open: boolean; onClo
         {open && (
           <div className="fixed inset-0 z-50 flex items-end justify-center">
             <motion.div
-              className="absolute inset-0 bg-ink-950/60 backdrop-blur-md"
+              className="absolute inset-0 bg-black/55 backdrop-blur-md"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
@@ -52,11 +52,11 @@ export function Sheet({ open, onClose, title, children }: { open: boolean; onClo
               aria-modal="true"
               aria-label={title}
               tabIndex={-1}
-              className="grain aura relative max-h-[88dvh] w-full max-w-lg overflow-y-auto overscroll-contain rounded-t-sheet border-t border-gold/25 px-5 pb-[max(1.5rem,env(safe-area-inset-bottom))] shadow-lift focus:outline-none"
+              className="grain panel relative max-h-[88dvh] w-full max-w-lg overflow-y-auto overscroll-contain rounded-t-sheet border-t border-white/15 px-5 pb-[max(1.5rem,env(safe-area-inset-bottom))] shadow-lift focus:outline-none"
               initial={{ y: "100%" }}
               animate={{ y: 0 }}
               exit={{ y: "100%" }}
-              transition={{ type: "spring", duration: 0.45, bounce: 0.12 }}
+              transition={{ type: "spring", duration: 0.5, bounce: 0.14 }}
               drag="y"
               dragListener={false}
               dragControls={drag}
@@ -69,7 +69,7 @@ export function Sheet({ open, onClose, title, children }: { open: boolean; onClo
                 onPointerDown={(e) => drag.start(e)}
                 className="sticky top-0 z-10 -mx-5 flex cursor-grab touch-none justify-center pt-3 pb-4 active:cursor-grabbing"
               >
-                <span className="h-1 w-10 rounded-full bg-ink-600" aria-hidden />
+                <span className="h-1 w-9 rounded-full bg-white/25" aria-hidden />
               </div>
               <div className="relative z-[2]">{children}</div>
             </motion.div>

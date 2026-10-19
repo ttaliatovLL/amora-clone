@@ -8,7 +8,7 @@ export default function AppLayout({ children }: LayoutProps<"/app">) {
   return (
     <>
       <AgeGate />
-      <div className="grain velvet min-h-dvh">
+      <div className="grain room min-h-dvh">
         <AppNav />
         <div className="relative z-[2] md:pl-64">{children}</div>
       </div>

@@ -8,9 +8,12 @@ export function Portrait({
   face,
   sizes = "(max-width: 768px) 50vw, 25vw",
   priority,
+  src,
   className = "",
 }: {
   companion: Companion;
+  /** Another photo of her (gallery); defaults to the portrait. */
+  src?: string;
   /** Crop to the face (avatars). */
   face?: boolean;
   sizes?: string;
@@ -21,7 +24,7 @@ export function Portrait({
     return <Sketch name={c.name} hair={c.hair} wash={c.wash} crop={face ? "face" : "portrait"} className={`absolute inset-0 size-full ${className}`} />;
   return (
     <Image
-      src={c.photo}
+      src={src ?? c.photo}
       alt={`Portrait of ${c.name}`}
       fill
       sizes={face ? "96px" : sizes}

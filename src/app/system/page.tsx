@@ -10,10 +10,10 @@ import { worstCompanions, worstMessage } from "@/lib/companions.worst";
 const swatches = [
   ["ink-950", "Night", "bg-ink-950"],
   ["ink-800", "Raised", "bg-ink-800"],
-  ["plum", "Atmosphere", "bg-plum"],
-  ["oxblood", "Warmth", "bg-oxblood"],
-  ["foil", "Membership", "foil"],
-  ["champagne", "Emphasis", "bg-champagne"],
+  ["glass", "Liquid glass", "glass"],
+  ["pearl", "Action", "pearl chrome"],
+  ["gilt", "Premium rim", "panel gilt"],
+  ["blush", "Emphasis", "bg-blush"],
   ["rose", "Destructive", "bg-rose"],
   ["ivory", "Text", "bg-ivory"],
   ["muted", "Secondary text", "bg-muted"],
@@ -39,11 +39,11 @@ export default function SystemPage() {
   const featured = companions[0];
 
   return (
-    <main className="grain velvet min-h-dvh">
+    <main className="grain room min-h-dvh">
       <div className="relative z-[2] mx-auto max-w-6xl px-4 sm:px-8">
         <header className="flex items-center justify-between py-6">
           <Wordmark />
-          <span className="text-sm text-faint">Velvet Noir · design system</span>
+          <span className="text-sm text-faint">Graphite · design system</span>
         </header>
 
         {/* Opening: the system shown at work, not described. */}
@@ -52,10 +52,10 @@ export default function SystemPage() {
             <h1 className="font-display text-[clamp(2.75rem,8vw,5.5rem)] leading-[0.95] tracking-[-0.02em] text-ivory">
               After hours,
               <br />
-              <em className="text-champagne">members only.</em>
+              <em>members only.</em>
             </h1>
             <p className="mt-6 max-w-[42ch] text-lg leading-relaxed text-muted">
-              Plum-black rooms, champagne emphasis, brushed gold only where membership lives. Built for one hand, after midnight.
+              Graphite glass, pearl for action, polished steel on what matters, blush where she is. Gold only as a rim on Premium.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
               <Button size="lg" onClick={() => setSheet(true)}>
@@ -106,17 +106,17 @@ export default function SystemPage() {
           ) : (
             <p className="mt-10 text-muted">
               Nobody matches that right now.{" "}
-              <button type="button" className="text-champagne underline underline-offset-4" onClick={() => (setVibe(null), setOnlineOnly(false))}>
+              <button type="button" className="text-blush underline underline-offset-4" onClick={() => (setVibe(null), setOnlineOnly(false))}>
                 Clear filters
               </button>
             </p>
           )}
         </Section>
 
-        <Section title="Type" note="Zodiak Light for names and headlines, General Sans for everything you read in a hurry.">
+        <Section title="Type" note="General Sans throughout: medium and tight for names and headlines, regular for everything you read in a hurry.">
           <div className="space-y-6">
             <p className="font-display text-6xl leading-none">Emma</p>
-            <p className="font-display text-3xl italic text-champagne">She remembered what you said.</p>
+            <p className="font-display text-3xl">She remembered <em>what you said.</em></p>
             <p className="max-w-[60ch] text-lg leading-relaxed text-ivory">
               its 1am and im surrounded by boxes i still havent unpacked, in a flat that doesnt feel like mine yet. tell me a 2am thought, i&apos;ll trade u one of mine
             </p>

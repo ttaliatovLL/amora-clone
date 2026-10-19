@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Check, CheckCircle, Coins, Crown } from "@phosphor-icons/react/ssr";
+import { Check, Coins, Crown } from "@phosphor-icons/react/ssr";
 import { Sheet } from "@/components/sheet";
 import { Button } from "@/components/ui";
 import { coinPacks, plans } from "@/lib/plans";
@@ -31,8 +31,10 @@ export function Paywall({ open, onClose, reason }: { open: boolean; onClose: () 
     <Sheet open={open} onClose={close} title="Unlock more">
       {done ? (
         <div className="py-6 text-center">
-          <CheckCircle weight="thin" className="mx-auto size-16 text-gold" aria-hidden />
-          <p className="mt-3 font-display text-4xl">Welcome in.</p>
+          <span className="pearl gilt mx-auto grid size-16 place-items-center rounded-full">
+            <Check weight="bold" className="size-7" aria-hidden />
+          </span>
+          <p className="mt-5 font-display text-4xl">Welcome in.</p>
           <p className="mt-3 text-muted">{done}</p>
           <Button size="lg" className="mt-8 w-full" onClick={close}>
             Back to her
@@ -40,13 +42,13 @@ export function Paywall({ open, onClose, reason }: { open: boolean; onClose: () 
         </div>
       ) : (
         <>
-          {reason && <p className="mb-3 text-sm text-champagne">{reason}</p>}
+          {reason && <p className="mb-4 text-sm text-muted">{reason}</p>}
           {!premium && (
-            <section className="aura sheen relative rounded-card p-5 ring-1 ring-gold/35">
+            <section className="panel gilt sheen relative rounded-card p-5">
               <div className="flex items-start justify-between gap-4">
                 <div>
                   <h2 className="flex items-center gap-2 font-display text-3xl">
-                    <Crown weight="duotone" className="size-6 text-gold" aria-hidden />
+                    <Crown weight="fill" className="size-5 text-gold" aria-hidden />
                     Premium
                   </h2>
                   <p className="mt-1 text-sm text-muted">Every photo she sends, no locks.</p>
@@ -54,7 +56,7 @@ export function Paywall({ open, onClose, reason }: { open: boolean; onClose: () 
                 <button
                   type="button"
                   onClick={() => setAnnual(!annual)}
-                  className="shrink-0 rounded-full border border-line-strong px-3 py-1.5 text-xs text-muted hover:text-ivory"
+                  className="glass relative z-[2] shrink-0 rounded-full px-3 py-1.5 text-xs text-ivory transition-transform active:scale-95"
                   aria-label={`Billing: ${annual ? "annual" : "monthly"}. Switch`}
                 >
                   {annual ? "Annual · −30%" : "Monthly"}
@@ -68,12 +70,12 @@ export function Paywall({ open, onClose, reason }: { open: boolean; onClose: () 
               <ul className="mt-4 grid grid-cols-2 gap-x-3 gap-y-1.5 text-sm text-ivory">
                 {plans.premium.perks.map((p) => (
                   <li key={p} className="flex gap-2">
-                    <Check weight="bold" className="mt-0.5 size-3.5 shrink-0 text-gold" aria-hidden />
+                    <Check weight="bold" className="mt-0.5 size-3.5 shrink-0 text-ivory/70" aria-hidden />
                     {p}
                   </li>
                 ))}
               </ul>
-              <Button size="lg" className="mt-5 w-full" onClick={buyPlan}>
+              <Button size="lg" variant="premium" className="relative z-[2] mt-5 w-full" onClick={buyPlan}>
                 Go Premium
               </Button>
             </section>
@@ -88,9 +90,11 @@ export function Paywall({ open, onClose, reason }: { open: boolean; onClose: () 
                 key={p.coins}
                 type="button"
                 onClick={() => buyCoins(p.coins)}
-                className={`flex flex-col items-center gap-1 rounded-2xl border px-2 py-4 transition-[transform,border-color] duration-150 active:scale-[0.97] ${p.best ? "border-gold/60 bg-gold/10 shadow-glow" : "border-line-strong bg-ink-950/40 hover:border-champagne-lo/50"}`}
+                className={`glass flex flex-col items-center gap-1 rounded-2xl px-2 py-4 transition-transform duration-150 active:scale-[0.97] ${p.best ? "chrome bg-white/[0.12]" : ""}`}
               >
-                <Coins weight="duotone" className="size-6 text-gold" aria-hidden />
+                <span className="grid size-7 place-items-center rounded-full bg-linear-to-b from-[#f6e6c4] to-[#a7854c] text-ink-950 shadow-[inset_0_1px_0_#fff8]">
+                  <Coins weight="bold" className="size-4" aria-hidden />
+                </span>
                 <span className="font-medium tabular-nums">{p.coins.toLocaleString()}</span>
                 <span className="text-sm text-muted tabular-nums">${p.price}</span>
               </button>

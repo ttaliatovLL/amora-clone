@@ -75,22 +75,24 @@ export function Chat({ companion: c }: { companion: Companion }) {
       {/* Her, out of focus, filling the room. */}
       <div className="pointer-events-none absolute inset-0" aria-hidden>
         <Portrait companion={c} sizes="100vw" className="scale-125 opacity-70 blur-3xl" />
-        <div className="absolute inset-0 bg-linear-to-b from-ink-950/60 via-plum/30 to-ink-950/90" />
+        <div className="absolute inset-0 bg-linear-to-b from-ink-950/60 via-ink-950/40 to-ink-950/90" />
       </div>
 
       <header className="glass relative z-10 flex items-center gap-2 rounded-none border-x-0 border-t-0 px-2 pt-[env(safe-area-inset-top)] backdrop-blur-xl sm:px-4">
         <Link href={`/app/${c.id}`} aria-label={`Back to ${c.name}'s profile`} className="grid size-11 place-items-center rounded-full text-ivory active:scale-95">
-          <CaretLeft weight="light" className="size-5" aria-hidden />
+          <CaretLeft weight="regular" className="size-5" aria-hidden />
         </Link>
         <button type="button" onClick={() => setProfile(true)} className="flex min-w-0 flex-1 items-center gap-3 py-2.5 text-left">
           <Avatar companion={c} size="sm" />
           <span className="min-w-0 leading-tight">
-            <span className="block truncate font-display text-xl">{c.name}</span>
-            <span className={`block text-xs ${typing ? "text-champagne" : c.online ? "text-sage" : "text-faint"}`}>{typing ? "typing…" : c.online ? "online now" : "away"}</span>
+            <span className="block truncate font-display text-lg">{c.name}</span>
+            <span className={`block text-xs ${typing ? "text-blush" : c.online ? "text-sage" : "text-faint"} transition-colors`}>{typing ? "typing…" : c.online ? "online now" : "away"}</span>
           </span>
         </button>
-        <span className="glass mr-2 inline-flex h-8 items-center gap-1.5 rounded-full px-3 text-sm tabular-nums" aria-label={`${coins} coins`}>
-          <Coins weight="duotone" className="size-4 text-gold" aria-hidden />
+        <span className="glass mr-2 inline-flex h-8 items-center gap-1.5 rounded-full pr-3 pl-1.5 text-sm font-medium tabular-nums" aria-label={`${coins} coins`}>
+          <span className="grid size-5 place-items-center rounded-full bg-linear-to-b from-[#f6e6c4] to-[#a7854c] text-ink-950 shadow-[inset_0_1px_0_#fff8]">
+            <Coins weight="bold" className="size-3" aria-hidden />
+          </span>
           {coins.toLocaleString()}
         </span>
       </header>
@@ -99,16 +101,17 @@ export function Chat({ companion: c }: { companion: Companion }) {
         <div role="log" aria-live="polite" aria-label={`Conversation with ${c.name}`} className="mx-auto flex max-w-2xl flex-col gap-2.5 px-4 py-6">
           {msgs.map((m) =>
             m.photo ? (
-              <figure key={m.id} className="animate-bubble-in relative aspect-[4/5] w-56 self-start overflow-hidden rounded-[1.375rem] rounded-bl-md shadow-lift ring-1 ring-gold/20">
+              <figure key={m.id} className="animate-bubble-in relative aspect-[4/5] w-56 self-start overflow-hidden rounded-[1.375rem] rounded-bl-md shadow-lift ring-1 ring-white/15">
                 <Portrait
                   companion={c}
+                  src={c.gallery[m.id % 2 ? 0 : 1]}
                   sizes="224px"
-                  className={`${CROPS[m.id % CROPS.length]} ${m.photo.unlocked || premium ? "animate-develop" : "blur-lg brightness-[1.6] saturate-150"}`}
+                  className={`${CROPS[m.id % CROPS.length]} ${m.photo.unlocked || premium ? "animate-develop" : "blur-xl brightness-[1.3] saturate-150"}`}
                 />
                 {!m.photo.unlocked && !premium && (
                   <figcaption className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-ink-950/30 p-3 text-center">
                     <span className="glass grid size-11 place-items-center rounded-full">
-                      <LockSimple weight="duotone" className="size-5 text-champagne" aria-hidden />
+                      <LockSimple weight="fill" className="size-[1.125rem] text-ivory" aria-hidden />
                     </span>
                     {coins >= m.photo.price ? (
                       <Button onClick={() => unlock(m.id)} className="h-9 px-4 text-sm">
@@ -119,7 +122,7 @@ export function Chat({ companion: c }: { companion: Companion }) {
                         Get coins
                       </Button>
                     )}
-                    <button type="button" onClick={() => setPaywall(true)} className="text-xs text-champagne-hi underline-offset-4 hover:underline">
+                    <button type="button" onClick={() => setPaywall(true)} className="text-xs font-medium text-ivory drop-shadow underline-offset-4 hover:underline">
                       Free with Premium
                     </button>
                   </figcaption>
@@ -164,13 +167,13 @@ export function Chat({ companion: c }: { companion: Companion }) {
             autoComplete="off"
             enterKeyHint="send"
             maxLength={1000}
-            className="h-12 min-w-0 flex-1 rounded-full border border-line-strong bg-ink-950/50 px-5 text-base text-ivory placeholder:text-faint focus:border-champagne-lo focus:outline-none"
+            className="h-12 min-w-0 flex-1 rounded-full border border-white/10 bg-black/30 px-5 text-base text-ivory shadow-[inset_0_1px_2px_rgb(0_0_0/0.5)] transition-[border-color] placeholder:text-faint focus:border-white/30 focus:outline-none"
           />
           <button
             type="submit"
             disabled={!draft.trim() || typing}
             aria-label="Send"
-            className="foil grid size-12 shrink-0 place-items-center rounded-full shadow-glow transition-[transform,opacity] duration-150 active:scale-90 disabled:opacity-35"
+            className="pearl chrome grid size-12 shrink-0 place-items-center rounded-full transition-[transform,opacity] duration-150 active:scale-90 disabled:opacity-30"
           >
             <ArrowUp weight="bold" className="size-5" aria-hidden />
           </button>
@@ -202,11 +205,11 @@ export function Chat({ companion: c }: { companion: Companion }) {
               .filter((m) => m.photo && (m.photo.unlocked || premium))
               .map((m) => (
                 <div key={m.id} className="relative aspect-[4/5] overflow-hidden">
-                  <Portrait companion={c} sizes="160px" className={CROPS[m.id % CROPS.length]} />
+                  <Portrait companion={c} src={c.gallery[m.id % 2 ? 0 : 1]} sizes="160px" className={CROPS[m.id % CROPS.length]} />
                 </div>
               ))
           ) : (
-            <p className="col-span-3 rounded-card bg-ink-850 p-4 text-sm text-muted">Nothing yet. Ask her for one.</p>
+            <p className="col-span-3 rounded-2xl border border-line bg-white/[0.03] p-4 text-sm text-muted">Nothing yet. Ask her for one.</p>
           )}
         </div>
         <Button size="lg" className="mt-8 w-full" onClick={() => setProfile(false)}>

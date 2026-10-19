@@ -23,11 +23,11 @@ Age gate on entry. Discover companions → chat → media unlocks. Money: one Pr
 
 ## Capabilities and Constraints
 - Account deletion must actually work (GDPR Art. 17); today it is a "Coming soon" stub.
-- Companion imagery is the client's own content; this build uses line-art sketch placeholders, and every image slot is sized for real photos (4:5 portrait, 1:1 avatar, 9:16 story).
+- Companion imagery is the client's own content; this build uses AI-generated portraits of fictional adults (line-art sketch fallback), and every image slot is sized for real photos (4:5 portrait, 1:1 avatar, 9:16 story).
 - Backend (auth, AI chat, payments) is mocked until the UI shell is approved.
 
 ## Brand Commitments
-Name "Amora". Thin, high-contrast serif wordmark with a small flourish symbol (real logo SVG not yet supplied). Blush primary action on near-black, wine accent: kept and refined across landing and app (user decision).
+Name "Amora". Custom monoline lowercase wordmark plus a linked-rings steel glyph (user decision, 2026-10-19). Graphite + chrome palette: liquid glass, pearl primary action with metal rims, blush accent; gold only as a rim on Premium (user decision, 2026-10-19). Companion imagery is editorial-sensual fashion, no nudity (user decision, 2026-10-19).
 
 ## Evidence on Hand
 Screenshots of the current site in `reference/screenshots/`. Companion names, taglines and traits come from the current site. Testimonials, member counts and press must not be invented.
