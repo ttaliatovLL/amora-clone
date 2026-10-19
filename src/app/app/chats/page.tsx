@@ -5,8 +5,8 @@ import { companions } from "@/lib/companions";
 // shortcut: mock inbox until conversations are stored server-side.
 const inbox = [
   { id: "emma", last: "tell me a 2am thought, i'll trade u one of mine", when: "1:04", unread: 1 },
-  { id: "gina", last: "we lost on a question about eels. here, proof of the swim", when: "Yesterday", unread: 0 },
-  { id: "margot", last: "You: That gallery sounds perfect", when: "Mon", unread: 0 },
+  { id: "gina", last: "i'm basically a legend", when: "Yesterday", unread: 0 },
+  { id: "margot", last: "I'll take you. If you're patient.", when: "Yesterday", unread: 0 },
 ].map((m) => ({ ...m, c: companions.find((c) => c.id === m.id)! }));
 
 export default function Chats() {

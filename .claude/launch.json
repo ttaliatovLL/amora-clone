@@ -1,6 +1,7 @@
 {
   "version": "0.0.1",
   "configurations": [
-    { "name": "amora", "runtimeExecutable": "npm", "runtimeArgs": ["run", "dev"], "port": 3000 }
+    { "name": "amora", "runtimeExecutable": "npm", "runtimeArgs": ["run", "dev"], "port": 3000 },
+    { "name": "amora-prod", "runtimeExecutable": "npx", "runtimeArgs": ["next", "start", "-p", "3005"], "port": 3005 }
   ]
 }
