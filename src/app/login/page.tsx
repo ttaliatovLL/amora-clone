@@ -103,11 +103,11 @@ export default function Login() {
                   <input type="checkbox" name="adult" required className="mt-px size-[1.125rem] shrink-0 accent-[var(--color-rouge)]" />
                   <span>
                     I&apos;m 18 or older and accept the{" "}
-                    <Link href="#" className="text-paper underline underline-offset-4">
+                    <Link href="/terms" className="text-paper underline underline-offset-4">
                       Terms
                     </Link>{" "}
                     and{" "}
-                    <Link href="#" className="text-paper underline underline-offset-4">
+                    <Link href="/privacy" className="text-paper underline underline-offset-4">
                       Privacy policy
                     </Link>
                     .

@@ -67,7 +67,7 @@ export default function Me() {
   // shortcut: mock coin purchase; real checkout (USDT/USDC) replaces this.
   const buyCoins = (n: number) => {
     setWallet((x) => ({ coins: x.coins + n }));
-    toast(`${n.toLocaleString()} coins added`);
+    toast(`${n.toLocaleString("en-US")} coins added`);
   };
 
   return (
@@ -86,7 +86,7 @@ export default function Me() {
       <nav aria-label="On this page" className="rise mt-6 grid grid-cols-3 gap-2 [--i:1] md:mt-8 md:max-w-2xl">
         {[
           ["#premium", "Membership", w.premium ? "Premium" : "Free"],
-          ["#coins", "Coins", w.coins.toLocaleString()],
+          ["#coins", "Coins", w.coins.toLocaleString("en-US")],
           ["#record", "Record", `${earned}/${achievements.length}`],
         ].map(([href, label, value]) => (
           <a key={href} href={href} className="press flex min-w-0 flex-col bg-ink-2 p-3 hover:bg-ink-3 active:bg-ink-4 md:p-4">
@@ -137,7 +137,7 @@ export default function Me() {
               Coins
             </h2>
             <p className="mt-2 flex items-center gap-3 font-display text-[clamp(2.25rem,1rem+5vw,4.75rem)] leading-[0.92] tabular">
-              {w.coins.toLocaleString()}
+              {w.coins.toLocaleString("en-US")}
               <Coins weight="fill" className="size-[0.6em] shrink-0 text-rouge" aria-hidden />
             </p>
             <p className="mt-3 text-body text-muted">For one-off unlocks and gifts.</p>
@@ -152,7 +152,7 @@ export default function Me() {
               >
                 <span className="text-small">{c.best ? <span className="text-rouge-lo">Best value</span> : " "}</span>
                 <span>
-                  <span className="block text-body font-medium tabular sm:text-lead">{c.coins.toLocaleString()}</span>
+                  <span className="block text-body font-medium tabular sm:text-lead">{c.coins.toLocaleString("en-US")}</span>
                   <span className={cx("block text-small tabular", c.best ? "text-ink/70" : "text-muted")}>${c.price}</span>
                 </span>
               </button>
@@ -203,7 +203,7 @@ export default function Me() {
                 <span />
               </Row>
               <Row title="Cookie settings" note="Essential only, unless you turn more on." onClick={openCookieSettings} />
-              <Row title="Privacy policy" note="Conversations are stored encrypted." href="#" />
+              <Row title="Privacy policy" note="Conversations are stored encrypted." href="/privacy" />
             </div>
 
             <h3 className="mt-8 mb-3 text-body font-medium">Account</h3>
@@ -260,7 +260,7 @@ export default function Me() {
               <p className="mt-4 text-body text-paper">This permanently removes, for good:</p>
             </div>
             <ul className="mt-5 grid gap-1">
-              {["Your profile and sign-in", "Every conversation and what she remembers", "Photos you unlocked", `Your ${w.coins.toLocaleString()} coins${w.premium ? " and Premium" : ""}, with no refund`].map((t) => (
+              {["Your profile and sign-in", "Every conversation and what she remembers", "Photos you unlocked", `Your ${w.coins.toLocaleString("en-US")} coins${w.premium ? " and Premium" : ""}, with no refund`].map((t) => (
                 <li key={t} className="flex items-center gap-3 bg-ink-3 px-4 py-3 text-body">
                   <span className="size-1.5 shrink-0 bg-rouge" aria-hidden />
                   {t}

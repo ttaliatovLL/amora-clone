@@ -41,3 +41,6 @@ yarn-error.log*
 next-env.d.ts
 
 .taste-skill/
+
+# local-only launch-video output
+/brag-output/

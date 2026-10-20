@@ -50,6 +50,7 @@ export function Chat({ companion: c }: { companion: Companion }) {
   const queue = useRef<Beat[]>([]);
   const running = useRef(false);
   const alive = useRef(true);
+  const gen = useRef(0); // bumps on every mount, so a loop left over from a hidden visit stops
   const input = useRef<HTMLInputElement>(null);
   const shell = useRef<HTMLElement>(null);
   const parties = useRef(0);
@@ -83,8 +84,10 @@ export function Chat({ companion: c }: { companion: Companion }) {
   const run = async () => {
     if (running.current) return;
     running.current = true;
+    const g = gen.current;
+    const live = () => alive.current && gen.current === g;
     setBusy(true);
-    while (queue.current.length && alive.current) {
+    while (queue.current.length && live()) {
       const b = queue.current[0];
       if (isGallery(b) && getConvo(c.id).photoSent) {
         queue.current.shift();
@@ -93,7 +96,7 @@ export function Chat({ companion: c }: { companion: Companion }) {
       setOnline(true);
       setStatus(typeof b === "string" ? "typing" : "voice" in b ? "recording" : "photo");
       await wait(typingMs(b));
-      if (!alive.current) break;
+      if (!live()) break;
       queue.current.shift();
       setStatus(null);
       push({ from: "her", beat: b, unlocked: !(typeof b === "object" && "photo" in b && b.locked) });
@@ -101,11 +104,10 @@ export function Chat({ companion: c }: { companion: Companion }) {
       if (!atBottom.current) setPill(true);
       await wait(380);
     }
+    if (!live()) return; // cleanup already reset running/busy/status
     running.current = false;
-    if (alive.current) {
-      setStatus(null);
-      setBusy(false);
-    }
+    setStatus(null);
+    setBusy(false);
   };
 
   const say = (beats: Beat[]) => {
@@ -115,7 +117,10 @@ export function Chat({ companion: c }: { companion: Companion }) {
 
   useEffect(() => {
     alive.current = true;
+    gen.current++;
     setConvo(c.id, () => ({ unread: 0 }));
+    // Next keeps this page alive (hidden) when you navigate away; finish what she was saying.
+    if (queue.current.length) run();
     let t: ReturnType<typeof setTimeout> | undefined;
     if (!getConvo(c.id).opened && s) {
       // Marked inside the timer so a dev double-mount doesn't swallow her greeting.
@@ -127,7 +132,8 @@ export function Chat({ companion: c }: { companion: Companion }) {
     return () => {
       alive.current = false;
       running.current = false;
-      queue.current = [];
+      setStatus(null);
+      setBusy(false);
       clearTimeout(t);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps -- once per mount; say/run read refs only
@@ -162,13 +168,14 @@ export function Chat({ companion: c }: { companion: Companion }) {
   /** I send something; she reads it after a moment, maybe hearts it, then answers. */
   const send = (beat: Msg["beat"], answer: Beat[], heart = false) => {
     atBottom.current = true;
+    setBusy(true); // hide quick replies until she has answered
     const id = push({ from: "me", beat });
     track.message(c.id);
     setTimeout(() => {
-      if (!alive.current) return;
+      if (!alive.current) return void queue.current.push(...answer);
       setOnline(true);
       setConvo(c.id, (v) => ({ readUpTo: id, readAt: clock(), msgs: heart ? v.msgs.map((m) => (m.id === id ? { ...m, heart: true } : m)) : v.msgs }));
-      setTimeout(() => alive.current && say(answer), 450);
+      setTimeout(() => (alive.current ? say(answer) : queue.current.push(...answer)), 450);
     }, 700 + (id % 4) * 190);
   };
 
@@ -325,7 +332,7 @@ export function Chat({ companion: c }: { companion: Companion }) {
         <div className="bg-ink-2 pb-[max(0.75rem,env(safe-area-inset-bottom))] group-data-[kb]:pb-3">
           <div className="mx-auto w-full max-w-[760px]">
             {options && !tray && (
-              <div className="flex gap-2 overflow-x-auto overscroll-x-contain px-3 pt-3 [scrollbar-width:none] sm:px-5 md:flex-wrap" aria-label="Quick replies">
+              <div className="flex gap-2 overflow-x-auto overscroll-x-contain px-3 pt-3 [scrollbar-width:none] sm:px-5 md:flex-wrap" role="group" aria-label="Quick replies">
                 {options.map((o, i) => (
                   <motion.button
                     key={`${turn}-${o.say}`}
@@ -521,6 +528,7 @@ function Row({ her, first, heart, onHeart, animate, children }: { her: boolean; 
               exit={{ scale: 0, opacity: 0, transition: { duration: 0.15 } }}
               transition={{ type: "spring", stiffness: 600, damping: 16 }}
               className={cx("absolute -bottom-3 grid size-6 place-items-center rounded-full bg-ink-5 text-rouge ring-2 ring-ink", her ? "right-2" : "left-2")}
+              role="img"
               aria-label={her ? "You loved this" : "She loved this"}
             >
               <Heart size={12} weight="fill" aria-hidden />
