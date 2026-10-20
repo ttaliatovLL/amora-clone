@@ -7,8 +7,12 @@ import { fitName } from "@/components/board/fit-name";
 import { Gallery, TrackView } from "@/components/board/profile-client";
 import { Portrait } from "@/components/portrait";
 import { SaveButton } from "@/components/save-button";
-import { ButtonLink } from "@/components/ui";
+import { ButtonLink, Facts } from "@/components/ui";
 import { bios, companions } from "@/lib/companions";
+
+const count = (n: number) => n.toLocaleString("en-US");
+/** Taglines are stored without a full stop; add one unless she ended on her own punctuation. */
+const sentence = (t: string) => (/[.!?…]$/.test(t) ? t : `${t}.`);
 
 export function generateStaticParams() {
   return companions.map((c) => ({ id: c.id }));
@@ -40,8 +44,12 @@ async function ProfileBody({ params }: Pick<PageProps<"/app/[id]">, "params">) {
     ["Sign", c.sign],
     ["Languages", c.langs.join(", ")],
     ["Vibe", c.vibe],
-    ["Photos", c.photos],
+    ["Photos", count(c.photos)],
   ] as const;
+  const about = [
+    ["Her nature", c.traits.join(", ")],
+    ["Talk to her about", c.interests.join(", ")],
+  ].filter(([, v]) => v);
 
   return (
     <main className="md:grid md:grid-cols-2">
@@ -69,34 +77,39 @@ async function ProfileBody({ params }: Pick<PageProps<"/app/[id]">, "params">) {
           <CaretLeft weight="bold" className="size-[1.125rem]" aria-hidden />
         </Link>
         <div className="drift-out absolute inset-x-0 bottom-0 p-4 pb-6 md:p-8 md:pb-10 md:animate-none!">
-          <h1 className="font-display leading-[0.88] text-paper [--inset:2rem] md:[--inset:4rem]" style={fitName(c.name, "10rem", "var(--inset)")}>
+          <h1 className="font-display leading-[0.88] text-paper [--inset:2rem] md:[--inset:4rem]" style={fitName(c.name, "10rem", "var(--inset)", 2)}>
             {c.name}
           </h1>
-          <p className="mt-4 flex flex-wrap items-center gap-x-2 text-lead text-paper/85 tabular">
-            {c.age} · {c.city} · {c.sign}
-            {c.online && (
-              <span className="ml-1 inline-flex items-center gap-2 text-body text-paper">
-                <span className="live-dot size-2 rounded-full bg-live" aria-hidden />
-                Online
-              </span>
-            )}
-          </p>
+          <Facts
+            className="mt-4 text-lead text-paper/85 tabular"
+            items={[
+              c.age,
+              c.city,
+              c.sign,
+              c.online && (
+                <span className="inline-flex items-center gap-2 text-body text-paper">
+                  <span className="live-dot size-2 rounded-full bg-live" aria-hidden />
+                  Online
+                </span>
+              ),
+            ]}
+          />
         </div>
       </div>
 
       <div className="min-w-0">
         {/* Phones: pinned to the thumb. Desktop: pinned under the top bar. */}
         <div className="fixed inset-x-0 bottom-0 z-40 flex gap-2 bg-ink px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] md:sticky md:top-20 md:bottom-auto md:z-10 md:px-12 md:py-5">
-          <ButtonLink href={`/app/${c.id}/chat`} className="flex-1 md:flex-none md:px-10">
-            <ChatCircleDots weight="fill" className="size-5" aria-hidden />
-            Message {c.name}
+          <ButtonLink href={`/app/${c.id}/chat`} className="min-w-0 flex-1 md:flex-initial md:px-10">
+            <ChatCircleDots weight="fill" className="size-5 shrink-0" aria-hidden />
+            <span className="truncate">Message {c.name}</span>
           </ButtonLink>
-          <SaveButton id={c.id} name={c.name} label />
+          <SaveButton id={c.id} name={c.name} label className="shrink-0" />
         </div>
 
         {/* The back of her card: a paper field, ink type. */}
         <section aria-label={`About ${c.name}`} className="bg-paper px-4 py-10 text-ink md:px-12 md:py-14">
-          <p className="reveal max-w-[28ch] text-[clamp(1.5rem,1.2rem+1.2vw,2.25rem)] leading-[1.15] font-medium">{c.tagline}.</p>
+          <p className="reveal max-w-[28ch] text-[clamp(1.5rem,1.2rem+1.2vw,2.25rem)] leading-[1.15] font-medium [overflow-wrap:anywhere]">{sentence(c.tagline)}</p>
           {bios[c.id] && <p className="reveal mt-5 max-w-[56ch] text-body text-ink/80 md:text-lead">{bios[c.id]}</p>}
 
           <dl className="reveal mt-10 grid grid-cols-2 gap-x-6 gap-y-6 sm:grid-cols-3">
@@ -108,16 +121,16 @@ async function ProfileBody({ params }: Pick<PageProps<"/app/[id]">, "params">) {
             ))}
           </dl>
 
-          <dl className="reveal mt-10 grid gap-6 md:grid-cols-2">
-            <div>
-              <dt className="text-small text-ink/60">Her nature</dt>
-              <dd className="mt-1 text-lead font-medium">{c.traits.join(", ")}</dd>
-            </div>
-            <div>
-              <dt className="text-small text-ink/60">Talk to her about</dt>
-              <dd className="mt-1 text-lead font-medium">{c.interests.join(", ")}</dd>
-            </div>
-          </dl>
+          {about.length > 0 && (
+            <dl className="reveal mt-10 grid gap-6 md:grid-cols-2">
+              {about.map(([label, value]) => (
+                <div key={label} className="min-w-0">
+                  <dt className="text-small text-ink/60">{label}</dt>
+                  <dd className="mt-1 text-lead font-medium [overflow-wrap:anywhere]">{value}</dd>
+                </div>
+              ))}
+            </dl>
+          )}
         </section>
 
         <section aria-labelledby="photos" className="pt-10 pb-6 md:px-12 md:py-14">
@@ -125,7 +138,7 @@ async function ProfileBody({ params }: Pick<PageProps<"/app/[id]">, "params">) {
             <h2 id="photos" className="font-display text-head">
               Her photos
             </h2>
-            <p className="shrink-0 text-body text-muted tabular">{c.photos} in all</p>
+            {c.photos > 0 && <p className="shrink-0 text-body text-muted tabular">{count(c.photos)} in all</p>}
           </div>
           <div className="mt-5">
             <Gallery c={c} />

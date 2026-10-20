@@ -89,22 +89,21 @@ export default function Me() {
     <main className="mx-auto max-w-6xl px-4 pt-6 pb-16 md:px-8 md:pt-14">
       {/* The member, set like a name on the agency board. */}
       <header className="rise">
-        <h1 className="line-clamp-2 font-display text-mega [overflow-wrap:anywhere]">{w.name}</h1>
-        <p className="mt-5 text-lead text-paper">
-          {w.premium ? "Premium member" : "Free member"}
-          <span className="text-muted"> · {w.email}</span>
-        </p>
+        {/* A long name drops to the headline size instead of being chopped mid-word at mega. */}
+        <h1 className={cx("line-clamp-2 font-display [overflow-wrap:anywhere]", w.name.length > 12 ? "text-head" : "text-mega")}>{w.name}</h1>
+        <p className="mt-5 text-lead text-paper">{w.premium ? "Premium member" : "Free member"}</p>
+        <p className="mt-1 truncate text-body text-muted">{w.email}</p>
       </header>
 
       <nav aria-label="On this page" className="rise mt-8 grid grid-cols-3 gap-2 [--i:1]">
         {[
           ["#premium", "Membership", w.premium ? "Premium" : "Free"],
           ["#coins", "Coins", w.coins.toLocaleString()],
-          ["#record", "Record", `${earned} of ${achievements.length}`],
+          ["#record", "Record", `${earned}/${achievements.length}`],
         ].map(([href, label, value]) => (
-          <a key={href} href={href} className="press flex flex-col bg-ink-2 px-4 py-4 hover:bg-ink-3 sm:px-5">
+          <a key={href} href={href} className="press flex min-w-0 flex-col bg-ink-2 px-3 py-4 hover:bg-ink-3 sm:px-5">
             <span className="text-small text-muted">{label}</span>
-            <span className="mt-1 truncate text-lead font-medium tabular">{value}</span>
+            <span className="mt-1 truncate text-body font-medium tabular sm:text-lead">{value}</span>
           </a>
         ))}
       </nav>
@@ -143,13 +142,13 @@ export default function Me() {
         )}
       </section>
 
-      <section id="coins" aria-labelledby="coins-h" className="mt-3 scroll-mt-28 bg-ink-2 p-6 sm:p-8">
+      <section id="coins" aria-labelledby="coins-h" className="mt-3 scroll-mt-28 bg-ink-2 p-5 sm:p-8">
         <div className="grid gap-8 lg:grid-cols-2 lg:items-end">
           <div>
             <h2 id="coins-h" className="text-lead text-muted">
               Coins
             </h2>
-            <p className="mt-2 flex items-center gap-3 font-display text-[clamp(3rem,1rem+7vw,7rem)] leading-[0.92] tabular">
+            <p className="mt-2 flex items-center gap-3 font-display text-[clamp(2.25rem,0.25rem+10vw,7rem)] leading-[0.92] tabular">
               {w.coins.toLocaleString()}
               <Coins weight="fill" className="size-[0.6em] shrink-0 text-rouge" aria-hidden />
             </p>
@@ -161,11 +160,11 @@ export default function Me() {
                 key={c.coins}
                 type="button"
                 onClick={() => buyCoins(c.coins)}
-                className={cx("press flex min-h-28 flex-col items-start justify-between p-4 text-left", c.best ? "bg-paper text-ink hover:bg-white" : "bg-ink-4 hover:bg-ink-5")}
+                className={cx("press flex min-h-28 min-w-0 flex-col items-start justify-between p-3 text-left sm:p-4", c.best ? "bg-paper text-ink hover:bg-white" : "bg-ink-4 hover:bg-ink-5")}
               >
                 <span className="text-small">{c.best ? <span className="text-rouge-lo">Best value</span> : " "}</span>
                 <span>
-                  <span className="block text-lead font-medium tabular">{c.coins.toLocaleString()}</span>
+                  <span className="block text-body font-medium tabular sm:text-lead">{c.coins.toLocaleString()}</span>
                   <span className={cx("block text-small tabular", c.best ? "text-ink/70" : "text-muted")}>${c.price}</span>
                 </span>
               </button>
@@ -290,7 +289,7 @@ export default function Me() {
                 autoComplete="off"
                 autoCapitalize="characters"
                 spellCheck={false}
-                className="mt-2 h-13 w-full bg-ink-3 px-4 text-base text-paper tracking-[0.2em] transition-[background-color,box-shadow] duration-150 focus:bg-ink-4 focus:ring-2 focus:ring-rouge focus:outline-none"
+                className="mt-2 h-13 w-full bg-ink-3 px-4 text-base text-paper tracking-[0.2em] transition-[background-color,box-shadow] duration-150 focus:bg-ink-4 focus:ring-2 focus:ring-rouge outline-none!"
               />
             </label>
             <Button type="submit" size="lg" className="mt-6 w-full" disabled={typed !== "DELETE" || del === "working"}>

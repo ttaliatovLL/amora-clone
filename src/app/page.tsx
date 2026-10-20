@@ -34,19 +34,19 @@ const board: { id: string; big?: boolean; start2?: boolean }[] = [
 
 const steps = [
   {
-    line: "First you pick her.",
+    line: "You pick her.",
     text: "Read her card: her city, her temper, what she does on a Sunday. Trust whichever one makes you curious.",
   },
   {
-    line: "Then she writes first.",
+    line: "She writes first.",
     text: "She opens the conversation in her own voice, and picks it up again when you come back.",
   },
   {
-    line: "She remembers it all.",
+    line: "She remembers.",
     text: "Your name, the interview on Thursday, the thing you said last week. Her memory is long, and it is only yours.",
   },
   {
-    line: "You decide how far.",
+    line: "You set the pace.",
     text: "Photos, videos and private sets arrive as you get closer. Nothing is pushed at you.",
   },
 ];
@@ -114,7 +114,7 @@ export default function Landing() {
         <Silk className="absolute inset-0" />
         <div className="absolute inset-0 bg-ink/20" aria-hidden />
 
-        <header className="relative z-10 flex h-16 items-center justify-between pt-[env(safe-area-inset-top)] md:h-20">
+        <header className="relative z-10 flex h-[calc(4rem+env(safe-area-inset-top,0px))] items-center justify-between pt-[env(safe-area-inset-top)] md:h-20">
           <Link href="/" aria-label="Amora home" className="press">
             <Wordmark />
           </Link>
@@ -137,15 +137,17 @@ export default function Landing() {
           </nav>
         </header>
 
-        <div className="relative z-[1] mx-auto mt-2 aspect-[4/5] w-[min(80vw,50svh)] md:mt-4 md:w-[min(60vw,46svh)] lg:w-[min(30vw,54svh)]">
-          <div className="lp-rise size-full">
+        {/* Phones: the portrait takes whatever height the screen has left, so no screen shows a gap under the name. */}
+        <div className="relative z-[1] mx-auto mt-2 min-h-[34svh] w-full flex-1 md:mt-4 md:aspect-[4/5] md:min-h-0 md:w-[min(60vw,46svh)] md:flex-none lg:w-[min(30vw,54svh)]">
+          <div className="lp-rise absolute inset-0">
             <HeroPortraits ids={["emma", "luna", "amara", "margot"]} />
           </div>
         </div>
-        <LiquidWordmark className="lp-rise relative z-[2] -mt-[7vw] block aspect-[6/1] w-full [--i:1] lg:-mt-[9vw]" />
+        {/* On phones the name bleeds past the gutters (the canvas has its own inner padding) so the letters meet the edges. */}
+        <LiquidWordmark className="lp-rise relative z-[2] -mx-[7%] -mt-[11vw] block aspect-[6/1] w-[114%] [--i:1] md:mx-0 md:-mt-[7vw] md:w-full lg:-mt-[9vw]" />
 
-        <div className="relative z-[2] mt-auto grid gap-5 pt-6 lg:grid-cols-12 lg:items-end lg:gap-8">
-          <h1 className="lp-rise font-display text-head [--i:2] lg:col-span-6">
+        <div className="relative z-[2] mt-auto grid gap-5 pt-4 md:pt-6 lg:grid-cols-12 lg:items-end lg:gap-8">
+          <h1 className="lp-rise font-display text-head text-balance [--i:2] lg:col-span-6">
             Private AI
             <br />
             companions
@@ -169,7 +171,7 @@ export default function Landing() {
       {/* ── The board: the companions large, the way an agency hangs its portfolio ── */}
       <section id="board" className="scroll-mt-4 pt-24 md:pt-36">
         <div className="grid gap-5 px-4 md:grid-cols-12 md:items-end md:px-8">
-          <h2 className="lp-in font-display text-head md:col-span-6">
+          <h2 className="lp-in font-display text-head text-balance md:col-span-6">
             The board
           </h2>
           <p className="lp-in max-w-[44ch] text-body [--i:1] md:col-span-5 md:col-start-8">
@@ -207,7 +209,7 @@ export default function Landing() {
         <ol className="grid gap-10 md:gap-14">
           {steps.map((s, i) => (
             <li key={s.line} className={indent[i]}>
-              <h3 className="lp-in font-display text-head">{s.line}</h3>
+              <h3 className="lp-in font-display text-head text-balance">{s.line}</h3>
               <p className="lp-in mt-3 max-w-[34ch] text-body [--i:1]">
                 {s.text}
               </p>
@@ -227,7 +229,7 @@ export default function Landing() {
         className="scroll-mt-4 bg-paper px-4 py-24 text-ink md:px-8 md:py-36"
       >
         <div>
-          <h2 className="lp-in font-display text-head">Premium, prepaid</h2>
+          <h2 className="lp-in font-display text-head text-balance">Premium, prepaid</h2>
           <p className="lp-in mt-5 max-w-[44ch] text-body [--i:1]">
             One plan opens everything she sends. Pay once for twelve months or
             for one; it never renews by itself.
@@ -241,7 +243,7 @@ export default function Landing() {
       {/* ── Questions: a band each, every answer visible ── */}
       <section id="faq" aria-labelledby="faq-title">
         <div className="flex h-[30svh] min-h-56 items-end bg-oxblood px-4 pb-8 md:h-[40svh] md:px-8 md:pb-12">
-          <h2 id="faq-title" className="lp-in font-display text-head">
+          <h2 id="faq-title" className="lp-in font-display text-head text-balance">
             Fair questions
           </h2>
         </div>
@@ -266,7 +268,7 @@ export default function Landing() {
       {/* ── The object returns: her, from another angle ── */}
       <section className="relative flex flex-col overflow-hidden bg-ink lg:min-h-[90svh] lg:flex-row lg:items-center">
         <div className="relative z-[1] px-4 pt-24 md:px-8 md:pt-36 lg:order-2 lg:ml-auto lg:w-[30%] lg:pt-0">
-          <h2 className="lp-in font-display text-head">She&apos;s still up</h2>
+          <h2 className="lp-in font-display text-head text-balance">She&apos;s still up</h2>
           <p className="lp-in mt-5 text-body [--i:1]">
             Pick a companion, read her card and let her open the conversation.
           </p>
@@ -299,8 +301,8 @@ export default function Landing() {
       <footer className="relative overflow-hidden bg-paper text-ink">
         <div className="grid gap-10 px-4 pt-20 md:px-8 md:pt-28 lg:grid-cols-12 lg:gap-8">
           <div className="lg:col-span-7">
-            <h2 className="lp-in font-display text-head">
-              Pick up where you left off
+            <h2 className="lp-in font-display text-head text-balance">
+              Come back to her
             </h2>
             <ButtonLink
               href="/login"
@@ -322,7 +324,7 @@ export default function Landing() {
             ))}
           </nav>
         </div>
-        <div className="mt-20 flex flex-col gap-3 px-4 text-small text-ink/75 md:mt-28 md:flex-row md:justify-between md:px-8">
+        <div className="mt-14 flex flex-col gap-3 px-4 text-small text-ink/75 md:mt-28 md:flex-row md:justify-between md:px-8">
           <p>18+ only. Every companion is a fictional adult. © 2026 Amora</p>
           <p className="flex gap-6">
             <Link href="/terms" className="press hover:text-ink">

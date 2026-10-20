@@ -43,19 +43,19 @@ export const emma: Script = {
     [
       { say: "Come to a terrible film with me this week", her: ["only if it's genuinely terrible. not ironically terrible", "i want a plot hole you could drive a ferry through"], heart: true },
       { say: "Teach me ceramics", her: ["lesson one: everything cracks in the kiln", "lesson two: you make another one anyway", "that's the whole course. you're qualified"] },
-      { say: "I like talking to you", her: ["…stop, i'm smiling at my phone like an idiot", "me too. obviously. why do you think i'm still awake"], heart: true },
+      { say: "I like talking to you", her: ["that's not a fair thing to say at 1am", "me too. obviously. why do you think the boxes are still full"], heart: true },
     ],
   ],
   photo: ["hmm. you have to earn it", "…ok fine. this is me pretending i'm organised", { photo: "gallery", locked: true }],
   photoAgain: ["one's enough for tonight", "make me laugh and maybe tomorrow"],
   love: "vinyl",
   loveReply: ["wait. a record?", "you've actually been listening to me", "it's going on right now. this is a big deal, i want you to know"],
-  gift: (name) => [`${name.toLowerCase()}, for me?`, "you're very sweet for 1am", "i'm keeping this"],
+  gift: (name) => [`wait. ${name.toLowerCase()}?`, "you're very sweet for 1am", "it's going in the box marked important"],
   fallback: [
-    ["ha. go on", "i'm listening, i've got a mug of tea and nowhere to be"],
+    ["ha. go on", "i've got a wonky mug of tea and one box left to ignore"],
     ["that's the most interesting thing anyone's said to me this week", "admittedly it's been a week of boxes"],
     ["hmm. say more", "i'm an editor, i want the full draft"],
     ["you're a bit strange, aren't you", "good. i like strange"],
   ],
-  night: ["noooo", "fine. sleep well. dream about something terrible and cinematic", "goodnight, weirdo"],
+  night: ["noooo", "fine. go. if you dream, make it a film with a ferry plot hole", "goodnight, weirdo"],
 };

@@ -15,7 +15,8 @@ export function SaveButton({ id, name, className, label }: { id: string; name: s
       onClick={() => toggleSaved(id, name)}
       className={cx(
         "press inline-flex items-center justify-center gap-2",
-        label ? "h-12 px-5 text-body font-medium" : "size-10",
+        // The label button keeps one width for Save and Saved, so nothing beside it shifts on tap.
+        label ? "h-12 min-w-[7.5rem] px-5 text-body font-medium" : "size-10",
         saved ? "bg-rouge text-ink" : label ? "bg-ink-4 text-paper hover:bg-ink-5" : "bg-ink/60 text-paper hover:bg-ink/80",
         className,
       )}

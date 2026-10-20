@@ -52,7 +52,7 @@ export function AgeGate() {
       </div>
       <div className="grid gap-8 md:grid-cols-12 md:items-end">
         <div className="md:col-span-7">
-          <h1 id="age-title" className="rise font-display text-head [--i:1]">
+          <h1 id="age-title" className="rise font-display text-head text-balance [--i:1]">
             Adults only
           </h1>
           <p className="rise mt-4 max-w-[40ch] text-body [--i:2]">
@@ -201,7 +201,7 @@ export function FirstMessage() {
     <div className="grid gap-10 lg:grid-cols-12 lg:gap-8">
       <div className="lg:col-span-5 lg:flex lg:flex-col lg:justify-between">
         <div>
-          <h2 className="lp-in font-display text-head">Her first message</h2>
+          <h2 className="lp-in font-display text-head text-balance">Her first message</h2>
           <p className="lp-in mt-5 max-w-[40ch] text-body [--i:1]">
             Every companion opens the conversation, in her own voice. Choose one
             and read what she would send you tonight.
@@ -281,10 +281,8 @@ export function FirstMessage() {
             <Typing />
           ) : (
             <Bubble from="her" className="animate-bubble-in">
-              <span aria-hidden>
-                {text.slice(0, shown)}
-                <span className="invisible">{text.slice(shown)}</span>
-              </span>
+              {/* Grows upward from the foot of the photo as she types; the reply button never moves. */}
+              <span aria-hidden>{text.slice(0, shown)}</span>
             </Bubble>
           )}
           <ButtonLink
@@ -339,7 +337,7 @@ export function Ticket() {
       {/* The ticket: main part and stub, a perforation where they meet, a notch bitten from each edge. */}
       <article className="lp-in relative mt-8 grid bg-ink text-paper [--i:3] lg:grid-cols-[7fr_3fr]">
         <div className="p-6 md:p-10">
-          <h3 className="font-display text-head">Premium</h3>
+          <h3 className="font-display text-head text-balance">Premium</h3>
           <p className="mt-3 max-w-[36ch] text-body text-paper">
             Everything she sends, with nothing locked.
           </p>

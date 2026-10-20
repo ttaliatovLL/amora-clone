@@ -23,6 +23,9 @@ export function Gallery({ c }: { c: Companion }) {
   const { premium } = useWallet();
   const [paywall, setPaywall] = useState(false);
   const open = [undefined, ...c.gallery];
+  // Never a negative or zero "private photos" count: with nothing private, only the open frames show.
+  const hidden = Math.max(0, c.photos - open.length);
+  const locked = hidden ? LOCKED : [];
   const frame = "relative aspect-[4/5] w-[78vw] max-w-[26rem] shrink-0 snap-start overflow-hidden bg-ink-3 md:w-auto md:max-w-none";
 
   return (
@@ -33,7 +36,7 @@ export function Gallery({ c }: { c: Companion }) {
             <Portrait companion={c} src={src} sizes="(max-width: 768px) 78vw, 25vw" />
           </li>
         ))}
-        {LOCKED.map((crop, i) => (
+        {locked.map((crop, i) => (
           <li key={crop} className={frame}>
             <Portrait companion={c} src={i % 2 ? c.gallery[0] : undefined} sizes="(max-width: 768px) 78vw, 25vw" className={cx(crop, !premium && "blur-[18px] brightness-110 saturate-125")} />
             {!premium &&
@@ -41,7 +44,7 @@ export function Gallery({ c }: { c: Companion }) {
                 <div className="absolute inset-0 flex flex-col justify-end bg-ink/35 p-5">
                   <LockSimple weight="fill" className="size-6 text-paper" aria-hidden />
                   <p className="mt-3 text-lead text-paper">
-                    {c.photos - open.length} private photos
+                    {hidden.toLocaleString("en-US")} private {hidden === 1 ? "photo" : "photos"}
                   </p>
                   <p className="mt-1 text-body text-paper/80">She sends them as you get closer.</p>
                   <Button variant="paper" className="mt-4 self-start" onClick={() => setPaywall(true)}>

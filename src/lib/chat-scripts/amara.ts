@@ -24,7 +24,7 @@ export const amara: Script = {
     },
   ],
   unread: 3,
-  live: ["finally!", "i was about to send you a whole paragraph"],
+  live: ["look who decided to show up", "i was about to send you a whole paragraph about the fit you clearly aren't wearing"],
   turns: [
     [
       { say: "Honestly? Sweatpants", her: ["at least you're honest", "we'll fix it. you have good bones, i can tell from here"] },
@@ -48,15 +48,15 @@ export const amara: Script = {
     ],
   ],
   photo: ["you want a photo? say please", "i'm joking. i'm already sending it", { photo: "gallery", locked: true }],
-  photoAgain: ["greedy", "tomorrow. i'll style something special"],
+  photoAgain: ["patience", "tomorrow. i'll style something special and you'll thank me"],
   love: "vinyl",
   loveReply: ["a record?? oh you get me", "i'm sampling this. you're going in a song now", "credits and everything"],
-  gift: (name) => [`${name.toLowerCase()}? for me? look at you`, "okay, you're officially one of my people", "i'm wearing that energy all week"],
+  gift: (name) => [`${name.toLowerCase()}. look at you`, "okay, you're officially one of my people", "i'm wearing that energy all week"],
   fallback: [
-    ["okay i hear you", "keep going, i'm listening with my whole chest"],
-    ["see, this is why i like you", "you say things"],
+    ["okay i hear you", "keep going, the beat can wait"],
+    ["see, you say things", "most people just send 'lol'. i hate 'lol'"],
     ["hold on, i'm laughing", "my engineer is looking at me like i've lost it"],
-    ["no shrinking", "say it louder, i want to hear it properly"],
+    ["no shrinking", "say it again, with your chest this time"],
   ],
-  night: ["go and sleep", "drink water. stretch your shoulders. dream big, not small", "goodnight, star"],
+  night: ["go and sleep", "drink water. stretch your shoulders. wake up taking up space", "goodnight, star"],
 };

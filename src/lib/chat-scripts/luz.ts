@@ -28,7 +28,7 @@ export const luz: Script = {
     },
   ],
   unread: 1,
-  live: ["ayy there you are", "i was literally just thinking about you"],
+  live: ["ayy there you are", "you missed it, the whole street went pink and then it was gone"],
   turns: [
     [
       { say: "I wish I was there too", her: ["ay, don't say that, i'll get soft", "next time i'm taking you on my whole route. concourse, the park, then my tía's for a cafecito"], heart: true },
@@ -52,15 +52,15 @@ export const luz: Script = {
     ],
   ],
   photo: ["you want a picture? ok ok, wait, let me fix my hair", "never mind, the hair is perfect", { photo: "gallery", locked: true }],
-  photoAgain: ["you already got one, greedy", "the next one you have to come take yourself"],
+  photoAgain: ["you already got one, papi", "the next one you have to come take yourself. i'll lend you the camera"],
   love: "rose",
   loveReply: ["a rose? ay, dios mío", "nobody does this anymore. you're old school and i love it", "it's going in a glass on my windowsill right now"],
-  gift: (name) => [`${name.toLowerCase()}? for me? stop`, "you're too sweet, mi amor", "i'm keeping this forever"],
+  gift: (name) => [`stop. ${name.toLowerCase()}?`, "you're too sweet, mi amor", "doña piña is guarding it on the shelf"],
   fallback: [
-    ["mmm tell me more", "i'm on the couch with a cafecito, i've got all night"],
+    ["mmm tell me more", "i'm on the couch with a cafecito and my feet still hurt from friday"],
     ["ay, you're so funny", "my roommate just asked who i'm laughing at"],
-    ["okay wait, i love that", "you're full of surprises, eh"],
-    ["see, this is why i like you", "you talk to me like a real person"],
+    ["okay wait, i love that", "i'm telling my tía you said it. she's going to ask about you on sunday"],
+    ["mira, i like how you say things", "plain. no games. the bronx respects that"],
   ],
-  night: ["already? ay ok", "sleep well, mi amor. dream about something sweet", "buenas noches"],
+  night: ["already? ay ok", "sleep well, mi amor. the light's better in the morning, i'll send you some", "buenas noches"],
 };

@@ -52,19 +52,19 @@ export const gina: Script = {
     [
       { say: "I'd lose a quiz on purpose for you", her: ["that's the most romantic thing anyone's ever said to me", "and i once got a poem written on a beer mat"], heart: true },
       { say: "Tell me something nobody knows", her: ["i cry at the rose of tralee. every year", "the lads in the tuxes get me. tell anyone and i'll deny it"] },
-      { say: "Can I call you sometime?", her: ["you can call me now if you like", "or send me a voice note. i'll keep it, i keep all of them"] },
+      { say: "Can I call you sometime?", her: ["you can call me now if you like", "or send me a voice note. you know where they end up"] },
     ],
   ],
   photo: ["you want a photo? of me? in this state?", "go on so. post-swim hair, don't say a word", { photo: "gallery", locked: true }],
   photoAgain: ["one a day, them's the rules", "i'll send another when you've earned it, chancer"],
   love: "coffee",
   loveReply: ["a coffee? are you serious?", "do you know what that's worth after a swim at eight in the morning", "i'd marry you for less, to be honest"],
-  gift: (name) => [`${name.toLowerCase()}? for me?`, "ah you're a dote", "i'm minding this one forever"],
+  gift: (name) => [`would you look at that. ${name.toLowerCase()}`, "ah you're a dote", "i'm minding this one forever"],
   fallback: [
-    ["ha, go on, tell me more", "i've the kettle on and nowhere to be"],
+    ["ha, go on", "the kettle's on and the coat is on me, i'm going nowhere"],
     ["you're some character, do you know that", "i mean it as a compliment. mostly"],
     ["hang on, i'm writing that down", "that's going in the quiz next week"],
     ["stop, i'm laughing on the 46a", "the woman next to me thinks i'm unwell"],
   ],
-  night: ["night so", "dream about something warm, the sea's freezing", "text me when you wake up, i'll be in the water"],
+  night: ["night so", "wrap up, the sea's freezing and so is my flat", "text me when you wake up, i'll be in the water"],
 };

@@ -3,12 +3,13 @@
 import { ChatCircleDots, Square, SquaresFour } from "@phosphor-icons/react/ssr";
 import Link from "next/link";
 import { useState, ViewTransition } from "react";
+import { flushSync } from "react-dom";
 import { boardGrid, setDensity, useDensity } from "@/components/board/density";
 import { Crossfade } from "@/components/board/crossfade";
 import { fitName } from "@/components/board/fit-name";
 import { Portrait } from "@/components/portrait";
 import { SaveButton } from "@/components/save-button";
-import { Button, ButtonLink, Chip, CompanionCard, cx } from "@/components/ui";
+import { Button, ButtonLink, Chip, CompanionCard, cx, Facts } from "@/components/ui";
 import { companions, vibes } from "@/lib/companions";
 
 type Vibe = (typeof vibes)[number];
@@ -17,6 +18,7 @@ const everyone: Filter = { online: false, fresh: false, vibe: null };
 
 // shortcut: fixed editor's pick until there's a ranking signal.
 const pick = companions.find((c) => c.id === "luna")!;
+const second = pick.gallery[0];
 const online = companions.filter((c) => c.online).length;
 // She is already the hero, so on the board she goes to the end instead of repeating right under it.
 const board = [...companions.filter((c) => c.id !== pick.id), pick];
@@ -45,6 +47,12 @@ function features(n: number) {
   return new Set(wide);
 }
 
+/** The board re-lays itself under a short crossfade instead of jumping (instant under reduced motion, see globals.css). */
+function switchDensity(d: 1 | 2) {
+  if (!document.startViewTransition) return setDensity(d);
+  document.startViewTransition(() => flushSync(() => setDensity(d)));
+}
+
 export default function Board() {
   const [f, setF] = useState<Filter>(everyone);
   const density = useDensity();
@@ -60,54 +68,79 @@ export default function Board() {
           <br /> tonight
         </h1>
         <p className="flex items-center gap-2 text-body text-muted tabular xl:mb-3">
-          <span className="live-dot size-2 rounded-full bg-live" aria-hidden />
-          <span>
-            <span className="text-paper">{online} online</span> of {companions.length} on the board
-          </span>
+          {online > 0 && <span className="live-dot size-2 rounded-full bg-live" aria-hidden />}
+          {online > 0 ? (
+            <span>
+              <span className="text-paper">{online} online</span> of {companions.length} on the board
+            </span>
+          ) : (
+            <span>
+              <span className="text-paper">{companions.length} on the board</span>, nobody online yet
+            </span>
+          )}
         </p>
       </header>
 
-      {/* Tonight's pick: her comp card, opened up. */}
+      {/* Tonight's pick: her comp card opened flat. Front: the portrait. Back (desktop): a paper field with her name and a second shot. */}
       <section aria-label="Tonight's pick" className="rise mt-6 md:mt-10 md:flex md:gap-1" style={{ ["--i" as string]: 1 }}>
         <Link
           href={`/app/${pick.id}`}
           aria-label={`${pick.name}, ${pick.age}, ${pick.city}`}
-          className="press @container relative block aspect-[4/5] w-full overflow-hidden bg-ink-2 active:scale-[0.99] md:w-[min(55%,calc(min(78svh,54rem)*0.8))] md:shrink-0"
+          className="press @container relative block aspect-[4/5] w-full overflow-hidden bg-ink-2 select-none active:scale-[0.99] md:w-[min(50%,calc(min(80svh,52rem)*0.8))] md:shrink-0"
         >
           <ViewTransition name={`portrait-${pick.id}`} share="morph" default="none">
             <div className="absolute inset-0">
               <Crossfade
                 a={<Portrait companion={pick} priority sizes="(max-width: 768px) 100vw, 45vw" />}
-                b={pick.gallery[0] && <Portrait companion={pick} src={pick.gallery[0]} sizes="(max-width: 768px) 100vw, 45vw" />}
+                // On wide screens her second shot sits on the back of the card instead.
+                b={second && <div className="absolute inset-0 lg:hidden"><Portrait companion={pick} src={second} sizes="(max-width: 768px) 100vw, 45vw" /></div>}
               />
             </div>
           </ViewTransition>
           <div className="scrim-b absolute inset-x-0 bottom-0 h-1/2 md:hidden" />
-          <p className="absolute inset-x-0 bottom-0 p-4 font-display leading-[0.9] text-paper md:hidden" style={fitName(pick.name, "6rem")}>{pick.name}</p>
+          <p className="absolute inset-x-0 bottom-0 p-4 font-display text-paper [text-wrap:balance] md:hidden" style={fitName(pick.name, "6rem", "2rem", 2)}>
+            {pick.name}
+          </p>
         </Link>
 
-        <div className="@container flex flex-col px-4 pt-4 md:min-w-0 md:flex-1 md:justify-end md:bg-ink-2 md:p-8 lg:p-14">
-          <h2 className="hidden font-display leading-[0.9] md:block" style={fitName(pick.name, "8.5rem", "0rem")}>{pick.name}</h2>
-          <p className="flex flex-wrap items-center gap-x-2 text-body text-paper/80 tabular md:mt-5 md:text-lead">
-            <span className="text-paper">Tonight&apos;s pick</span>
-            <span aria-hidden>·</span>
-            {pick.age} · {pick.city} · {pick.sign}
-            {pick.online && <span className="live-dot ml-1 size-2 rounded-full bg-live" aria-label="Online" />}
-          </p>
-          <p className="mt-1 text-body text-muted md:mt-2 md:max-w-[40ch] md:text-lead">{pick.tagline}.</p>
-          <div className="mt-5 flex gap-2 md:mt-8">
-            <ButtonLink href={`/app/${pick.id}/chat`} className="flex-1 lg:flex-none lg:px-10">
-              <ChatCircleDots weight="fill" className="size-5" aria-hidden />
-              Chat with {pick.name}
-            </ButtonLink>
-            <SaveButton id={pick.id} name={pick.name} label />
+        <div className="flex md:min-w-0 md:flex-1 md:bg-paper md:text-ink">
+          <div className="@container flex min-w-0 flex-1 flex-col px-4 pt-4 md:p-8 lg:p-12">
+            <p className="hidden items-center gap-2 text-body font-medium md:-order-2 md:flex">
+              Tonight&apos;s pick
+              {pick.online && (
+                <>
+                  <span aria-hidden className="opacity-50">·</span>
+                  <span className="live-dot size-2 rounded-full bg-live" aria-hidden /> Online now
+                </>
+              )}
+            </p>
+            <h2 className="hidden font-display [text-wrap:balance] md:mt-auto md:block" style={fitName(pick.name, "7.5rem", "0rem", 2)}>
+              {pick.name}
+            </h2>
+            <Facts className="text-body text-paper/80 tabular md:hidden" items={[<span key="p" className="text-paper">Tonight&apos;s pick</span>, pick.age, pick.city, pick.sign]} />
+            <Facts className="mt-5 hidden text-lead text-ink/70 tabular md:block" items={[pick.age, pick.city, pick.sign]} />
+            {/* Desktop: her line opens the back of the card as a statement; the name and the action sit at its foot. */}
+            <p className="mt-1 text-body text-muted [overflow-wrap:anywhere] md:-order-1 md:mt-6 md:max-w-[22ch] md:text-[clamp(1.5rem,0.9rem+1.1vw,2.25rem)] md:leading-[1.15] md:font-medium md:text-ink">{/[.!?…]$/.test(pick.tagline) ? pick.tagline : `${pick.tagline}.`}</p>
+            <div className="mt-5 flex gap-2 md:mt-8">
+              <ButtonLink href={`/app/${pick.id}/chat`} className="min-w-0 flex-1 lg:flex-initial lg:px-10">
+                <ChatCircleDots weight="fill" className="size-5 shrink-0" aria-hidden />
+                <span className="truncate">Chat with {pick.name}</span>
+              </ButtonLink>
+              <SaveButton id={pick.id} name={pick.name} label className="shrink-0" />
+            </div>
           </div>
+          {second && (
+            <Link href={`/app/${pick.id}`} tabIndex={-1} aria-hidden className="relative hidden w-[38%] shrink-0 overflow-hidden bg-ink-3 lg:block">
+              <Portrait companion={pick} src={second} sizes="25vw" />
+            </Link>
+          )}
         </div>
       </section>
 
       {/* Filters: one row, scrolls sideways on phones; density toggle pinned at its end. */}
       <div className="sticky top-[calc(4rem+env(safe-area-inset-top))] z-30 mt-10 flex items-center gap-2 bg-ink py-3 md:top-20 md:mt-14">
-        <div role="group" aria-label="Filter companions" className="flex min-w-0 flex-1 gap-1.5 overflow-x-auto overscroll-x-contain px-4 [scrollbar-width:none] md:px-0 [&::-webkit-scrollbar]:hidden">
+        <div role="group" aria-label="Filter companions" // The right edge fades on phones so the rail reads as scrollable rather than cut off.
+          className="flex min-w-0 flex-1 gap-1.5 overflow-x-auto overscroll-x-contain pr-8 pl-4 [mask-image:linear-gradient(90deg,#000_calc(100%-2rem),transparent)] [scrollbar-width:none] md:pr-0 md:pl-0 md:[mask-image:none] [&::-webkit-scrollbar]:hidden">
           <Chip pressed={all} onClick={() => setF(everyone)}>
             All
           </Chip>
@@ -126,7 +159,7 @@ export default function Board() {
         </div>
         <button
           type="button"
-          onClick={() => setDensity(density === 1 ? 2 : 1)}
+          onClick={() => switchDensity(density === 1 ? 2 : 1)}
           aria-label={density === 1 ? "Show more per row" : "Show bigger cards"}
           className="press mr-4 grid size-10 shrink-0 place-items-center bg-ink-3 text-paper hover:bg-ink-4 md:mr-0"
         >
@@ -157,7 +190,7 @@ export default function Board() {
       ) : (
         <div className="px-4 py-20 md:px-0 md:py-32">
           <p className="font-display text-head">Nobody like that</p>
-          <p className="mt-3 max-w-[40ch] text-body text-muted">No one on the board matches all of those right now. Try fewer filters.</p>
+          <p className="mt-3 max-w-[40ch] text-body text-paper">No one on the board matches all of those right now. Try fewer filters.</p>
           <Button variant="paper" className="mt-6" onClick={() => setF(everyone)}>
             Show everyone
           </Button>

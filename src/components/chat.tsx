@@ -45,6 +45,26 @@ export function Chat({ companion: c }: { companion: Companion }) {
   const running = useRef(false);
   const alive = useRef(true);
   const input = useRef<HTMLInputElement>(null);
+  const shell = useRef<HTMLElement>(null);
+
+  // iOS keeps the layout viewport full height under the keyboard (Android resizes it via interactiveWidget), so pin the chat to the visible area while the keyboard is up.
+  useEffect(() => {
+    const vv = window.visualViewport;
+    const el = shell.current;
+    if (!vv || !el) return;
+    const fit = () => {
+      const kb = Math.abs(vv.scale - 1) < 0.01 && window.innerHeight - vv.height > 80;
+      el.style.height = kb ? `${vv.height}px` : "";
+      el.style.transform = kb ? `translateY(${vv.offsetTop}px)` : "";
+      el.toggleAttribute("data-kb", kb);
+    };
+    vv.addEventListener("resize", fit);
+    vv.addEventListener("scroll", fit);
+    return () => {
+      vv.removeEventListener("resize", fit);
+      vv.removeEventListener("scroll", fit);
+    };
+  }, []);
 
   const push = (m: Omit<Msg, "id" | "day" | "time">) => {
     const id = Math.max(-1, ...getConvo(c.id).msgs.map((x) => x.id)) + 1;
@@ -193,7 +213,7 @@ export function Chat({ companion: c }: { companion: Companion }) {
     status === "typing" ? "typing…" : status === "recording" ? "recording a voice note…" : status === "photo" ? "sending a photo…" : online ? "Online" : `Last seen ${s?.lastSeen ?? "recently"}`;
 
   return (
-    <main className="fixed inset-0 z-30 flex bg-ink md:top-20">
+    <main ref={shell} className="group fixed inset-0 z-30 flex bg-ink md:top-20">
       <section className="flex min-w-0 flex-1 flex-col">
         {/* Header bar */}
         <header className="bg-ink-2 pt-[env(safe-area-inset-top)]">
@@ -275,7 +295,7 @@ export function Chat({ companion: c }: { companion: Companion }) {
         </div>
 
         {/* Composer */}
-        <div className="bg-ink-2 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+        <div className="bg-ink-2 pb-[max(0.75rem,env(safe-area-inset-bottom))] group-data-[kb]:pb-3">
           <div className="mx-auto w-full max-w-[760px]">
             {options && !tray && (
               <div className="flex gap-2 overflow-x-auto overscroll-x-contain px-3 pt-3 [scrollbar-width:none] sm:px-5 md:flex-wrap" aria-label="Quick replies">
@@ -285,7 +305,7 @@ export function Chat({ companion: c }: { companion: Companion }) {
                     type="button"
                     onClick={() => pick(o)}
                     style={{ animationDelay: `${i * 60}ms` }}
-                    className="press animate-bubble-in h-10 shrink-0 bg-ink-4 px-4 text-small text-paper hover:bg-ink-5"
+                    className="press animate-bubble-in h-10 max-w-full shrink-0 truncate bg-ink-4 px-4 text-small text-paper hover:bg-ink-5"
                   >
                     {o.say}
                   </button>
@@ -356,7 +376,7 @@ export function Chat({ companion: c }: { companion: Companion }) {
         <Portrait companion={c} sizes="560px" priority />
         <div className="scrim-b absolute inset-x-0 bottom-0 h-2/3" />
         <div className="absolute inset-x-0 bottom-0 p-8">
-          <p className="font-display text-[clamp(3rem,4.6vw,5rem)]">{c.name}</p>
+          <p className="font-display text-[clamp(3rem,4.6vw,5rem)] [overflow-wrap:anywhere]">{c.name}</p>
           <p className="mt-3 text-lead text-paper/85 tabular">
             {c.age} · {c.city} · {c.sign}
           </p>
@@ -406,7 +426,7 @@ function Intro({ c, onOpen }: { c: Companion; onOpen: () => void }) {
         <Portrait companion={c} sizes="80px" />
       </button>
       <div className="min-w-0">
-        <p className="font-display text-lead">{c.name}</p>
+        <p className="font-display text-lead [overflow-wrap:anywhere]">{c.name}</p>
         <p className="mt-1.5 text-body text-paper/80 tabular">
           {c.age} · {c.city}
         </p>
@@ -449,7 +469,7 @@ function Row({ her, first, heart, onHeart, animate, children }: { her: boolean; 
     <div className={cx("flex", her ? "justify-start" : "justify-end", first ? "mt-4" : "mt-1", heart && "mb-3")}>
       <div
         {...handlers}
-        className={cx("relative max-w-[min(80%,34rem)] min-w-0 select-none [-webkit-touch-callout:none]", animate && "animate-bubble-in", !her && "[transform-origin:bottom_right]")}
+        className={cx("relative max-w-[min(80%,34rem)] min-w-0 touch-manipulation select-none [-webkit-touch-callout:none]", animate && "animate-bubble-in", !her && "[transform-origin:bottom_right]")}
       >
         {children}
         {heart && (

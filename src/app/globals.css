@@ -83,9 +83,12 @@ body {
   color: var(--color-paper);
 }
 
-:focus-visible {
-  outline: 2px solid var(--color-rouge);
-  outline-offset: 3px;
+/* In the base layer so utilities such as focus:outline-none can still override it. */
+@layer base {
+  :focus-visible {
+    outline: 2px solid var(--color-rouge);
+    outline-offset: 3px;
+  }
 }
 
 input,
@@ -103,6 +106,12 @@ summary {
   touch-action: manipulation;
   user-select: none;
   -webkit-user-select: none;
+  -webkit-touch-callout: none;
+}
+/* A photo inside a link is a control (her card, the pick): no long-press save/share callout, no ghost drag. */
+a img {
+  -webkit-touch-callout: none;
+  -webkit-user-drag: none;
 }
 a {
   touch-action: manipulation;
@@ -162,7 +171,7 @@ a {
   50% { opacity: 1; transform: scale(1); }
 }
 @keyframes bubble-in {
-  from { opacity: 0; transform: translateY(10px) scale(0.97); filter: blur(4px); }
+  from { opacity: 0; transform: translateY(10px) scale(0.97); }
 }
 @utility animate-bubble-in {
   animation: bubble-in 380ms var(--ease-out) both;
@@ -170,7 +179,7 @@ a {
 }
 /* Unlock: the photo comes into focus. */
 @keyframes develop {
-  from { filter: blur(24px) saturate(0.6); transform: scale(1.12); }
+  from { filter: blur(18px) saturate(0.6); transform: scale(1.12); }
 }
 @utility animate-develop {
   animation: develop 900ms var(--ease-out-expo) both;
@@ -253,14 +262,30 @@ html:not([data-age-ok]):has(.age-gate) { overflow: hidden; }
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }
+  /* View transitions are not matched by * above: the route morph and density swap become an instant change. */
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
+  }
 }
 
-/* Card hover: her second photograph slowly comes through, like light changing in a room. */
+/* Card hover: her second photograph slowly comes through, like light changing in a room. Both photos
+   share one transform so they never drift apart; the light comes in slowly and leaves quicker. */
 @media (hover: hover) and (pointer: fine) {
-  .crossfade .crossfade-b { opacity: 0; transition: opacity 1.2s var(--ease-out); }
+  .crossfade .crossfade-a,
+  .crossfade .crossfade-b { transition: opacity 600ms ease, transform 900ms var(--ease-out); }
+  .crossfade .crossfade-b { opacity: 0; }
+  .crossfade:hover .crossfade-a,
+  .crossfade:hover .crossfade-b { transform: scale(1.03); transition: opacity 1.2s ease, transform 1.6s var(--ease-out-expo); }
   .crossfade:hover .crossfade-b { opacity: 1; }
-  .crossfade .crossfade-a { transition: transform 1.4s var(--ease-out-expo); }
-  .crossfade:hover .crossfade-a, .crossfade:hover .crossfade-b { transform: scale(1.03); }
+}
+/* Reduced motion keeps the change of photograph as a short fade (an instant swap is the harsher option), without the zoom. */
+@media (prefers-reduced-motion: reduce) and (hover: hover) and (pointer: fine) {
+  .crossfade .crossfade-b,
+  .crossfade:hover .crossfade-b { transition: opacity 300ms ease !important; }
+  .crossfade:hover .crossfade-a,
+  .crossfade:hover .crossfade-b { transform: none; }
 }
 @media not ((hover: hover) and (pointer: fine)) {
   .crossfade .crossfade-b { display: none; }

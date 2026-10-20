@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { ViewTransition, type ComponentProps, type CSSProperties, type ReactNode } from "react";
+import { fitName } from "@/components/board/fit-name";
 import { Portrait } from "@/components/portrait";
 import { SaveButton } from "@/components/save-button";
 import type { Companion } from "@/lib/companions";
@@ -79,6 +80,24 @@ export function Tags({ tags, className, max = 3 }: { tags: string[]; className?:
         </li>
       ))}
     </ul>
+  );
+}
+
+/**
+ * Facts in one line separated by middle dots. When the line wraps, the dot that would start a new line is
+ * clipped off the left edge, so no line begins or ends with a stray separator.
+ */
+export function Facts({ items, className }: { items: ReactNode[]; className?: string }) {
+  return (
+    <span className={cx("block overflow-hidden", className)}>
+      <span className="-ml-[1.1em] flex flex-wrap items-center">
+        {items.filter((x) => x !== null && x !== false && x !== undefined && x !== "").map((x, i) => (
+          <span key={i} className="relative pl-[1.1em] before:absolute before:left-0 before:w-[1.1em] before:text-center before:opacity-60 before:content-['·']">
+            {x}
+          </span>
+        ))}
+      </span>
+    </span>
   );
 }
 
@@ -164,7 +183,7 @@ export function CompanionCard({
   );
   return (
     <article style={style} className={cx("crossfade group @container relative overflow-hidden bg-ink-2", wide ? "aspect-[4/5] md:col-span-2 md:aspect-[16/10]" : tile ? "aspect-[3/4]" : "aspect-[4/5]", className)}>
-      <Link href={href} className="press absolute inset-0 block outline-offset-[-3px] active:scale-[0.985]" aria-label={`${c.name}, ${c.age}, ${c.city}`}>
+      <Link href={href} className="press absolute inset-0 block outline-offset-[-3px] select-none active:scale-[0.985]" aria-label={`${c.name}, ${c.age}, ${c.city}`}>
         {morph ? (
           <ViewTransition name={`portrait-${c.id}`} share="morph" default="none">
             {photo}
@@ -180,13 +199,8 @@ export function CompanionCard({
         </div>
 
         <div className={cx("absolute inset-x-0 bottom-0", tile ? "p-3" : "p-5 md:p-6")}>
-          <p
-            className={cx(
-              "font-display text-paper [overflow-wrap:anywhere]",
-              // Sized to the card, not the viewport: Panchang is wide, so the longest name (7 letters) must still fit.
-              wide ? "text-[min(9cqw,5rem)]" : tile ? "text-[min(12cqw,1.6rem)]" : "text-[min(12.5cqw,3.25rem)]",
-            )}
-          >
+          {/* Sized to the card: short names reach the cap, long ones shrink or take a second line, a single word never breaks. */}
+          <p className="font-display text-paper [text-wrap:balance]" style={fitName(c.name, wide ? "5rem" : tile ? "1.6rem" : "3.25rem", tile ? "1.5rem" : "3rem", 2)}>
             {c.name}
           </p>
           <p className={cx("mt-2 truncate text-paper/80 tabular", tile ? "text-small" : "text-body")}>

@@ -54,10 +54,10 @@ export const margot: Script = {
   loveReply: ["Oh.", "You remembered. Natural, I hope.", "Then you're invited to help me finish it. One day."],
   gift: (name) => [`${name}. Merci.`, "That's thoughtful.", "I'll keep it close."],
   fallback: [
-    ["Hm.", "Tell me more. Slowly."],
-    ["I'm listening.", "I don't always reply quickly. It doesn't mean I'm not."],
-    ["That's interesting.", "I'll think about it on the metro tomorrow."],
-    ["You make me smile.", "Don't let it go to your head."],
+    ["Continue.", "Slowly. I read everything twice."],
+    ["I read that on the stairs and stopped walking.", "I don't always reply quickly. It doesn't mean I'm not thinking about it."],
+    ["Mm.", "I'll take that with me to the gallery tomorrow. In front of the blue one."],
+    ["You made me smile.", "In public. On the terrace. I had to look at my wine."],
   ],
   night: ["Bonne nuit.", "Sleep well. Write to me tomorrow."],
 };

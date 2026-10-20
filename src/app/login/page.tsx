@@ -21,9 +21,21 @@ export default function Login() {
   // shortcut: mock auth, nothing leaves the browser; real sign-in/up (and OAuth) replaces this submit.
   const submit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const f = new FormData(e.currentTarget);
+    const form = e.currentTarget;
+    // One house-styled message instead of the browser's validation bubbles; focus goes to the field to fix.
+    const bad = form.querySelector<HTMLInputElement>(":invalid");
+    if (bad) {
+      bad.focus();
+      return setError(
+        bad.name === "email"
+          ? "Enter your email address, like you@example.com."
+          : bad.name === "password"
+            ? "Use at least 8 characters for your password."
+            : "Confirm you're 18 or older to continue.",
+      );
+    }
+    const f = new FormData(form);
     const email = String(f.get("email")).trim();
-    if (String(f.get("password")).length < 8) return setError("Use at least 8 characters for your password.");
     setWallet({ email, name: String(f.get("name") || email.split("@")[0]) });
     router.push("/app");
   };
@@ -70,7 +82,7 @@ export default function Login() {
             <h1 className="mt-10 font-display text-head">{mode === "up" ? "Make it yours" : "Welcome back"}</h1>
             <p className="mt-4 text-body text-muted">{mode === "up" ? "Free to start. Anonymous. No card." : "She remembers where you left off."}</p>
 
-            <form onSubmit={submit} className="mt-8 grid gap-5">
+            <form onSubmit={submit} noValidate onChange={() => error && setError("")} className="mt-8 grid gap-5">
               {mode === "up" && <Field label="What should she call you?" name="name" autoComplete="nickname" placeholder="A name or nickname" />}
               <Field label="Email" name="email" type="email" required autoComplete="email" placeholder="you@example.com" />
               <div className="relative">
@@ -81,7 +93,6 @@ export default function Login() {
                   required
                   minLength={8}
                   autoComplete={mode === "up" ? "new-password" : "current-password"}
-                  onChange={() => setError("")}
                   hint={mode === "up" ? "At least 8 characters." : undefined}
                   className="[&_input]:pr-14"
                 />
@@ -96,7 +107,7 @@ export default function Login() {
               </div>
               {mode === "up" && (
                 <label className="flex gap-3 text-small text-muted">
-                  <input type="checkbox" required className="mt-0.5 size-5 shrink-0 accent-[var(--color-rouge)]" />
+                  <input type="checkbox" name="adult" required className="mt-0.5 size-5 shrink-0 accent-[var(--color-rouge)]" />
                   <span>
                     I&apos;m 18 or older and accept the{" "}
                     <Link href="#" className="text-paper underline underline-offset-4">
@@ -111,7 +122,7 @@ export default function Login() {
                 </label>
               )}
               {error && (
-                <p role="alert" className="text-small text-rouge">
+                <p role="alert" className="bg-oxblood px-4 py-3 text-small text-paper">
                   {error}
                 </p>
               )}

@@ -37,18 +37,21 @@ export function SavedBoard() {
         </>
       ) : (
         <>
-          <header className="rise px-4 md:px-0">
+          {/* Wide screens: the headline holds the left, the way back sits at its foot on the right, like the board's header. */}
+          <header className="rise flex flex-col gap-4 px-4 md:px-0 xl:flex-row xl:items-end xl:justify-between xl:gap-16">
             <h1 className="font-display text-[clamp(2.25rem,calc((100vw-2rem)/7.8),7.5rem)] leading-[0.92]">
               Nobody
               <br /> here yet
             </h1>
-            <p className="mt-4 max-w-[38ch] text-body text-muted md:text-lead">Tap the bookmark on any card and she stays here, a tap away.</p>
-            <ButtonLink href="/app" variant="paper" className="mt-6">
-              Go to the board
-              <ArrowRight weight="bold" className="size-4" aria-hidden />
-            </ButtonLink>
+            <div className="xl:mb-3 xl:max-w-[30ch]">
+              <p className="max-w-[38ch] text-body text-paper md:text-lead">Tap the bookmark on any card and she stays here, a tap away.</p>
+              <ButtonLink href="/app" variant="paper" className="mt-6">
+                Go to the board
+                <ArrowRight weight="bold" className="size-4" aria-hidden />
+              </ButtonLink>
+            </div>
           </header>
-          <section aria-label="Up tonight" className="mt-12 md:mt-16">
+          <section aria-label="Up tonight" className="mt-12 md:mt-24">
             <h2 className="rise px-4 text-lead text-paper md:px-0" style={{ ["--i" as string]: 1 }}>Up tonight, to start with</h2>
             <div className={`${boardGrid[1]} mt-4`}>
               {suggested.map((c, i) => (

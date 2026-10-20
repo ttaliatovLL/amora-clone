@@ -58,9 +58,11 @@ export function Sheet({ open, onClose, title, children }: { open: boolean; onClo
   }, [open]);
 
   if (!client) return null;
+  // Calm in, quick out: springs with no bounce to open, a short drawer curve to leave.
+  const leave = { duration: desktop ? 0.16 : 0.26, ease: [0.32, 0.72, 0, 1] } as const;
   const motionProps = desktop
-    ? { initial: { opacity: 0, y: 16, scale: 0.98 }, animate: { opacity: 1, y: 0, scale: 1 }, exit: { opacity: 0, y: 8, scale: 0.98 }, transition: { type: "spring", duration: 0.4, bounce: 0 } as const }
-    : { initial: { y: "100%" }, animate: { y: 0 }, exit: { y: "100%" }, transition: { type: "spring", duration: 0.5, bounce: 0.12 } as const };
+    ? { initial: { opacity: 0, y: 16, scale: 0.98 }, animate: { opacity: 1, y: 0, scale: 1 }, exit: { opacity: 0, y: 8, scale: 0.98, transition: leave }, transition: { type: "spring", duration: 0.4, bounce: 0 } as const }
+    : { initial: { y: "100%" }, animate: { y: 0 }, exit: { y: "100%", transition: leave }, transition: { type: "spring", duration: 0.45, bounce: 0 } as const };
 
   return createPortal(
     <MotionConfig reducedMotion="user">
@@ -82,7 +84,7 @@ export function Sheet({ open, onClose, title, children }: { open: boolean; onClo
               aria-modal="true"
               aria-label={title}
               tabIndex={-1}
-              className="relative max-h-[90dvh] w-full max-w-lg overflow-x-hidden overflow-y-auto overscroll-contain bg-ink-2 px-5 pt-8 pb-[max(1.5rem,env(safe-area-inset-bottom))] shadow-[var(--shadow-float)] focus:outline-none md:max-h-[86dvh] md:px-8 md:pb-8"
+              className="relative max-h-[90dvh] w-full max-w-lg overflow-x-hidden overflow-y-auto overscroll-contain bg-ink-2 px-5 pt-8 pb-[max(1.5rem,env(safe-area-inset-bottom))] shadow-[var(--shadow-float)] outline-none! md:max-h-[86dvh] md:px-8 md:pb-8"
               {...motionProps}
               drag={desktop ? false : "y"}
               dragListener={false}

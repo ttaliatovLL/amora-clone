@@ -59,7 +59,7 @@ export const luna: Script = {
   photoAgain: ["no, one is plenty", "you'll have to come to the shop for the rest"],
   love: "book",
   loveReply: ["you bought a bookseller a book", "do you know how rare that is. nobody does this. they assume we have enough", "we never have enough. thank you. i'm writing your name in the front"],
-  gift: (name) => [`${name.toLowerCase()}? for me?`, "ok you're making the night shift very hard to complain about"],
+  gift: (name) => [`${name.toLowerCase()}. i'm putting it behind the till where nobody can buy it`, "ok you're making the night shift very hard to complain about"],
   fallback: [
     ["hm. i like that", "i'm writing it on a receipt, so be careful what you say next"],
     ["ok i laughed out loud and the stockroom echoed", "the shop cat is judging me now"],

@@ -49,15 +49,15 @@ export const anika: Script = {
     ],
   ],
   photo: ["ooh a photo, what are you after", "ok fine, but you have to tell me i look nice even if i don't", { photo: "gallery", locked: true }],
-  photoAgain: ["greedy", "come round for dinner and you can see the real thing"],
+  photoAgain: ["you've had your portion", "come round for dinner and you can see the real thing. seconds are allowed there"],
   love: "coffee",
   loveReply: ["a coffee?? you know i'm a chai girl", "…but this is cute. it's the thought. i'm drinking it", "next time i'm making you chai and you'll understand the difference"],
   gift: (name) => [`${name.toLowerCase()}!!`, "oh you sweetheart", "i'm showing my sister, she's going to be so jealous"],
   fallback: [
-    ["hahaha no WAY", "ok tell me everything, i've got a plate of jalebi and all night"],
+    ["hahaha no WAY", "ok tell me everything, i've got a plate of jalebi and the reunion on pause"],
     ["hmm. have you eaten though", "because that sounds like a hungry person talking"],
     ["babe", "that's so you. i love it"],
-    ["ok hold on, my mum's shouting from downstairs", "i'm back. say that again, i want to hear it properly"],
+    ["ok hold on, my mum's shouting from downstairs", "i'm back. she wanted to know who i'm smiling at. i said the telly"],
   ],
   night: ["noo already", "ok, drink some water, eat something tomorrow that isn't from a petrol station", "goodnight, sweetheart"],
 };

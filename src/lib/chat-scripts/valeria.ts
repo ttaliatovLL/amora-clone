@@ -50,9 +50,9 @@ export const valeria: Script = {
   gift: (name) => [`${name}? Qué lindo`, "You didn't have to. I'm happy you did", "Now I owe you a mug"],
   fallback: [
     ["Mm, interesting. I disagree a little", "But tell me more, maybe you'll convince me"],
-    ["Ay, you make me laugh", "Okay, keep going, I'm listening with clay hands"],
+    ["Ay, you make me laugh", "Okay, keep going. I'm typing with my knuckles, there's clay everywhere"],
     ["Wait, I have an opinion about this", "Of course I do. But first tell me yours"],
-    ["You know what, that's very good", "I'm writing it on the wall of my studio. Not really. Maybe"],
+    ["You know what, that's very good", "Annoyingly good. I was ready to argue"],
   ],
-  night: ["Already? Fine", "Que descanses. Dream about yellow walls and good light", "Buenas noches"],
+  night: ["Already? Fine", "Que descanses. Tomorrow I'll send you the kitchen light, I promise", "Buenas noches"],
 };
