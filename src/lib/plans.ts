@@ -1,3 +1,4 @@
+// HANDOVER: "NSFW" below means every AI/voice/video/payment provider must allow adult content. See docs/INTEGRATIONS.md#ground-rules-for-every-integration
 // Prices from the current site. Annual is prepaid for 12 months; nothing auto-renews.
 export const plans = {
   premium: { monthly: 19.99, annual: 13.99, coins: "1,800", perks: ["Unlimited messages", "Photos, videos and NSFW", "1,800 coins every month", "Priority replies"] },

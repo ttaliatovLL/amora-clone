@@ -18,6 +18,7 @@ export default function Login() {
   const [show, setShow] = useState(false);
   const [error, setError] = useState("");
 
+  // HANDOVER: auth + age verification; also protect /app/** server-side. See docs/INTEGRATIONS.md#2-auth-and-age-verification
   // shortcut: mock auth, nothing leaves the browser; real sign-in/up (and OAuth) replaces this submit.
   const submit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();

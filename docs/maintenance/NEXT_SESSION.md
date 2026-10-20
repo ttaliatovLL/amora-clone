@@ -17,14 +17,21 @@ Front-end prototype of an AI-companion PWA in `~/WEB-DEV/amora-clone`. Private r
 - Rewrote README, added CLAUDE.md and `docs/maintenance/PROJECT_AUDIT.md`.
 - Checks: `tsc` clean, `npm run lint` clean, `npm run build` OK. Chat fixes checked in the browser at localhost:3000.
 
+## Handover (project sold)
+- Entry point for the buyer: `docs/HANDOVER.md` (status, code map, transfer checklist, licenses).
+- One brief per integration (AI chat, auth, DB, payments, ElevenLabs voice, Higgsfield media, GDPR deletion, calls): `docs/INTEGRATIONS.md`.
+- `HANDOVER:` comments mark every integration point (`grep -rn "HANDOVER:" src`); planned env names in `.env.example`.
+- `reference/screenshots/` untracked (kept on disk). GitHub + Vercel transfer: owner still has to do it (checklist in HANDOVER.md).
+
 ## Pending your decision
-See "Needs your decision" in `PROJECT_AUDIT.md` (screenshots in Git, old branches — you chose to leave both for now).
+Old local branches `night-agency` and `redesign-graphite` (left as is).
 
 ## Next actions
-1. Test on a real phone (keyboard in chat, Discover drag, silk/grain cost).
-2. Fix the two open low bugs: sheets/stories reopening on back; Discover undo during fly-out.
-3. Decide the backend (auth, AI chat, payments) — the next big stage.
-4. Security headers + real legal pages before anything public.
+1. Owner: transfer GitHub repo and Vercel project to the buyer (docs/HANDOVER.md checklist).
+2. Test on a real phone (keyboard in chat, Discover drag, silk/grain cost).
+3. Fix the two open low bugs: sheets/stories reopening on back; Discover undo during fly-out.
+4. Buyer: start integrations in the order given in docs/INTEGRATIONS.md.
+5. Security headers + real legal pages before anything public.
 
 ## Resume
 ```bash

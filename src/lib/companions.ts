@@ -1,6 +1,7 @@
 // Mock companions. Most names/taglines come from the current site; Gina, Katya, Jada, Valeria copy is placeholder.
 export type Hair = "wavy" | "bob" | "bun" | "curly" | "braids" | "ponytail" | "straight";
 
+// HANDOVER: these fields seed each persona's system prompt (AI chat) and will need `voiceId` (voice) and a reference image (media). See docs/INTEGRATIONS.md
 export type Companion = {
   id: string;
   /** Portrait path; companions without one fall back to the line-art Sketch. */

@@ -185,6 +185,8 @@ export function Chat({ companion: c }: { companion: Companion }) {
     send(o.say, o.her, o.heart);
   };
 
+  // HANDOVER: AI chat. Replace intent() + scripted answers with POST /api/chat → { beats: Beat[] }, then send(t, beats).
+  // Keep say()/run(): it paces replies like a person typing. See docs/INTEGRATIONS.md#1-ai-chat-humanized-conversations
   const sendText = (text: string) => {
     const t = text.trim();
     if (!t || !s) return;
@@ -213,6 +215,7 @@ export function Chat({ companion: c }: { companion: Companion }) {
     send({ gift: id }, id === s.love ? s.loveReply : s.gift(g.name), true);
   };
 
+  // HANDOVER: payments + media. Charge the unlock on the server (never trust the local wallet) and return the media URL. See docs/INTEGRATIONS.md#4-payments-coins-and-premium
   const unlock = (id: number) => {
     if (!spend(PHOTO_PRICE)) {
       toast("Not enough coins", { description: `A private photo is ${PHOTO_PRICE} coins.`, action: { label: "Get coins", onClick: () => setPaywall(true) } });
@@ -268,6 +271,7 @@ export function Chat({ companion: c }: { companion: Companion }) {
               <Coins size={16} weight="fill" className="text-rouge" aria-hidden />
               {coins.toLocaleString()}
             </Link>
+            {/* HANDOVER: a voice-call button (realtime voice, e.g. ElevenLabs) would sit here. See docs/INTEGRATIONS.md#8-voice-calls-future */}
             <button type="button" onClick={() => setProfile(true)} className="press grid size-11 shrink-0 place-items-center text-paper hover:bg-ink-3" aria-label={`About ${c.name}`}>
               <Info size={22} aria-hidden />
             </button>

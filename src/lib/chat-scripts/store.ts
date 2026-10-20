@@ -4,6 +4,7 @@ import { useSyncExternalStore } from "react";
 import type { Beat, GiftId } from "@/lib/chat-script";
 import { scripts } from "./index";
 
+// HANDOVER: persistence. Keep useConvo/setConvo as the UI API, back them with the conversations/messages tables. See docs/INTEGRATIONS.md#3-persistence
 // shortcut: conversations live in memory for this tab only; move to the account API with the backend.
 export type Msg = {
   id: number;

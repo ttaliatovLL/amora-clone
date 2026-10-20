@@ -4,6 +4,7 @@ import { useSyncExternalStore } from "react";
 import { toast } from "sonner";
 import { achievements } from "@/lib/achievements";
 
+// HANDOVER: persistence (saved companions, achievements). See docs/INTEGRATIONS.md#3-persistence
 // shortcut: per-browser mock progress in localStorage (like wallet.ts); move to the account API with the backend.
 export type Progress = {
   saved: string[];

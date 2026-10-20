@@ -44,3 +44,9 @@ next-env.d.ts
 
 # local-only launch-video output
 /brag-output/
+
+# third-party reference screenshots (kept locally, not shipped)
+/reference/
+
+# allow the env template
+!.env.example

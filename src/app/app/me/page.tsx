@@ -54,6 +54,7 @@ export default function Me() {
   const [typed, setTyped] = useState("");
   const earned = Object.keys(progress.earned).length;
 
+  // HANDOVER: GDPR deletion must erase DB rows, generated media and provider copies. See docs/INTEGRATIONS.md#7-account-deletion-gdpr-art-17
   // shortcut: mock deletion; production calls the account deletion API and signs out on success.
   const deleteAccount = () => {
     setDel("working");

@@ -39,6 +39,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="en" suppressHydrationWarning className={`${panchang.variable} ${switzer.variable} h-full antialiased`}>
       <head>
+        {/* HANDOVER: self-declared age gate only; real age verification and a CSP nonce for this script are open. See docs/INTEGRATIONS.md#2-auth-and-age-verification */}
         {/* Sets data-age-ok before paint so returning visitors never see the gate flash. */}
         <script dangerouslySetInnerHTML={{ __html: `try{if(document.cookie.includes("amora_age=1"))document.documentElement.dataset.ageOk=""}catch(e){}` }} />
       </head>

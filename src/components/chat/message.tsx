@@ -102,6 +102,7 @@ function bars(seed: string, n = 30) {
 }
 const mmss = (s: number) => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, "0")}`;
 
+// HANDOVER: voice notes. Today there is no audio, only a timer and transcript. Add `src` to the voice beat (TTS, e.g. ElevenLabs) and play it here. See docs/INTEGRATIONS.md#5-voice-notes-elevenlabs-or-similar-tts
 export function VoiceNote({ her, tail, transcript, secs }: { her: boolean; tail: boolean; transcript: string; secs: number }) {
   const top = useRef<HTMLDivElement>(null);
   const anim = useRef<Animation | null>(null);

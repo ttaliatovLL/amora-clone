@@ -2,6 +2,7 @@
 
 import { useSyncExternalStore } from "react";
 
+// HANDOVER: keep useWallet/setWallet/spend as the UI API, back them with the server ledger. See docs/INTEGRATIONS.md#4-payments-coins-and-premium
 // shortcut: per-browser mock wallet in localStorage; replace with the account API when payments are wired.
 export type Wallet = { coins: number; premium: boolean; name: string; email: string };
 

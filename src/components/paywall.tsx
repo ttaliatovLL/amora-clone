@@ -19,6 +19,7 @@ export function Paywall({ open, onClose, reason }: { open: boolean; onClose: () 
   const p = plans.premium;
   const total = annual ? p.annual * 12 : p.monthly;
 
+  // HANDOVER: real checkout + server-side coin ledger (adult/AI-companion = high-risk merchant). See docs/INTEGRATIONS.md#4-payments-coins-and-premium
   // shortcut: demo purchases credit instantly; real checkout (USDT/USDC) replaces these handlers.
   const buyPlan = () => {
     setWallet((w) => ({ premium: true, coins: w.coins + 1800 }));

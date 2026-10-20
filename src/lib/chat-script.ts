@@ -1,6 +1,7 @@
 import type { Companion } from "@/lib/companions";
 
 // shortcut: hand-written scripted conversations stand in for the AI backend; swap `fallback()` for an API call.
+// HANDOVER: AI chat. `Beat` is the reply contract to keep (text / photo / voice); the scripts are the best few-shot examples of each persona. See docs/INTEGRATIONS.md#1-ai-chat-humanized-conversations
 
 /** One thing she sends: a text, a photo (her portrait or her gallery shot, maybe locked), or a voice note with its transcript. */
 export type Beat = string | { photo: "portrait" | "gallery"; locked?: boolean } | { voice: string; secs: number };

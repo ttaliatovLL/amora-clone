@@ -29,7 +29,7 @@ Amora: mobile-first PWA rebuild of meetamora.com (AI-companion chat, adults only
 | 5 | High (hygiene) | `git add -A` would have committed 150 MB `brag-output/` and the stray nested clone `amora-clone/` | FIXED: `brag-output/` git- and eslint-ignored; stray clone deleted (approved) |
 | 6 | Low | Chat profile sheet / story viewer reopen when you navigate back (Activity keeps state) — `chat.tsx` Sheet, `chat/list.tsx` StoryViewer | OPEN |
 | 7 | Low | Discover: undo pressed during a card's 380 ms fly-out desyncs the deck index — `discover/deck.tsx` | OPEN |
-| 8 | Low | Tracked `reference/screenshots/` ≈ 79 MB of PNGs (screens of the original site) | OPEN — your call |
+| 8 | Low | Tracked `reference/screenshots/` ≈ 79 MB of PNGs (screens of the original site) | FIXED: untracked and git-ignored (still on disk and in Git history) |
 | 9 | Low | No security headers (CSP etc.) in `next.config.ts` | OPEN — before public launch |
 | 10 | Low | Hearting a message is touch-only (no keyboard path) | PARTIAL — screen-reader labels fixed |
 
@@ -37,5 +37,4 @@ Amora: mobile-first PWA rebuild of meetamora.com (AI-companion chat, adults only
 Keep **`amora-clone`**. The display/package name is "amora"; the repo, Vercel project and its URLs all use `amora-clone`. A rename (e.g. `amora-pwa`) would change the Vercel domains and remotes for little gain while it is a private prototype. Revisit when it gets a real domain.
 
 ## Needs your decision
-- Untrack `reference/screenshots/` (history rewrite only if you want the space back).
 - Stale local branches `night-agency` (merged, 2 behind main) and `redesign-graphite` (rejected design, local only) — keep or delete.
