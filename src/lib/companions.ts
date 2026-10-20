@@ -40,12 +40,21 @@ export const companions: Companion[] = [
   { id: "katya", name: "Katya", age: 27, city: "Dubai", tagline: "Champagne taste, surprisingly good listener", traits: ["Glamorous", "Attentive", "Teasing"], interests: ["Rooftop bars", "Pilates", "Travel planning"], vibe: "Bold", online: false, hair: "straight", wash: ["#d9b48a", "#3a2416"], tags: ["rooftops", "pilates", "champagne", "goodlistener"], sign: "Libra", langs: ["EN", "RU"], photos: 64, gallery: [] },
   { id: "jada", name: "Jada", age: 23, city: "Atlanta", tagline: "Plants, playlists and slow Sunday mornings", traits: ["Gentle", "Funny", "Grounded"], interests: ["Houseplants", "R&B playlists", "Journaling"], vibe: "Sweet", online: true, hair: "curly", wash: ["#b88763", "#2a1a12"], tags: ["plantmom", "rnb", "journaling", "sundays"], sign: "Cancer", langs: ["EN"], photos: 44, gallery: [] },
   { id: "valeria", name: "Valeria", age: 26, city: "Mexico City", tagline: "Sunlit apartment, sharp mind, soft heart", traits: ["Bright", "Affectionate", "Opinionated"], interests: ["Architecture", "Mezcal tastings", "Ceramics"], vibe: "Sweet", online: true, hair: "ponytail", wash: ["#cf9a6e", "#3b1c18"], tags: ["ceramics", "mezcal", "architecture", "sunlight"], sign: "Taurus", langs: ["ES", "EN"], photos: 47, gallery: [] },
+  // Client-designed (ChatGPT images); names and copy are placeholders for the client to replace.
+  { id: "ines", name: "Inés", age: 26, city: "Barcelona", tagline: "Gym at seven, vermut at one, trouble by nine", traits: ["Cheeky", "Driven", "Flirty"], interests: ["Reformer pilates", "Beach volleyball", "Vermut Sundays"], vibe: "Playful", online: true, isNew: true, hair: "curly", wash: ["#d9a07a", "#3a1a1f"], tags: ["gymgirl", "barceloneta", "vermut", "morningperson"], sign: "Leo", langs: ["ES", "CA", "EN"], photos: 58, gallery: [] },
+  { id: "sofia", name: "Sofia", age: 25, city: "Athens", tagline: "Golden hour, strawberries, a terrible influence", traits: ["Sweet", "Teasing", "Romantic"], interests: ["Island hopping", "Slow breakfasts", "Sundresses"], vibe: "Sweet", online: true, isNew: true, hair: "wavy", wash: ["#e0a58c", "#3d1c1e"], tags: ["goldenhour", "islandgirl", "strawberries", "slowmornings"], sign: "Taurus", langs: ["EL", "EN"], photos: 66, gallery: [] },
 ];
 
 // Portraits: Figma AI (gpt-image-2.5), file "Amora portraits"; fictional adults, placeholder until real content.
+// v2 = bright editorial set (Gina: Weave Nano Banana Pro; rest: Figma gpt-image-2.5 diptychs, file "Amora portraits v2").
+// Rollback per girl: remove her id here (originals stay in /companions).
+const v2 = new Set(["emma", "luna", "anika", "klara", "ece", "gina", "margot", "amara", "luz", "katya", "jada", "valeria", "ines", "sofia"]);
+// Gallery shots per girl ({id}-2.jpg onward); everyone else has one.
+const shots: Record<string, number> = { ines: 5, sofia: 6 };
 for (const c of companions) {
-  c.photo = `/companions/${c.id}.jpg`;
-  c.gallery = [`/companions/${c.id}-2.jpg`];
+  const dir = v2.has(c.id) ? "/companions/v2" : "/companions";
+  c.photo = `${dir}/${c.id}.jpg`;
+  c.gallery = Array.from({ length: shots[c.id] ?? 1 }, (_, i) => `${dir}/${c.id}-${i + 2}.jpg`);
 }
 
 export const vibes = ["Sweet", "Playful", "Mysterious", "Bold"] as const;
@@ -64,4 +73,6 @@ export const bios: Record<string, string> = {
   katya: "Rooftop sunsets and room-service breakfasts, but the best listener in any room.",
   jada: "Thirty-one houseplants, all named. Builds a playlist for every mood you're in.",
   valeria: "Sunlit flat, clay on her hands, mezcal on Fridays. Will argue about architecture with you, lovingly.",
+  ines: "Coaches the 7am class, then sends you a mirror selfie to prove she survived it. Competitive about everything, including you.",
+  sofia: "Breakfast on the terrace until noon, sunset swims, strawberries in bed. Knows exactly how to make you miss her.",
 };
