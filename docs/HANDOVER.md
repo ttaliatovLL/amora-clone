@@ -67,6 +67,7 @@ Details are in [maintenance/PROJECT_AUDIT.md](maintenance/PROJECT_AUDIT.md).
 | `src/lib/wallet.ts`, `progress.ts` | Coins/Premium and saved/achievements (localStorage mocks) |
 | `src/lib/plans.ts` | Prices (USD) and perks |
 | `public/companions/v2/` | Current portraits (originals in `public/companions/`) |
+| `public/brand/` | Logo files: wordmark, mark, app icon (SVG + PNG), liquid wordmark still and loop. Animated README banner in `docs/brand/` |
 | `docs/companion-prompts.md` | Prompt kit for consistent companion photos |
 
 **Gotcha:** this is Next.js 16 with `cacheComponents`. APIs differ from older docs, so read `node_modules/next/dist/docs/` before writing server code. Pages you leave stay mounted but hidden, and keep their state.

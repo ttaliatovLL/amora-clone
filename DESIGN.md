@@ -37,6 +37,7 @@ Idea sentence: *On Amora, the model agency's comp card becomes the companion car
 - `cookie-banner.tsx`: consent (essential default). `openCookieSettings()` reopens it.
 - `liquid-glass.tsx` `LiquidGlass` (real refraction in Chromium, blur elsewhere). Use only for the dock and at most one floating control per screen.
 - `liquid-logo/` `LiquidWordmark` (WebGL liquid-metal "AMORA"). Use on the landing hero and the age gate only.
+- Brand files: `public/brand/` (wordmark paper/ink, mark, app icon as SVG + PNG; liquid wordmark still PNG and looping MP4). All outlined from Panchang 700, so they never need the font. `docs/brand/` holds the animated README banner (WebP, GIF) and the original low-res references. Shown on `/system` under *Brand files*.
 - `silk.tsx` `Silk` (shadergradient, dark wine silk). Landing atmosphere and the paywall only.
 - `portrait.tsx` `Portrait` (4:5 photo, `src` for gallery shot, `face` for avatar crop), `sheet.tsx` `Sheet`, `paywall.tsx`.
 

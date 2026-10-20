@@ -1,6 +1,9 @@
 <div align="center">
 
-<img src="docs/cover.jpg" alt="Amora — private AI companions" width="100%" />
+<picture>
+  <source srcset="docs/brand/amora-liquid.webp" type="image/webp" />
+  <img src="docs/brand/amora-liquid.gif" alt="Amora — private AI companions" width="100%" />
+</picture>
 
 # Amora
 

@@ -30,6 +30,14 @@ const swatches: [string, string, string][] = [
   ["live", "Online dot", "bg-live"],
 ];
 
+const brandFiles: { name: string; role: string; file: string; ext: string[]; field?: "paper" }[] = [
+  { name: "Wordmark", role: "Paper on ink; the default", file: "amora-wordmark", ext: ["svg", "png"] },
+  { name: "Wordmark, ink", role: "For paper and light fields", file: "amora-wordmark-ink", ext: ["svg", "png"], field: "paper" },
+  { name: "Mark", role: "The A and one rouge square", file: "amora-mark", ext: ["svg", "png"] },
+  { name: "App icon", role: "Ink square; PWA, Apple touch, maskable", file: "amora-icon", ext: ["svg", "png"] },
+  { name: "Liquid wordmark", role: "Still from the real shader, transparent", file: "amora-liquid", ext: ["png"] },
+];
+
 const sizes: [string, string, string][] = [
   ["text-mega", "Mega", "font-display text-mega"],
   ["text-title", "Page title", "font-display text-title"],
@@ -304,6 +312,32 @@ export default function SystemPage() {
                 ))}
               </LiquidGlass>
             </div>
+          </div>
+        </Section>
+
+        <Section id="brand-assets" title="Brand files" note="Everything in public/brand: vector first, PNG for tools that need it. The liquid wordmark is also the README banner (docs/brand).">
+          <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+            {brandFiles.map(({ name, role, file, ext, field }) => (
+              <div key={file} className="bg-ink-2">
+                <div className={cx("grid aspect-[16/10] place-items-center p-8", field === "paper" ? "bg-paper" : "bg-ink-3")}>
+                  {/* eslint-disable-next-line @next/next/no-img-element -- brand files are static, never resized */}
+                  <img src={`/brand/${file}.${ext[0]}`} alt={name} className="max-h-full max-w-full object-contain" />
+                </div>
+                <div className="flex items-end justify-between gap-4 px-4 py-4">
+                  <div className="min-w-0">
+                    <p className="text-small font-medium text-paper">{name}</p>
+                    <p className="text-small text-muted">{role}</p>
+                  </div>
+                  <p className="flex shrink-0 gap-3 text-small">
+                    {ext.map((e) => (
+                      <a key={e} href={`/brand/${file}.${e}`} download className="text-paper underline underline-offset-4 hover:text-rouge">
+                        {e.toUpperCase()}
+                      </a>
+                    ))}
+                  </p>
+                </div>
+              </div>
+            ))}
           </div>
         </Section>
       </div>
