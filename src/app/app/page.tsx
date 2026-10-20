@@ -2,11 +2,14 @@
 
 import { ChatCircleDots, Square, SquaresFour } from "@phosphor-icons/react/ssr";
 import Link from "next/link";
-import { useState, ViewTransition } from "react";
+import { AnimatePresence, MotionConfig, motion } from "motion/react";
+import { useState, ViewTransition, type ReactNode } from "react";
 import { flushSync } from "react-dom";
 import { boardGrid, setDensity, useDensity } from "@/components/board/density";
 import { Crossfade } from "@/components/board/crossfade";
 import { fitName } from "@/components/board/fit-name";
+import { DiscoverCell, QuoteCell } from "@/components/board/interludes";
+import { ViewSwitch } from "@/components/discover/view-switch";
 import { Portrait } from "@/components/portrait";
 import { SaveButton } from "@/components/save-button";
 import { Button, ButtonLink, Chip, CompanionCard, Facts } from "@/components/ui";
@@ -28,10 +31,43 @@ function switchDensity(d: 1 | 2) {
   document.startViewTransition(() => flushSync(() => setDensity(d)));
 }
 
+const faces = companions.filter((c) => c.online).slice(0, 3);
+
+/** The board's cells: her cards, with a line from one of them after the fifth and the way into Discover after the tenth. */
+function cells(shown: typeof companions, tile: boolean) {
+  const out: { key: string; node: ReactNode }[] = shown.map((c, i) => ({
+    key: c.id,
+    node: (
+      <CompanionCard
+        companion={c}
+        href={`/app/${c.id}`}
+        size={tile ? "tile" : "large"}
+        // The pick's portrait above already carries her morph name.
+        morph={c.id !== pick.id}
+        priority={i < 4}
+      />
+    ),
+  }));
+  // Her line comes right before her card.
+  if (shown.length >= 6) out.splice(5, 0, { key: `quote-${shown[5].id}`, node: <QuoteCell companion={shown[5]} tile={tile} /> });
+  if (shown.length >= 9) out.splice(11, 0, { key: "discover", node: <DiscoverCell faces={faces} tile={tile} /> });
+  return out;
+}
+
+// Editorial rhythm from 3 columns up: alternate columns sit lower, like prints pinned unevenly on a board.
+// `translate` (not transform) so it composes with the entrance and re-flow motion. Padding keeps the last row clear of what follows.
+const stagger = `
+@media (width >= 40rem) and (width < 64rem) { .stagger-2 > :nth-child(3n+2) { translate: 0 2rem } .stagger-2 { padding-bottom: 2rem } }
+@media (width >= 64rem) { .stagger-1 > :nth-child(3n+2) { translate: 0 3.5rem } .stagger-1 { padding-bottom: 3.5rem } }
+@media (width >= 64rem) and (width < 96rem) { .stagger-2 > :nth-child(even) { translate: 0 3rem } .stagger-2 { padding-bottom: 3rem } }
+@media (width >= 96rem) { .stagger-2 > :nth-child(5n+2), .stagger-2 > :nth-child(5n+4) { translate: 0 3rem } .stagger-2 { padding-bottom: 3rem } }
+`;
+
 export default function Board() {
   const [f, setF] = useState<Filter>(everyone);
   const density = useDensity();
   const all = !f.online && !f.fresh && !f.vibe;
+  const filterKey = `${f.online}${f.fresh}${f.vibe}`;
   const shown = board.filter((c) => (!f.online || c.online) && (!f.fresh || c.isNew) && (!f.vibe || c.vibe === f.vibe));
 
   return (
@@ -41,7 +77,9 @@ export default function Board() {
           Who&apos;s up
           <br /> tonight
         </h1>
-        <p className="flex items-center gap-2 text-body text-muted tabular md:mb-2">
+        <div className="flex flex-col gap-4 md:mb-2 md:items-end">
+        <ViewSwitch on="board" />
+        <p className="flex items-center gap-2 text-body text-muted tabular">
           {online > 0 && <span className="live-dot size-2 rounded-full bg-live" aria-hidden />}
           {online > 0 ? (
             <span>
@@ -53,6 +91,7 @@ export default function Board() {
             </span>
           )}
         </p>
+        </div>
       </header>
 
       {/* Tonight's pick: her comp card opened flat. Phones: portrait beside her details. Desktop: portrait, a paper back, her second shot. */}
@@ -142,21 +181,28 @@ export default function Board() {
       </p>
 
       {shown.length ? (
-        <div className={boardGrid[density]}>
-          {shown.map((c, i) => (
-            <CompanionCard
-              key={c.id}
-              companion={c}
-              href={`/app/${c.id}`}
-              size={density === 2 ? "tile" : "large"}
-              // The pick's portrait above already carries her morph name.
-              morph={c.id !== pick.id}
-              priority={i < 4}
-              className={i < 8 ? "rise" : "reveal"}
-              style={{ ["--i" as string]: i + 2 }}
-            />
-          ))}
-        </div>
+        <MotionConfig reducedMotion="user">
+          <style>{stagger}</style>
+          <div className={`${boardGrid[density]} stagger-${density} relative`}>
+            <AnimatePresence mode="popLayout" initial={false}>
+              {cells(shown, density === 2).map(({ key, node }, i) => (
+                <motion.div
+                  key={key}
+                  // Only filter changes re-flow with motion; the density swap has its own view transition.
+                  layout="position"
+                  layoutDependency={filterKey}
+                  initial={{ opacity: 0, y: 28 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, margin: "0px 0px -8% 0px" }}
+                  exit={{ opacity: 0, scale: 0.96, transition: { duration: 0.2 } }}
+                  transition={{ default: { duration: 0.7, ease: [0.16, 1, 0.3, 1], delay: (i % 5) * 0.06 }, layout: { type: "spring", stiffness: 420, damping: 40 } }}
+                >
+                  {node}
+                </motion.div>
+              ))}
+            </AnimatePresence>
+          </div>
+        </MotionConfig>
       ) : (
         <div className="py-20 md:py-32">
           <p className="font-display text-head">Nobody like that</p>

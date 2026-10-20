@@ -2,6 +2,10 @@ import type { Script } from "@/lib/chat-script";
 
 // Luna: Oslo night-shift bookseller, poems on receipts, stargazing from the roof. Lowercase, playful, blunt, then blushes.
 export const luna: Script = {
+  tz: "Europe/Oslo",
+  mood: "on the roof with a thermos",
+  style: "Lowercase and blunt, then she blushes about it.",
+  moment: "wrote you a poem on a receipt. you can't see it yet",
   history: [
     {
       day: "Sunday",

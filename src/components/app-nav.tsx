@@ -1,6 +1,6 @@
 "use client";
 
-import { BookmarkSimple, ChatCircle, Coins, SquaresFour, User } from "@phosphor-icons/react/ssr";
+import { BookmarkSimple, Cards, ChatCircle, Coins, SquaresFour, User } from "@phosphor-icons/react/ssr";
 import { motion } from "motion/react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -11,6 +11,7 @@ import { useWallet } from "@/lib/wallet";
 
 const tabs = [
   { href: "/app", label: "Board", Icon: SquaresFour, match: (p: string) => p === "/app" },
+  { href: "/app/discover", label: "Discover", Icon: Cards, match: (p: string) => p.startsWith("/app/discover") },
   { href: "/app/saved", label: "Saved", Icon: BookmarkSimple, match: (p: string) => p.startsWith("/app/saved") },
   { href: "/app/chats", label: "Chats", Icon: ChatCircle, match: (p: string) => p.startsWith("/app/chats") },
   { href: "/app/me", label: "You", Icon: User, match: (p: string) => p.startsWith("/app/me") },
@@ -74,7 +75,7 @@ export function AppNav() {
         <LiquidGlass
           as="nav"
           aria-label="App"
-          className="fixed inset-x-0 bottom-[max(0.75rem,env(safe-area-inset-bottom))] z-40 mx-auto grid h-16 w-[min(21rem,calc(100%-2rem))] grid-cols-4 p-1 md:hidden"
+          className="fixed inset-x-0 bottom-[max(0.75rem,env(safe-area-inset-bottom))] z-40 mx-auto grid h-16 w-[min(24rem,calc(100%-1.5rem))] grid-cols-5 p-1 md:hidden"
         >
           {tabs.map(({ href, label, Icon, match }) => {
             const on = match(path);

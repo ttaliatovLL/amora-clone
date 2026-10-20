@@ -12,6 +12,14 @@ export type Option = { say: string; her: Beat[]; heart?: boolean };
 export type GiftId = "coffee" | "rose" | "book" | "vinyl" | "wine" | "champagne" | "bone";
 
 export type Script = {
+  /** Her city's time zone, for the local clock in the header. */
+  tz: string;
+  /** What she's doing right now, under her name in the header. */
+  mood: string;
+  /** How she texts, on the card at the top of the thread. */
+  style: string;
+  /** Today's moment in the inbox: one line over her gallery shot. */
+  moment: string;
   /** Earlier days, oldest first. A day called "Today" holds messages waiting when you open the chat. */
   history: { day: string; lines: Line[] }[];
   /** How many of her last messages are unread in the inbox. */
@@ -61,5 +69,8 @@ export const beatText = (b: Beat, name: string) =>
 /** How long she "types" a beat: proportional to its length, clamped so it never drags. */
 export const typingMs = (b: Beat) =>
   typeof b === "string" ? Math.min(3200, Math.max(900, 450 + b.length * 38)) : "voice" in b ? Math.min(3600, 1400 + b.secs * 90) : 1700;
+
+/** Her local time, "01:12". */
+export const localTime = (tz: string, now: number) => new Date(now).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", timeZone: tz });
 
 export const photoSrc = (c: Companion, which: "portrait" | "gallery") => (which === "gallery" ? (c.gallery[0] ?? c.photo) : c.photo);

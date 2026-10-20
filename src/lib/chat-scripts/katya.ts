@@ -2,6 +2,10 @@ import type { Script } from "@/lib/chat-script";
 
 // Katya: Russian-born, Dubai rooftops, champagne taste, pilates at seven, plans trips for fun. Polished, teasing, listens closely.
 export const katya: Script = {
+  tz: "Asia/Dubai",
+  mood: "on a rooftop, phone face down",
+  style: "Polished and teasing. Listens more than she lets on.",
+  moment: "the sunset tried. i'll give it a seven",
   history: [
     {
       day: "Friday",

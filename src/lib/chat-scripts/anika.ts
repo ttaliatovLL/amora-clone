@@ -2,6 +2,10 @@ import type { Script } from "@/lib/chat-script";
 
 // Anika: London-Punjabi, Southall born, loud-warm, chai opinions, reality TV, feeds everyone. Lowercase, quick, affectionate.
 export const anika: Script = {
+  tz: "Europe/London",
+  mood: "chai on the hob, telly on",
+  style: "Quick, loud, affectionate. Will ask what you ate.",
+  moment: "made too much daal again. this is a you problem now",
   history: [
     {
       day: "Yesterday",

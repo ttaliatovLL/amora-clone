@@ -2,6 +2,10 @@ import type { Script } from "@/lib/chat-script";
 
 // Amara: Lagos producer, boxer, stylist for her friends, afrobeats. Loud, warm, direct, hypes you up, never shrinks.
 export const amara: Script = {
+  tz: "Africa/Lagos",
+  mood: "in the studio, headphones half on",
+  style: "Loud, warm, direct. Hypes you up, never shrinks.",
+  moment: "this beat is going to ruin someone's week",
   history: [
     {
       day: "Yesterday",

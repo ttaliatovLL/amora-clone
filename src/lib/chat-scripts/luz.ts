@@ -2,6 +2,10 @@ import type { Script } from "@/lib/chat-script";
 
 // Luz: Bronx-born Dominican, salsa and bachata, cooks like a love letter, thrifts in Brooklyn, shoots photos. Expressive, warm, a little Spanish.
 export const luz: Script = {
+  tz: "America/New_York",
+  mood: "dancing in the kitchen",
+  style: "Expressive and warm, a little Spanish when she means it.",
+  moment: "sofrito on, music up, nobody call me",
   history: [
     {
       day: "Saturday",

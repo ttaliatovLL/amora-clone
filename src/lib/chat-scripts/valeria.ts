@@ -2,6 +2,10 @@ import type { Script } from "@/lib/chat-script";
 
 // Valeria: Roma Norte, sunlit flat, clay on her hands, mezcal on Fridays, loving arguments about Barragán. Bright, opinionated, a little Spanish.
 export const valeria: Script = {
+  tz: "America/Mexico_City",
+  mood: "clay on her hands",
+  style: "Bright, opinionated, a little Spanish. Argues lovingly.",
+  moment: "this light. i'm not moving from this window",
   history: [
     {
       day: "Yesterday",

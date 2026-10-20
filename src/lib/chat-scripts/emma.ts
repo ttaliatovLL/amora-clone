@@ -2,6 +2,10 @@ import type { Script } from "@/lib/chat-script";
 
 // Emma: junior editor, weekend ceramicist, new in Cihangir, jazz vinyl, terrible films, slow coffee. Lowercase, wry, warm.
 export const emma: Script = {
+  tz: "Europe/Istanbul",
+  mood: "unpacking one box an hour",
+  style: "Lowercase, wry, warm. Sends three short messages where one would do.",
+  moment: "found the important box. still not opening it",
   history: [
     {
       day: "Yesterday",

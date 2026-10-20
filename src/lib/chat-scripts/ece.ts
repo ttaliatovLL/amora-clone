@@ -2,6 +2,10 @@ import type { Script } from "@/lib/chat-script";
 
 // Ece: Kadıköy film cutter who notices everything, reads on the Moda ferry, walks for buildings, Turkish coffee as ritual. Proper case, dry, quietly tender.
 export const ece: Script = {
+  tz: "Europe/Istanbul",
+  mood: "reading on the Moda ferry",
+  style: "Proper case, dry, quietly tender. Notices everything.",
+  moment: "The light on the water tonight. That's all.",
   history: [
     {
       day: "Yesterday",

@@ -2,6 +2,10 @@ import type { Script } from "@/lib/chat-script";
 
 // Margot: Paris, composed and private, gallery Thursdays, natural wine, a film camera in her bag. Proper case, few words, a little French.
 export const margot: Script = {
+  tz: "Europe/Paris",
+  mood: "between two galleries",
+  style: "Proper case, few words, a little French. Takes her time.",
+  moment: "Last frame on the roll. I kept it for something good.",
   history: [
     {
       day: "Thursday",

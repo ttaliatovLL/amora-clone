@@ -2,6 +2,10 @@ import type { Script } from "@/lib/chat-script";
 
 // Klara: Munich, composed and dry, runs the Englischer Garten before sunrise, opera and ballet tickets booked months out, briefs her dachshund Otto like a colleague. Proper case, full stops.
 export const klara: Script = {
+  tz: "Europe/Berlin",
+  mood: "Otto is asleep on her feet",
+  style: "Proper case, full stops. Composed, then suddenly warm.",
+  moment: "Otto has decided the sofa is his. Negotiations ongoing.",
   history: [
     {
       day: "Sunday",

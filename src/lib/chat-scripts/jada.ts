@@ -2,6 +2,10 @@ import type { Script } from "@/lib/chat-script";
 
 // Jada: Atlanta, thirty-one named houseplants, a playlist for every mood, R&B, journaling, slow Sundays. Lowercase, gentle, funny.
 export const jada: Script = {
+  tz: "America/New_York",
+  mood: "watering plant number twenty",
+  style: "Lowercase, gentle, funny. Has a playlist for this.",
+  moment: "fern number twelve has a new leaf. i'm emotional",
   history: [
     {
       day: "Yesterday",

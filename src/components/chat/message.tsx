@@ -40,6 +40,7 @@ export function PhotoBubble({
   src,
   her,
   tail,
+  fresh,
   locked,
   name,
   onUnlock,
@@ -48,6 +49,8 @@ export function PhotoBubble({
   src: string;
   her: boolean;
   tail: boolean;
+  /** Just arrived: an open photo develops into focus. */
+  fresh?: boolean;
   locked: boolean;
   name: string;
   onUnlock: () => void;
@@ -67,7 +70,7 @@ export function PhotoBubble({
         alt={locked ? `Private photo from ${name}` : `Photo from ${name}`}
         fill
         sizes="240px"
-        className={cx("object-cover", locked ? "scale-125 blur-xl saturate-75" : developed && "animate-develop")}
+        className={cx("object-cover", locked ? "scale-125 blur-xl saturate-75" : (developed || fresh) && "animate-develop")}
       />
       {locked ? (
         <div className="absolute inset-0 flex flex-col items-start justify-end gap-3 bg-ink/15 p-4">

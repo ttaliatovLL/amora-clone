@@ -1,6 +1,7 @@
-import { ArrowRight } from "@phosphor-icons/react/ssr";
+import { ArrowRight, Camera } from "@phosphor-icons/react/ssr";
 import Link from "next/link";
 import { ViewTransition, type ComponentProps, type CSSProperties, type ReactNode } from "react";
+import { CardTilt } from "@/components/board/card-tilt";
 import { fitName } from "@/components/board/fit-name";
 import { Portrait } from "@/components/portrait";
 import { SaveButton } from "@/components/save-button";
@@ -267,8 +268,18 @@ export function Avatar({
 }
 
 /* ── Companion card: the comp card ────────────────────── */
+const languageNames = new Intl.DisplayNames(["en"], { type: "language" });
+/** "Speaks English and Turkish" from her language codes. */
+const speaks = (codes: string[]) => {
+  const names = codes.map((l) => languageNames.of(l.toLowerCase()) ?? l);
+  return `Speaks ${names.length > 1 ? `${names.slice(0, -1).join(", ")} and ${names.at(-1)}` : names[0]}`;
+};
+// Hover-only detail lines: open on fine pointers, never take space on touch.
+const onHover =
+  "hidden [@media(hover:hover)_and_(pointer:fine)]:block max-h-0 translate-y-1 opacity-0 transition-[max-height,opacity,transform,margin] duration-500 ease-[var(--ease-out)] group-hover:max-h-6 group-hover:translate-y-0 group-hover:opacity-100";
+
 // Like a model agency's card: one big photograph, the name set wide across its foot, the facts in one line.
-// Hover (fine pointers) slowly brings her second photograph through.
+// Hover (fine pointers) slowly brings her second photograph through, leans the card toward the pointer and opens one more line.
 export function CompanionCard({
   companion: c,
   href,
@@ -297,7 +308,8 @@ export function CompanionCard({
   const tile = size === "tile" && !wide;
   const second = c.gallery[0];
   const photo = (
-    <div className="absolute inset-0 overflow-hidden">
+    // Drifts a few pixels against the tilt (CardTilt sets the offsets); the hover zoom covers the edges.
+    <div className="absolute inset-0 overflow-hidden [translate:calc(var(--shift-x,0)*1px)_calc(var(--shift-y,0)*1px)]">
       <Portrait
         companion={c}
         priority={priority}
@@ -308,45 +320,51 @@ export function CompanionCard({
     </div>
   );
   return (
-    <article style={style} className={cx("crossfade group @container relative overflow-hidden bg-ink-2", wide ? "aspect-[4/5] md:col-span-2 md:aspect-[16/10]" : tile ? "aspect-[3/4]" : "aspect-[4/5]", className)}>
-      <Link href={href} className="press absolute inset-0 block outline-offset-[-3px] select-none active:scale-[0.985]" aria-label={`${c.name}, ${c.age}, ${c.city}`}>
-        {morph ? (
-          <ViewTransition name={`portrait-${c.id}`} share="morph" default="none">
-            {photo}
-          </ViewTransition>
-        ) : (
-          photo
-        )}
-        <div className={cx("scrim-b absolute inset-x-0 bottom-0", tile ? "h-[45%]" : "h-1/2")} />
+    <article style={style} className={cx("group @container relative", wide ? "aspect-[4/5] md:col-span-2 md:aspect-[16/10]" : tile ? "aspect-[3/4]" : "aspect-[4/5]", className)}>
+      {/* Her own deep wash holds the place while the photo loads. */}
+      <CardTilt className="crossfade absolute inset-0 overflow-hidden" style={{ backgroundColor: c.wash[1] }}>
+        <Link href={href} draggable={false} className="absolute inset-0 block outline-offset-[-3px] select-none" aria-label={`${c.name}, ${c.age}, ${c.city}`}>
+          {morph ? (
+            <ViewTransition name={`portrait-${c.id}`} share="morph" default="none">
+              {photo}
+            </ViewTransition>
+          ) : (
+            photo
+          )}
+          <div className={cx("scrim-b absolute inset-x-0 bottom-0", tile ? "h-[45%]" : "h-1/2")} />
 
-        <div className={cx("absolute flex items-center gap-1", tile ? "top-2 left-2" : "top-3 left-3")}>
-          {c.isNew && <span className="inline-flex h-6 items-center bg-rouge px-2 text-[0.8125rem] font-medium text-ink">New</span>}
-          {c.online && <OnlinePill />}
-        </div>
+          {/* Status as one joined tab: New in rouge, then the live light. */}
+          {(c.isNew || c.online) && (
+            <div className={cx("absolute flex", tile ? "top-2 left-2" : "top-3 left-3")}>
+              {c.isNew && <span className="inline-flex h-6 items-center bg-rouge px-2 text-[0.8125rem] font-medium text-ink">New</span>}
+              {c.online && <OnlinePill />}
+            </div>
+          )}
 
-        <div className={cx("absolute inset-x-0 bottom-0", tile ? "p-3 @[15rem]:p-4" : "p-5")}>
-          {/* Proportionate to the card, never filling it: short names sit at the cap, long ones shrink or wrap; one word never breaks. */}
-          <p className="font-display text-paper [text-wrap:balance]" style={fitName(c.name, wide ? "3.5rem" : tile ? "1.5rem" : "2.5rem", tile ? "2rem" : "2.5rem", 2)}>
-            {c.name}
-          </p>
-          <p className={cx("mt-1.5 truncate text-paper/75 tabular", tile ? "text-small" : "text-body")}>
-            {c.age} · {c.city}
-            {!tile && <span className="text-paper/50"> · {c.sign}</span>}
-          </p>
-          {/* Her line: always on large cards; on tiles it slides in on hover (fine pointers only). */}
-          <p
-            className={cx(
-              "line-clamp-1 text-paper/65",
-              tile
-                ? "hidden text-small [@media(hover:hover)_and_(pointer:fine)]:@[13rem]:block max-h-0 translate-y-1 opacity-0 transition-[max-height,opacity,transform,margin] duration-500 ease-[var(--ease-out)] group-hover:mt-1 group-hover:max-h-6 group-hover:translate-y-0 group-hover:opacity-100"
-                : "mt-1 text-body",
-            )}
-          >
-            {c.tagline}
-          </p>
-        </div>
-      </Link>
-      {save && <SaveButton id={c.id} name={c.name} className={cx("absolute z-[2]", tile ? "top-1 right-1 size-9!" : "top-2 right-2")} />}
+          <div className={cx("absolute inset-x-0 bottom-0", tile ? "p-3 @[15rem]:p-4" : "p-5")}>
+            {/* Proportionate to the card, never filling it: short names sit at the cap, long ones shrink or wrap; one word never breaks. */}
+            <p className="font-display text-paper [text-wrap:balance]" style={fitName(c.name, wide ? "3.5rem" : tile ? "1.5rem" : "2.5rem", tile ? "2rem" : "2.5rem", 2)}>
+              {c.name}
+            </p>
+            <p className={cx("mt-1.5 flex items-center gap-3 text-paper/75 tabular", tile ? "text-small" : "text-body")}>
+              <span className="min-w-0 truncate">
+                {c.age} · {c.city}
+                {!tile && <span className="text-paper/50"> · {c.sign}</span>}
+              </span>
+              {c.photos > 0 && (
+                <span className="ml-auto hidden shrink-0 items-center gap-1 text-small text-paper/55 @[11rem]:inline-flex">
+                  <Camera size={14} weight="fill" aria-hidden />
+                  {c.photos > 999 ? "999+" : c.photos}
+                </span>
+              )}
+            </p>
+            {/* Her line: always on large cards; on tiles it opens on hover (fine pointers only). Large cards open her languages. */}
+            <p className={cx("line-clamp-1 text-paper/65", tile ? cx(onHover, "text-small group-hover:mt-1 [@media(hover:hover)_and_(pointer:fine)]:max-@[13rem]:hidden") : "mt-1 text-body")}>{c.tagline}</p>
+            {!tile && c.langs.length > 0 && <p className={cx(onHover, "truncate text-small text-paper/55 group-hover:mt-1")}>{speaks(c.langs)}</p>}
+          </div>
+        </Link>
+        {save && <SaveButton id={c.id} name={c.name} className={cx("absolute z-[2]", tile ? "top-1 right-1 size-9!" : "top-2 right-2")} />}
+      </CardTilt>
     </article>
   );
 }

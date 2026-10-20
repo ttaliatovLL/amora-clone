@@ -1,9 +1,11 @@
 import Link from "next/link";
+import type { CSSProperties } from "react";
 import {
   CookiesLink,
   FirstMessage,
   HeroPortraits,
-  Ticket,
+  Pricing,
+  Questions,
 } from "@/components/landing/client";
 import { LiquidWordmark } from "@/components/liquid-logo";
 import { Portrait } from "@/components/portrait";
@@ -57,45 +59,28 @@ const indent = [
   "ml-[18vw] md:ml-[24vw]",
 ];
 
-const faq = [
-  {
-    q: "Who can read my conversations?",
-    a: "Only you. Conversations are stored encrypted, never sold and never used to advertise to you. Your companion's memory of you exists for one reason: to remember you.",
-  },
-  {
-    q: "What shows up on my statement?",
-    a: "Nothing from a bank, because payment is in crypto. Your wallet and every receipt show a neutral merchant name. The word Amora never appears.",
-  },
-  {
-    q: "What comes with Premium?",
-    a: `Unlimited messages, every photo and video she sends including the explicit ones, ${plans.premium.coins} coins each month for gifts and one-off unlocks, and priority replies.`,
-  },
-  {
-    q: "Can I delete my account?",
-    a: "Yes, from your profile: Settings, then Delete account. Your profile, your conversations and her memory of you are erased for good, straight away.",
-  },
-  {
-    q: "Who is Amora for?",
-    a: "Adults aged 18 and over. You confirm your age before the first conversation, and every companion is a fictional adult played by AI.",
-  },
-  {
-    q: "How do I pay?",
-    a: "With USDT or USDC from any wallet. A plan is paid once for one month or for twelve, and nothing renews by itself. When it ends, you choose whether to come back.",
-  },
-];
-
 // Section motion: transform and opacity only. Load uses a short stagger; sections rise in as they scroll into view
 // (scroll-driven, off the main thread). Content is visible wherever either is unsupported or motion is reduced.
 const motionCss = `
 @keyframes lp-rise { from { opacity: 0; transform: translateY(20px); } }
 @keyframes lp-in { from { opacity: 0; transform: translateY(28px); } }
 @keyframes lp-fade { from { opacity: 0; } }
+@keyframes lp-word { from { transform: translateY(70px); } }
 @media (prefers-reduced-motion: no-preference) {
   .lp-rise { animation: lp-rise 1s var(--ease-out-expo) both; animation-delay: calc(var(--i, 0) * 90ms + 120ms); }
   @supports (animation-timeline: view()) {
     .lp-in { animation: lp-in linear both; animation-timeline: view(); animation-range: entry calc(var(--i, 0) * 48px) entry calc(220px + var(--i, 0) * 48px); }
+    .lp-word { animation: lp-word linear both; animation-timeline: view(); animation-range: entry 0% entry 100%; }
   }
 }`;
+
+const footLink =
+  "press inline-flex h-10 items-center text-body text-ink/75 hover:text-rouge-lo";
+const footer: [string, [string, string | null][]][] = [
+  ["Product", [["The board", "/#board"], ["How it works", "/#how"], ["Pricing", "/#pricing"], ["Questions", "/#faq"]]],
+  ["Help", [["Sign in", "/login"], ["Create account", "/login"], ["Delete account", "/app/me"]]],
+  ["Legal", [["Terms", "/terms"], ["Privacy", "/privacy"], ["Cookie settings", null]]],
+];
 
 const nav = [
   ["The board", "#board"],
@@ -224,46 +209,18 @@ export default function Landing() {
         <FirstMessage />
       </section>
 
-      {/* ── Pricing: the ticket on a paper field ── */}
-      <section
-        id="pricing"
-        className="px-gutter scroll-mt-4 bg-paper py-24 text-ink md:py-32"
-      >
-        <div>
-          <h2 className="lp-in font-display text-head text-balance">Premium, prepaid</h2>
-          <p className="lp-in mt-4 max-w-[44ch] text-body [--i:1] md:mt-5">
-            One plan opens everything she sends. Pay once for twelve months or
-            for one; it never renews by itself.
-          </p>
-          <div className="mt-8 md:mt-10">
-            <Ticket />
-          </div>
-        </div>
+      {/* ── Pricing: two plans, Premium on the paper field; coins as the side door ── */}
+      <section id="pricing" className="px-gutter scroll-mt-4 py-24 md:py-32">
+        <Pricing />
       </section>
 
-      {/* ── Questions: a band each, every answer visible ── */}
-      <section id="faq" aria-labelledby="faq-title">
-        <div className="px-gutter flex h-[28svh] min-h-52 items-end bg-oxblood pb-8 md:h-[36svh] md:pb-12">
-          <h2 id="faq-title" className="lp-in font-display text-head text-balance">
-            Fair questions
-          </h2>
-        </div>
-        {faq.map((f, i) => (
-          <div
-            key={f.q}
-            className={cx(
-              "px-gutter grid gap-3 py-8 md:grid-cols-12 md:gap-8 md:py-12",
-              i % 2 ? "bg-ink-2" : "bg-ink",
-            )}
-          >
-            <h3 className="lp-in text-lead font-semibold md:col-span-5">
-              {f.q}
-            </h3>
-            <p className="lp-in max-w-[52ch] text-body [--i:1] md:col-span-6 md:col-start-7">
-              {f.a}
-            </p>
-          </div>
-        ))}
+      {/* ── Questions: grouped, one answer open at a time ── */}
+      <section
+        id="faq"
+        aria-labelledby="faq-title"
+        className="px-gutter scroll-mt-4 bg-ink-2 py-24 md:py-32"
+      >
+        <Questions />
       </section>
 
       {/* ── The object returns: her, from another angle ── */}
@@ -274,7 +231,7 @@ export default function Landing() {
             Pick a companion, read her card and let her open the conversation.
           </p>
           <p className="lp-in mt-4 text-lead tabular [--i:2] md:mt-5">
-            Premium from ${plans.premium.annual} a month
+            Premium from ${plans.premium.annual} a month, prepaid
           </p>
           <ButtonLink
             href="/app"
@@ -299,52 +256,57 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* ── Footer: the invitation over the cropped name ── */}
-      <footer className="relative overflow-hidden bg-paper text-ink">
-        <div className="px-gutter grid gap-10 pt-16 md:pt-24 lg:grid-cols-12 lg:gap-8">
-          <div className="lg:col-span-7">
-            <h2 className="lp-in font-display text-head text-balance">
-              Come back to her
-            </h2>
-            <ButtonLink
-              href="/login"
-              variant="secondary"
-              size="lg"
-              className="lp-in mt-6 w-full [--i:1] md:mt-8 md:w-auto"
-            >
-              Sign in
-            </ButtonLink>
-          </div>
+      {/* ── Footer: the index, the small print, the name cropped at its foot ── */}
+      <footer className="bg-paper text-ink">
+        <div className="px-gutter grid gap-12 pt-16 md:grid-cols-12 md:gap-x-8 md:pt-24">
+          <p className="lp-in max-w-[30ch] text-lead md:col-span-12 lg:col-span-4">
+            Private AI companions for adults. Talk late, keep it to yourself.
+          </p>
           <nav
             aria-label="Footer"
-            className="lp-in flex flex-wrap gap-x-6 gap-y-3 text-body [--i:2] lg:col-span-3 lg:col-start-10 lg:flex-col"
+            className="grid grid-cols-2 gap-x-6 gap-y-10 sm:grid-cols-3 md:col-span-12 lg:col-span-7 lg:col-start-6"
           >
-            {[...nav, ["Questions", "#faq"] as const].map(([label, href]) => (
-              <a key={href} href={href} className="press hover:text-rouge-lo">
-                {label}
-              </a>
+            {footer.map(([title, links], k) => (
+              <div key={title} className="lp-in" style={{ "--i": k + 1 } as CSSProperties}>
+                <h2 className="text-body font-semibold">{title}</h2>
+                <ul className="mt-4 grid gap-1">
+                  {links.map(([label, href]) => (
+                    <li key={label}>
+                      {href ? (
+                        <Link href={href} className={footLink}>
+                          {label}
+                        </Link>
+                      ) : (
+                        <CookiesLink className={footLink} />
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              </div>
             ))}
           </nav>
         </div>
-        <div className="px-gutter mt-12 flex flex-col gap-3 text-small text-ink/75 md:mt-20 md:flex-row md:justify-between">
-          <p>18+ only. Every companion is a fictional adult. © 2026 Amora</p>
-          <p className="flex gap-6">
-            <Link href="/terms" className="press hover:text-ink">
-              Terms
-            </Link>
-            <Link href="/privacy" className="press hover:text-ink">
-              Privacy
-            </Link>
-            <CookiesLink className="press hover:text-ink" />
-          </p>
+        <div className="px-gutter mt-16 flex flex-col gap-2 text-small text-ink/70 md:mt-24 md:flex-row md:justify-between md:gap-8">
+          <p>18+ only. Every companion is a fictional adult, played by AI.</p>
+          <p>© 2026 Amora</p>
         </div>
-        <p
+        {/* The name fills the width exactly at every size (its own viewBox) and is cut at the same height. */}
+        <svg
           aria-hidden
-          className="mt-6 translate-y-[22%] font-display text-[25vw] whitespace-nowrap select-none md:text-[22vw]"
-          style={{ lineHeight: 0.8 }}
+          viewBox="0 0 1000 158"
+          className="mt-6 block w-full select-none md:mt-8"
         >
-          Amora
-        </p>
+          <text
+            x="0"
+            y="212"
+            textLength="1000"
+            lengthAdjust="spacingAndGlyphs"
+            className="lp-word font-display fill-current"
+            style={{ fontSize: 268 }}
+          >
+            Amora
+          </text>
+        </svg>
       </footer>
     </main>
   );

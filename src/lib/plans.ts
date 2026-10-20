@@ -6,6 +6,6 @@ export const plans = {
 
 export const coinPacks = [
   { coins: 150, price: 2.99 },
-  { coins: 400, price: 6.99, best: true },
-  { coins: 1000, price: 14.99 },
+  { coins: 400, price: 6.99 },
+  { coins: 1000, price: 14.99, best: true },
 ];

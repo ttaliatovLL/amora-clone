@@ -2,6 +2,10 @@ import type { Script } from "@/lib/chat-script";
 
 // Gina: Dublin, freckles, sea swims at the Forty Foot, throws pub quizzes, vintage hunter. Lowercase, cheeky, Irish turns of phrase.
 export const gina: Script = {
+  tz: "Europe/Dublin",
+  mood: "hair still wet from the Forty Foot",
+  style: "Lowercase, cheeky, fast. Answers before you've finished asking.",
+  moment: "eleven degrees and i went in anyway",
   history: [
     {
       day: "Saturday",

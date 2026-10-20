@@ -4,14 +4,16 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import { toast } from "sonner";
+import { AnimatePresence, MotionConfig, motion } from "motion/react";
 import { ArrowDown, ArrowUp, Camera, CaretLeft, Coins, Gift, Heart, Info, X } from "@phosphor-icons/react";
 import { GiftBubble, PhotoBubble, TextBubble, VoiceNote, giftIcon } from "@/components/chat/message";
+import { Activity, Backdrop, Celebrate, HeartBurst, useMinute } from "@/components/chat/presence";
 import { Paywall } from "@/components/paywall";
 import { Portrait } from "@/components/portrait";
 import { SaveButton } from "@/components/save-button";
 import { Sheet } from "@/components/sheet";
 import { Avatar, ButtonLink, Tags, cx } from "@/components/ui";
-import { PHOTO_PRICE, gifts, intent, photoSrc, typingMs, type Beat, type GiftId, type Option } from "@/lib/chat-script";
+import { PHOTO_PRICE, gifts, intent, localTime, photoSrc, typingMs, type Beat, type GiftId, type Option } from "@/lib/chat-script";
 import { scripts } from "@/lib/chat-scripts";
 import { getConvo, setConvo, useConvo, type Msg } from "@/lib/chat-scripts/store";
 import { bios, type Companion } from "@/lib/companions";
@@ -37,6 +39,10 @@ export function Chat({ companion: c }: { companion: Companion }) {
   const [viewer, setViewer] = useState<string | null>(null);
   const [pill, setPill] = useState(false);
   const [online, setOnline] = useState(() => c.online || getConvo(c.id).touched > 0);
+  const [party, setParty] = useState<{ gift: GiftId; n: number } | null>(null);
+  const [asked, setAsked] = useState(false);
+  const minute = useMinute();
+  const herTime = s && minute ? localTime(s.tz, minute) : "";
 
   const list = useRef<HTMLDivElement>(null);
   const atBottom = useRef(true);
@@ -46,6 +52,7 @@ export function Chat({ companion: c }: { companion: Companion }) {
   const alive = useRef(true);
   const input = useRef<HTMLInputElement>(null);
   const shell = useRef<HTMLElement>(null);
+  const parties = useRef(0);
 
   // iOS keeps the layout viewport full height under the keyboard (Android resizes it via interactiveWidget), so pin the chat to the visible area while the keyboard is up.
   useEffect(() => {
@@ -166,6 +173,7 @@ export function Chat({ companion: c }: { companion: Companion }) {
   };
 
   const pick = (o: Option) => {
+    if (o.say === "What are you up to?") setAsked(true);
     setConvo(c.id, (v) => ({ turn: v.turn + 1 }));
     send(o.say, o.her, o.heart);
   };
@@ -192,6 +200,9 @@ export function Chat({ companion: c }: { companion: Companion }) {
     setTray(false);
     track.gift();
     toast(`${g.name} for ${c.name}`, { description: `${g.price} coins spent` });
+    const n = ++parties.current;
+    setParty({ gift: id, n });
+    setTimeout(() => setParty((p) => (p?.n === n ? null : p)), 1800);
     send({ gift: id }, id === s.love ? s.loveReply : s.gift(g.name), true);
   };
 
@@ -207,12 +218,15 @@ export function Chat({ companion: c }: { companion: Companion }) {
 
   const toggleHeart = (id: number) => setConvo(c.id, (v) => ({ msgs: v.msgs.map((m) => (m.id === id ? { ...m, heart: !m.heart } : m)) }));
 
-  const options = !busy && s ? s.turns[turn] : undefined;
+  // After the script runs out, two open doors so the thread never dead-ends.
+  const extras: Option[] = s ? [...(asked ? [] : [{ say: "What are you up to?", her: [s.moment] }]), { say: "Goodnight", her: s.night }] : [];
+  const options = !busy && s ? (s.turns[turn] ?? extras) : undefined;
   const lastMine = msgs.findLast((m) => m.from === "me")?.id;
   const statusLine =
-    status === "typing" ? "typing…" : status === "recording" ? "recording a voice note…" : status === "photo" ? "sending a photo…" : online ? "Online" : `Last seen ${s?.lastSeen ?? "recently"}`;
+    status === "typing" ? "typing…" : status === "recording" ? "recording a voice note…" : status === "photo" ? "choosing a photo…" : online ? (s?.mood ?? "Online") : `Last seen ${s?.lastSeen ?? "recently"}`;
 
   return (
+    <MotionConfig reducedMotion="user">
     <main ref={shell} className="group fixed inset-0 z-30 flex bg-ink md:top-20">
       <section className="flex min-w-0 flex-1 flex-col">
         {/* Header bar */}
@@ -225,9 +239,21 @@ export function Chat({ companion: c }: { companion: Companion }) {
               <Avatar companion={c} size="sm" showOnline={false} />
               <span className="min-w-0">
                 <span className="block truncate font-display text-[1.05rem]">{c.name}</span>
-                <span className={cx("mt-1 flex items-center gap-1.5 truncate text-small", status ? "text-rouge" : online ? "text-paper/80" : "text-muted")} aria-live="polite">
-                  {online && !status && <span className="size-1.5 shrink-0 rounded-full bg-live" aria-hidden />}
-                  {statusLine}
+                <span className="relative mt-1 block h-5 overflow-hidden" aria-live="polite">
+                  <AnimatePresence initial={false} mode="popLayout">
+                    <motion.span
+                      key={status ?? "idle"}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -10 }}
+                      transition={{ duration: 0.22, ease: [0.23, 1, 0.32, 1] }}
+                      className={cx("flex items-center gap-1.5 text-small", status ? "text-rouge" : online ? "text-paper/80" : "text-muted")}
+                    >
+                      {online && !status && <span className="live-dot size-1.5 shrink-0 rounded-full bg-live" aria-hidden />}
+                      <span className="min-w-0 truncate">{statusLine}</span>
+                      {!status && herTime && <span className="hidden shrink-0 text-muted tabular sm:inline">· {herTime} in {c.city}</span>}
+                    </motion.span>
+                  </AnimatePresence>
                 </span>
               </span>
             </button>
@@ -243,9 +269,10 @@ export function Chat({ companion: c }: { companion: Companion }) {
 
         {/* Messages */}
         <div className="relative min-h-0 flex-1">
-          <div ref={list} onScroll={onScroll} className="h-full overflow-y-auto overscroll-contain">
+          <Backdrop c={c} />
+          <div ref={list} onScroll={onScroll} className="relative h-full overflow-y-auto overscroll-contain">
             <div className="mx-auto w-full max-w-[760px] px-3 pt-8 pb-5 sm:px-5">
-              <Intro c={c} onOpen={() => setProfile(true)} />
+              <Intro c={c} style={s?.style} time={herTime} onOpen={() => setProfile(true)} />
               <div role="log" aria-label={`Conversation with ${c.name}`} className="flex flex-col">
                 {msgs.map((m, i) => {
                   const prev = msgs[i - 1];
@@ -256,32 +283,32 @@ export function Chat({ companion: c }: { companion: Companion }) {
                   const tail = !next || next.from !== m.from || next.day !== m.day;
                   return (
                     <div key={m.id} className="contents">
-                      {newDay && <p className="my-6 text-center text-small text-faint">{m.day}</p>}
+                      {newDay && (
+                        <p className="my-6 flex justify-center">
+                          <span className="bg-ink-3/80 px-3 py-1 text-small text-muted">{m.day}</span>
+                        </p>
+                      )}
                       <Row her={her} first={firstOfRun} heart={m.heart} onHeart={her ? () => toggleHeart(m.id) : undefined} animate={m.day === "Today" && m.id >= convoStart(c.id)}>
-                        <Content m={m} c={c} her={her} tail={tail} premium={premium} onUnlock={() => unlock(m.id)} onOpen={setViewer} />
+                        <Content m={m} c={c} her={her} tail={tail} fresh={m.day === "Today" && m.id >= convoStart(c.id)} premium={premium} onUnlock={() => unlock(m.id)} onOpen={setViewer} />
                       </Row>
                       {tail && (
                         <p className={cx("mt-1.5 text-small text-faint tabular", her ? "" : "text-right")}>
                           {m.time}
-                          {m.id === lastMine && (m.id <= readUpTo ? ` · Read ${readAt}` : " · Delivered")}
+                          {m.id === lastMine && (
+                            <motion.span key={m.id <= readUpTo ? "read" : "sent"} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.4 }} className={m.id <= readUpTo ? "text-paper/70" : ""}>
+                              {m.id <= readUpTo ? ` · Read ${readAt}` : " · Delivered"}
+                            </motion.span>
+                          )}
                         </p>
                       )}
                     </div>
                   );
                 })}
-                {status && (
-                  <div
-                    className="animate-bubble-in mt-4 flex h-11 w-16 items-center justify-center gap-1.5 self-start rounded-[1.25rem] rounded-bl-[0.3125rem] bg-ink-4"
-                    aria-label={`${c.name} is ${statusLine}`}
-                  >
-                    {[0, 1, 2].map((d) => (
-                      <span key={d} className="size-1.5 rounded-full bg-paper/80 motion-safe:animate-[breathe_1.4s_ease-in-out_infinite]" style={{ animationDelay: `${d * 0.18}s` }} />
-                    ))}
-                  </div>
-                )}
+                {status && <Activity kind={status} label={`${c.name} is ${statusLine}`} />}
               </div>
             </div>
           </div>
+          <AnimatePresence>{party && <Celebrate key={party.n} gift={party.gift} />}</AnimatePresence>
           {pill && (
             <button
               type="button"
@@ -300,15 +327,17 @@ export function Chat({ companion: c }: { companion: Companion }) {
             {options && !tray && (
               <div className="flex gap-2 overflow-x-auto overscroll-x-contain px-3 pt-3 [scrollbar-width:none] sm:px-5 md:flex-wrap" aria-label="Quick replies">
                 {options.map((o, i) => (
-                  <button
+                  <motion.button
                     key={`${turn}-${o.say}`}
                     type="button"
                     onClick={() => pick(o)}
-                    style={{ animationDelay: `${i * 60}ms` }}
-                    className="press animate-bubble-in h-10 max-w-full shrink-0 truncate bg-ink-4 px-4 text-small text-paper hover:bg-ink-5"
+                    initial={{ opacity: 0, y: 12 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ type: "spring", stiffness: 420, damping: 32, delay: 0.08 + i * 0.07 }}
+                    className="press h-10 max-w-full shrink-0 truncate bg-ink-4 px-4 text-small text-paper hover:bg-ink-5"
                   >
                     {o.say}
-                  </button>
+                  </motion.button>
                 ))}
               </div>
             )}
@@ -378,7 +407,8 @@ export function Chat({ companion: c }: { companion: Companion }) {
         <div className="absolute inset-x-0 bottom-0 p-8">
           <p className="font-display text-[clamp(3rem,4.6vw,5rem)] [overflow-wrap:anywhere]">{c.name}</p>
           <p className="mt-3 text-lead text-paper/85 tabular">
-            {c.age} · {c.city} · {c.sign}
+            {c.age} · {c.city}
+            {herTime && ` · ${herTime} there`}
           </p>
           <p className="mt-3 max-w-[34ch] text-body text-paper/70">{bios[c.id] ?? c.tagline}</p>
           <div className="mt-6 flex gap-2">
@@ -411,33 +441,44 @@ export function Chat({ companion: c }: { companion: Companion }) {
         </div>
       </Sheet>
       <Paywall open={paywall} onClose={() => setPaywall(false)} reason={`Coins unlock ${c.name}'s private photos and gifts. Premium opens every photo.`} />
-      {viewer && <Viewer src={viewer} name={c.name} onClose={() => setViewer(null)} />}
+      <AnimatePresence>{viewer && <Viewer key={viewer} src={viewer} name={c.name} onClose={() => setViewer(null)} />}</AnimatePresence>
     </main>
+    </MotionConfig>
   );
 }
 
 /** Messages seeded from the script appear still; only new ones animate in. */
 const convoStart = (id: string) => scripts[id]?.history.reduce((n, d) => n + d.lines.length, 0) ?? 0;
 
-function Intro({ c, onOpen }: { c: Companion; onOpen: () => void }) {
+/** The top of every thread: who she is, where, what time it is there, how she texts. */
+function Intro({ c, style, time, onOpen }: { c: Companion; style?: string; time: string; onOpen: () => void }) {
   return (
-    <div className="mb-2 flex items-center gap-4">
-      <button type="button" onClick={onOpen} className="press relative aspect-[4/5] w-20 shrink-0 overflow-hidden bg-ink-3" aria-label={`View ${c.name}'s profile`}>
-        <Portrait companion={c} sizes="80px" />
+    <motion.div
+      initial={{ opacity: 0, y: 16 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
+      className="mb-4 flex gap-4 bg-ink-2/80 p-3 sm:p-4"
+    >
+      <button type="button" onClick={onOpen} className="press relative aspect-[4/5] w-24 shrink-0 overflow-hidden bg-ink-3 sm:w-28" aria-label={`View ${c.name}'s profile`}>
+        <Portrait companion={c} sizes="112px" />
       </button>
-      <div className="min-w-0">
+      <div className="flex min-w-0 flex-col py-1">
         <p className="font-display text-lead [overflow-wrap:anywhere]">{c.name}</p>
-        <p className="mt-1.5 text-body text-paper/80 tabular">
+        <p className="mt-1.5 text-body text-paper/85 tabular">
           {c.age} · {c.city}
+          {time && <span className="text-muted"> · {time} there</span>}
         </p>
-        <p className="mt-0.5 text-small text-muted">Private conversation. Only you can see it.</p>
+        {style && <p className="mt-2 text-small text-paper/70">{style}</p>}
+        <p className="mt-auto pt-2 text-small text-faint">Private. Only you can see this.</p>
       </div>
-    </div>
+    </motion.div>
   );
 }
 
 /** One bubble row. Double-tap or long-press her bubble to heart it. */
 function Row({ her, first, heart, onHeart, animate, children }: { her: boolean; first: boolean; heart?: boolean; onHeart?: () => void; animate: boolean; children: ReactNode }) {
+  // Hearts already there when the thread mounts sit still; new ones pop and burst.
+  const [born] = useState(!!heart);
   const lastTap = useRef(0);
   const press = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const fired = useRef(false);
@@ -472,26 +513,33 @@ function Row({ her, first, heart, onHeart, animate, children }: { her: boolean; 
         className={cx("relative max-w-[min(80%,34rem)] min-w-0 touch-manipulation select-none [-webkit-touch-callout:none]", animate && "animate-bubble-in", !her && "[transform-origin:bottom_right]")}
       >
         {children}
-        {heart && (
-          <span
-            className={cx("animate-bubble-in absolute -bottom-3 grid size-6 place-items-center rounded-full bg-ink-5 text-rouge ring-2 ring-ink", her ? "right-2" : "left-2")}
-            aria-label={her ? "You loved this" : "She loved this"}
-          >
-            <Heart size={12} weight="fill" aria-hidden />
-          </span>
-        )}
+        <AnimatePresence>
+          {heart && (
+            <motion.span
+              initial={born ? false : { scale: 0, rotate: -20 }}
+              animate={{ scale: 1, rotate: 0 }}
+              exit={{ scale: 0, opacity: 0, transition: { duration: 0.15 } }}
+              transition={{ type: "spring", stiffness: 600, damping: 16 }}
+              className={cx("absolute -bottom-3 grid size-6 place-items-center rounded-full bg-ink-5 text-rouge ring-2 ring-ink", her ? "right-2" : "left-2")}
+              aria-label={her ? "You loved this" : "She loved this"}
+            >
+              <Heart size={12} weight="fill" aria-hidden />
+              {!born && <HeartBurst />}
+            </motion.span>
+          )}
+        </AnimatePresence>
       </div>
     </div>
   );
 }
 
-function Content({ m, c, her, tail, premium, onUnlock, onOpen }: { m: Msg; c: Companion; her: boolean; tail: boolean; premium: boolean; onUnlock: () => void; onOpen: (src: string) => void }) {
+function Content({ m, c, her, tail, fresh, premium, onUnlock, onOpen }: { m: Msg; c: Companion; her: boolean; tail: boolean; fresh: boolean; premium: boolean; onUnlock: () => void; onOpen: (src: string) => void }) {
   const b = m.beat;
   if (typeof b === "string") return <TextBubble her={her} tail={tail} text={b} />;
   if ("gift" in b) return <GiftBubble id={b.gift} tail={tail} name={c.name} />;
   if ("voice" in b) return <VoiceNote her={her} tail={tail} transcript={b.voice} secs={b.secs} />;
   const src = photoSrc(c, b.photo) ?? "";
-  return <PhotoBubble src={src} her={her} tail={tail} locked={!m.unlocked && !premium} name={c.name} onUnlock={onUnlock} onOpen={() => onOpen(src)} />;
+  return <PhotoBubble src={src} her={her} tail={tail} fresh={fresh} locked={!m.unlocked && !premium} name={c.name} onUnlock={onUnlock} onOpen={() => onOpen(src)} />;
 }
 
 function IconButton({ label, pressed, onClick, disabled, children }: { label: string; pressed?: boolean; onClick: () => void; disabled?: boolean; children: ReactNode }) {
@@ -516,11 +564,23 @@ function Viewer({ src, name, onClose }: { src: string; name: string; onClose: ()
     return () => document.removeEventListener("keydown", k);
   }, [onClose]);
   return (
-    <div role="dialog" aria-modal="true" aria-label={`Photo from ${name}`} className="animate-bubble-in fixed inset-0 z-50 bg-ink/95" onClick={onClose}>
-      <Image src={src} alt={`Photo from ${name}`} fill sizes="100vw" className="object-contain" />
+    <motion.div
+      role="dialog"
+      aria-modal="true"
+      aria-label={`Photo from ${name}`}
+      className="fixed inset-0 z-50 bg-ink/95"
+      onClick={onClose}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.25 }}
+    >
+      <motion.div className="absolute inset-0" initial={{ scale: 0.94 }} animate={{ scale: 1 }} exit={{ scale: 0.96 }} transition={{ type: "spring", stiffness: 360, damping: 32 }}>
+        <Image src={src} alt={`Photo from ${name}`} fill sizes="100vw" className="object-contain" />
+      </motion.div>
       <button type="button" onClick={onClose} autoFocus className="press absolute top-[max(1rem,env(safe-area-inset-top))] right-4 grid size-11 place-items-center bg-ink-3 text-paper" aria-label="Close photo">
         <X size={20} aria-hidden />
       </button>
-    </div>
+    </motion.div>
   );
 }
