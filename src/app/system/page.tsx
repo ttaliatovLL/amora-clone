@@ -8,7 +8,9 @@ import { LiquidWordmark } from "@/components/liquid-logo";
 import { Paywall } from "@/components/paywall";
 import { Portrait } from "@/components/portrait";
 import { Sheet } from "@/components/sheet";
-import { Avatar, Bubble, Button, Chip, CompanionCard, cx, Field, Glyph, OnlinePill, Typing, Wordmark } from "@/components/ui";
+import { ChatCircleDots } from "@phosphor-icons/react/ssr";
+import { EARNED_EVENT } from "@/lib/progress";
+import { Avatar, Bubble, Button, ButtonLink, Chip, CompanionCard, cx, Field, Glyph, OnlinePill, Segmented, Switch, Tags, Typing, Wordmark } from "@/components/ui";
 import { companions, vibes } from "@/lib/companions";
 import { worstCompanions, worstMessage } from "@/lib/companions.worst";
 
@@ -30,18 +32,28 @@ const swatches: [string, string, string][] = [
 
 const sizes: [string, string, string][] = [
   ["text-mega", "Mega", "font-display text-mega"],
+  ["text-title", "Page title", "font-display text-title"],
   ["text-head", "Head", "font-display text-head"],
   ["text-lead", "Lead: she remembers what you said", "text-lead"],
   ["text-body", "Body: it's 1am and I'm surrounded by boxes I still haven't unpacked.", "text-body"],
   ["text-small", "Small: secondary lines and fine print.", "text-small text-muted"],
 ];
 
+function Demo({ label, children }: { label: string; children: ReactNode }) {
+  return (
+    <div>
+      <p className="mb-3 text-small text-muted">{label}</p>
+      <div className="flex flex-wrap items-center gap-2">{children}</div>
+    </div>
+  );
+}
+
 function Section({ id, title, note, children }: { id: string; title: string; note?: string; children: ReactNode }) {
   return (
-    <section id={id} className="reveal scroll-mt-6 pt-20 md:pt-28">
+    <section id={id} className="reveal scroll-mt-6 pt-16 md:pt-24">
       <h2 className="font-display text-head">{title}</h2>
-      {note && <p className="mt-4 max-w-[60ch] text-body text-muted">{note}</p>}
-      <div className="mt-10">{children}</div>
+      {note && <p className="mt-3 max-w-[60ch] text-body text-muted md:mt-4">{note}</p>}
+      <div className="mt-6 md:mt-8">{children}</div>
     </section>
   );
 }
@@ -52,24 +64,27 @@ export default function SystemPage() {
   const [sheet, setSheet] = useState(false);
   const [paywall, setPaywall] = useState(false);
   const [data, setData] = useState<"Demo" | "Worst case" | "Empty">("Demo");
+  const [loading, setLoading] = useState(false);
+  const [notify, setNotify] = useState(true);
+  const [annual, setAnnual] = useState(true);
+  const [showPw, setShowPw] = useState(false);
   const list = data === "Worst case" ? worstCompanions : data === "Empty" ? [] : companions;
   const shown = list.filter((c) => (!vibe || c.vibe === vibe) && (!onlineOnly || c.online));
   const featured = list[0] ?? companions[0];
   const second = list[1] ?? companions[1];
 
   return (
-    <main className="min-h-dvh bg-ink pb-32">
-      <div className="mx-auto max-w-6xl px-4 sm:px-8">
-        <header className="flex items-center justify-between py-6">
-          <Wordmark />
-          <span className="text-small text-muted">Night Agency · living style guide</span>
-        </header>
-
-        <div className="rise grid gap-10 pt-10 md:grid-cols-[1.2fr_1fr] md:items-end md:pt-16">
+    <main className="min-h-dvh bg-ink">
+      <header className="mx-auto flex h-16 max-w-[1440px] items-center justify-between gap-4 px-4 md:h-20 md:px-8">
+        <Wordmark className="md:text-[1.125rem]" />
+        <span className="truncate text-small text-muted">Living style guide</span>
+      </header>
+      <div className="page pb-32!">
+        <div className="rise grid gap-8 md:grid-cols-[1.2fr_1fr] md:items-end md:gap-10">
           <div>
-            <h1 className="font-display text-mega">Night agency</h1>
-            <p className="mt-6 max-w-[44ch] text-lead text-muted">A model agency after dark: a black room, big square portraits, names set wide, one rouge light on the action.</p>
-            <div className="mt-8 flex flex-wrap gap-2">
+            <h1 className="font-display text-title">Night agency</h1>
+            <p className="mt-4 max-w-[44ch] text-lead text-muted md:mt-6">A model agency after dark: a black room, big square portraits, names set wide, one rouge light on the action.</p>
+            <div className="mt-6 flex flex-wrap gap-2 md:mt-8">
               <Button size="lg" onClick={() => setPaywall(true)}>
                 Open the paywall
               </Button>
@@ -78,7 +93,7 @@ export default function SystemPage() {
               </Button>
             </div>
           </div>
-          <div className="relative aspect-[4/5] w-full max-w-sm overflow-hidden bg-ink-2 md:justify-self-end">
+          <div className="relative aspect-[4/5] w-full max-w-xs overflow-hidden bg-ink-2 md:justify-self-end">
             <Portrait companion={companions[0]} sizes="384px" priority />
           </div>
         </div>
@@ -108,40 +123,111 @@ export default function SystemPage() {
           </div>
         </Section>
 
-        <Section id="controls" title="Controls" note="Square and flat. Rouge is the action, paper the second choice, ink everything quieter. Press scales to 0.97.">
-          <div className="grid gap-8">
-            <div className="flex flex-wrap items-center gap-2">
+        <Section id="spacing" title="Spacing" note="One rhythm on every screen. Gutters 16 / 32 and content capped at 1440 like the board; sections 64 / 96 apart, landing bands 96 / 128; a heading sits 24 / 32 above its content; groups 8 apart, list rows 4.">
+          <div className="grid gap-1">
+            {(
+              [
+                ["Row gap", "gap-1", "w-1"],
+                ["Group gap", "gap-2", "w-2"],
+                ["Row padding", "p-4", "w-4"],
+                ["Panel padding", "p-5 / md:p-6", "w-6"],
+                ["Field padding", "p-6 / md:p-8", "w-8"],
+                ["Heading to content", "mt-6 / md:mt-8", "w-8"],
+                ["Section to section", "mt-16 / md:mt-24", "w-24"],
+                ["Landing band", "py-24 / md:py-32", "w-32"],
+              ] as const
+            ).map(([label, cls, w]) => (
+              <div key={label} className="flex items-center gap-4 bg-ink-2 px-4 py-3">
+                <span className="w-32 shrink-0 text-small text-paper sm:w-40 md:w-56">{label}</span>
+                <span className="hidden w-36 shrink-0 text-small text-muted tabular sm:block">{cls}</span>
+                <span className="min-w-0 flex-1">
+                  <span className={cx("block h-3 max-w-full bg-rouge", w)} aria-hidden />
+                </span>
+              </div>
+            ))}
+          </div>
+        </Section>
+
+        <Section id="controls" title="Controls" note="Square and flat. Rouge is the action, paper the second choice, ink everything quieter. Heights 40 / 44 / 48. Hover lifts the fill one tone; press scales to 0.97.">
+          <div className="grid gap-10">
+            <Demo label="Variants">
               <Button>Start chatting</Button>
               <Button variant="paper">Save to board</Button>
               <Button variant="secondary">Maybe later</Button>
               <Button variant="ghost">Skip</Button>
-              <Button disabled>Disabled</Button>
-            </div>
-            <div className="flex flex-wrap items-center gap-2">
+            </Demo>
+            <Demo label="Sizes, 40 / 44 / 48">
               <Button size="sm">Small</Button>
               <Button size="md">Medium</Button>
               <Button size="lg">Large</Button>
-            </div>
-            <div className="flex flex-wrap items-center gap-2">
-              <Chip pressed={vibe === null} onClick={() => setVibe(null)}>
+            </Demo>
+            <Demo label="States">
+              <Button arrow>With arrow</Button>
+              <ButtonLink href="/system#controls" variant="paper" arrow>
+                Link with arrow
+              </ButtonLink>
+              <Button variant="secondary">
+                <ChatCircleDots weight="fill" className="size-[1.125rem]" aria-hidden />
+                With icon
+              </Button>
+              <Button loading={loading} onClick={() => (setLoading(true), setTimeout(() => setLoading(false), 1600))}>
+                {loading ? "Sending" : "Tap to load"}
+              </Button>
+              <Button disabled>Disabled</Button>
+            </Demo>
+            <Demo label="Chips: toggles 40, tags 32, with counts">
+              <Chip pressed={vibe === null} onClick={() => setVibe(null)} count={list.length}>
                 All
               </Chip>
               {vibes.map((v) => (
-                <Chip key={v} pressed={vibe === v} onClick={() => setVibe(vibe === v ? null : v)}>
+                <Chip key={v} pressed={vibe === v} onClick={() => setVibe(vibe === v ? null : v)} count={list.filter((c) => c.vibe === v).length}>
                   {v}
                 </Chip>
               ))}
               <Chip pressed={onlineOnly} onClick={() => setOnlineOnly(!onlineOnly)}>
+                <span className="size-2 rounded-full bg-live" aria-hidden />
                 Online now
               </Chip>
+              <Chip disabled pressed={false}>
+                Disabled
+              </Chip>
+            </Demo>
+            <Demo label="Tags and status">
               {featured.traits.slice(0, 2).map((t) => (
                 <Chip key={t}>{t}</Chip>
               ))}
+              <Chip count={12}>Saved</Chip>
               <OnlinePill />
-            </div>
-            <div className="grid max-w-2xl gap-6 sm:grid-cols-2">
+              <span className="inline-flex h-6 items-center bg-rouge px-2 text-[0.8125rem] font-medium text-ink">New</span>
+              <div className="relative w-56 bg-ink-4 p-2">
+                <Tags tags={featured.tags.map((t) => `#${t}`)} max={5} />
+              </div>
+            </Demo>
+            <Demo label="Switches and segmented controls">
+              <Switch label="Notifications" on={notify} onChange={setNotify} />
+              <Switch label="Always on" on disabled />
+              <Segmented label="Billing" className="w-full max-w-72" value={annual} onChange={setAnnual} options={[{ value: true, label: "Twelve months" }, { value: false, label: "One month" }]} />
+              <Segmented label="Billing with notes" className="w-full max-w-80" value={annual} onChange={setAnnual} options={[{ value: true, label: "Annual", note: "Save 30%" }, { value: false, label: "Monthly", note: "One month" }]} />
+              <div className="w-full max-w-78 bg-paper p-3">
+                <Segmented label="On paper" tone="paper" className="w-full" value={annual} onChange={setAnnual} options={[{ value: true, label: "Twelve months" }, { value: false, label: "One month" }]} />
+              </div>
+            </Demo>
+            <div className="grid max-w-3xl gap-x-6 gap-y-5 sm:grid-cols-2">
               <Field label="Email" name="email" type="email" placeholder="you@example.com" autoComplete="off" />
               <Field label="Display name" name="nick" placeholder="What should she call you?" hint="Only your companion sees this." autoComplete="off" />
+              <Field label="Email, with an error" name="email-bad" type="email" defaultValue="you@example" error="Enter your email address, like you@example.com." autoComplete="off" />
+              <Field
+                label="Password, with a trailing control"
+                name="pw"
+                type={showPw ? "text" : "password"}
+                defaultValue="night-agency"
+                autoComplete="off"
+                trailing={
+                  <button type="button" onClick={() => setShowPw(!showPw)} aria-pressed={showPw} className="press inline-flex h-10 items-center px-3 text-small text-muted hover:bg-ink-5 hover:text-paper">
+                    {showPw ? "Hide" : "Show"}
+                  </button>
+                }
+              />
             </div>
           </div>
         </Section>
@@ -187,6 +273,9 @@ export default function SystemPage() {
         <Section id="feedback" title="Feedback" note="Toasts sit top centre, square, ink on ink. Earning an achievement fires a paper toast on its own. Cookie consent is essential-only until you choose.">
           <div className="flex flex-wrap gap-2">
             <Button onClick={() => toast("Photo unlocked")}>Show a toast</Button>
+            <Button variant="secondary" onClick={() => window.dispatchEvent(new CustomEvent(EARNED_EVENT, { detail: "first-words" }))}>
+              Achievement toast
+            </Button>
             <Button variant="secondary" onClick={() => toast(`${second.name} is on your board`, { action: { label: "View", onClick: () => {} } })}>
               Toast with action
             </Button>
@@ -220,19 +309,14 @@ export default function SystemPage() {
       </div>
 
       {/* Dev-only break-ui toggle: swaps the dataset at the data boundary. */}
-      <div role="radiogroup" aria-label="Dataset" className="fixed bottom-4 left-1/2 z-40 flex -translate-x-1/2 gap-1 bg-ink-4 p-1 text-small shadow-[var(--shadow-float)]">
-        {(["Demo", "Worst case", "Empty"] as const).map((d) => (
-          <button
-            key={d}
-            type="button"
-            role="radio"
-            aria-checked={data === d}
-            onClick={() => setData(d)}
-            className={cx("press px-3 py-2 whitespace-nowrap", data === d ? "bg-paper text-ink" : "text-muted hover:text-paper")}
-          >
-            {d}
-          </button>
-        ))}
+      <div className="fixed bottom-4 left-1/2 z-40 w-[min(22rem,calc(100%-2rem))] -translate-x-1/2 shadow-[var(--shadow-float)]">
+        <Segmented
+          label="Dataset"
+          value={data}
+          onChange={setData}
+          options={(["Demo", "Worst case", "Empty"] as const).map((d) => ({ value: d, label: d }))}
+          className="bg-ink-4"
+        />
       </div>
 
       <Paywall open={paywall} onClose={() => setPaywall(false)} reason={`Unlock everything ${companions[0].name} sends you.`} />

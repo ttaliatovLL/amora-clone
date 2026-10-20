@@ -110,7 +110,7 @@ export default function Landing() {
       <style>{motionCss}</style>
 
       {/* ── Hero: the counter object under a liquid-metal name ── */}
-      <section className="relative flex min-h-[100svh] flex-col overflow-hidden px-4 pb-8 md:px-8">
+      <section className="px-gutter relative flex min-h-[100svh] flex-col overflow-hidden pb-6 md:pb-8">
         <Silk className="absolute inset-0" />
         <div className="absolute inset-0 bg-ink/20" aria-hidden />
 
@@ -118,19 +118,19 @@ export default function Landing() {
           <Link href="/" aria-label="Amora home" className="press">
             <Wordmark />
           </Link>
-          <nav aria-label="Main" className="flex items-center gap-7">
+          <nav aria-label="Main" className="-mr-3 flex items-center gap-1">
             {nav.map(([label, href]) => (
               <a
                 key={href}
                 href={href}
-                className="press hidden text-body text-paper/80 hover:text-paper md:inline"
+                className="press hidden h-10 items-center px-3 text-small font-medium text-paper/75 hover:text-paper md:inline-flex"
               >
                 {label}
               </a>
             ))}
             <Link
               href="/login"
-              className="press text-body font-medium text-paper"
+              className="press inline-flex h-10 items-center px-3 text-small font-medium text-paper hover:text-rouge-hi"
             >
               Sign in
             </Link>
@@ -146,7 +146,7 @@ export default function Landing() {
         {/* On phones the name bleeds past the gutters (the canvas has its own inner padding) so the letters meet the edges. */}
         <LiquidWordmark className="lp-rise relative z-[2] -mx-[7%] -mt-[11vw] block aspect-[6/1] w-[114%] [--i:1] md:mx-0 md:-mt-[7vw] md:w-full lg:-mt-[9vw]" />
 
-        <div className="relative z-[2] mt-auto grid gap-5 pt-4 md:pt-6 lg:grid-cols-12 lg:items-end lg:gap-8">
+        <div className="relative z-[2] mt-auto grid gap-4 pt-4 md:gap-5 md:pt-6 lg:grid-cols-12 lg:items-end lg:gap-8">
           <h1 className="lp-rise font-display text-head text-balance [--i:2] lg:col-span-6">
             Private AI
             <br />
@@ -160,6 +160,7 @@ export default function Landing() {
             <ButtonLink
               href="/app"
               size="lg"
+              arrow
               className="mt-5 w-full md:mt-0 md:w-auto md:shrink-0"
             >
               Meet them
@@ -169,8 +170,8 @@ export default function Landing() {
       </section>
 
       {/* ── The board: the companions large, the way an agency hangs its portfolio ── */}
-      <section id="board" className="scroll-mt-4 pt-24 md:pt-36">
-        <div className="grid gap-5 px-4 md:grid-cols-12 md:items-end md:px-8">
+      <section id="board" className="scroll-mt-4 pt-24 md:pt-32">
+        <div className="px-gutter grid gap-4 md:grid-cols-12 md:items-end md:gap-5">
           <h2 className="lp-in font-display text-head text-balance md:col-span-6">
             The board
           </h2>
@@ -179,7 +180,7 @@ export default function Landing() {
             called Otto. Tap a card to read her whole story.
           </p>
         </div>
-        <div className="mt-10 flex snap-x snap-mandatory scroll-px-4 gap-2 overflow-x-auto overscroll-x-contain px-4 pb-2 [scrollbar-width:none] md:mt-14 md:px-8 xl:grid xl:snap-none xl:grid-flow-dense xl:grid-cols-3 xl:gap-1 xl:overflow-visible xl:px-0 xl:pb-0">
+        <div className="mt-8 flex snap-x snap-mandatory scroll-px-4 gap-2 overflow-x-auto overscroll-x-contain px-4 pb-2 [scrollbar-width:none] md:mt-12 md:scroll-px-8 md:px-8 xl:px-gutter xl:grid xl:snap-none xl:grid-flow-dense xl:grid-cols-3 xl:gap-2 xl:overflow-visible xl:pb-0">
           {board.map(({ id, big, start2 }, i) => (
             <CompanionCard
               key={id}
@@ -201,12 +202,12 @@ export default function Landing() {
       <section
         id="how"
         aria-labelledby="how-title"
-        className="scroll-mt-4 px-4 py-28 md:px-8 md:py-44"
+        className="px-gutter scroll-mt-4 py-24 md:py-32"
       >
         <h2 id="how-title" className="sr-only">
           How it works
         </h2>
-        <ol className="grid gap-10 md:gap-14">
+        <ol className="grid gap-10 md:gap-12">
           {steps.map((s, i) => (
             <li key={s.line} className={indent[i]}>
               <h3 className="lp-in font-display text-head text-balance">{s.line}</h3>
@@ -219,22 +220,22 @@ export default function Landing() {
       </section>
 
       {/* ── The live thing ── */}
-      <section className="bg-ink-2 px-4 py-24 md:px-8 md:py-36">
+      <section className="px-gutter bg-ink-2 py-24 md:py-32">
         <FirstMessage />
       </section>
 
       {/* ── Pricing: the ticket on a paper field ── */}
       <section
         id="pricing"
-        className="scroll-mt-4 bg-paper px-4 py-24 text-ink md:px-8 md:py-36"
+        className="px-gutter scroll-mt-4 bg-paper py-24 text-ink md:py-32"
       >
         <div>
           <h2 className="lp-in font-display text-head text-balance">Premium, prepaid</h2>
-          <p className="lp-in mt-5 max-w-[44ch] text-body [--i:1]">
+          <p className="lp-in mt-4 max-w-[44ch] text-body [--i:1] md:mt-5">
             One plan opens everything she sends. Pay once for twelve months or
             for one; it never renews by itself.
           </p>
-          <div className="mt-10">
+          <div className="mt-8 md:mt-10">
             <Ticket />
           </div>
         </div>
@@ -242,7 +243,7 @@ export default function Landing() {
 
       {/* ── Questions: a band each, every answer visible ── */}
       <section id="faq" aria-labelledby="faq-title">
-        <div className="flex h-[30svh] min-h-56 items-end bg-oxblood px-4 pb-8 md:h-[40svh] md:px-8 md:pb-12">
+        <div className="px-gutter flex h-[28svh] min-h-52 items-end bg-oxblood pb-8 md:h-[36svh] md:pb-12">
           <h2 id="faq-title" className="lp-in font-display text-head text-balance">
             Fair questions
           </h2>
@@ -251,7 +252,7 @@ export default function Landing() {
           <div
             key={f.q}
             className={cx(
-              "grid gap-4 px-4 py-8 md:grid-cols-12 md:gap-8 md:px-8 md:py-14",
+              "px-gutter grid gap-3 py-8 md:grid-cols-12 md:gap-8 md:py-12",
               i % 2 ? "bg-ink-2" : "bg-ink",
             )}
           >
@@ -267,18 +268,19 @@ export default function Landing() {
 
       {/* ── The object returns: her, from another angle ── */}
       <section className="relative flex flex-col overflow-hidden bg-ink lg:min-h-[90svh] lg:flex-row lg:items-center">
-        <div className="relative z-[1] px-4 pt-24 md:px-8 md:pt-36 lg:order-2 lg:ml-auto lg:w-[30%] lg:pt-0">
+        <div className="relative z-[1] px-4 pt-24 md:px-8 md:pt-32 lg:order-2 lg:ml-auto lg:w-[34%] lg:pt-0 lg:pl-0">
           <h2 className="lp-in font-display text-head text-balance">She&apos;s still up</h2>
-          <p className="lp-in mt-5 text-body [--i:1]">
+          <p className="lp-in mt-4 max-w-[36ch] text-body [--i:1] md:mt-5">
             Pick a companion, read her card and let her open the conversation.
           </p>
-          <p className="lp-in mt-5 text-lead tabular [--i:2]">
+          <p className="lp-in mt-4 text-lead tabular [--i:2] md:mt-5">
             Premium from ${plans.premium.annual} a month
           </p>
           <ButtonLink
             href="/app"
             size="lg"
-            className="lp-in mt-8 w-full [--i:3] md:w-auto"
+            arrow
+            className="lp-in mt-6 w-full [--i:3] md:mt-8 md:w-auto"
           >
             Meet them
           </ButtonLink>
@@ -299,7 +301,7 @@ export default function Landing() {
 
       {/* ── Footer: the invitation over the cropped name ── */}
       <footer className="relative overflow-hidden bg-paper text-ink">
-        <div className="grid gap-10 px-4 pt-20 md:px-8 md:pt-28 lg:grid-cols-12 lg:gap-8">
+        <div className="px-gutter grid gap-10 pt-16 md:pt-24 lg:grid-cols-12 lg:gap-8">
           <div className="lg:col-span-7">
             <h2 className="lp-in font-display text-head text-balance">
               Come back to her
@@ -308,7 +310,7 @@ export default function Landing() {
               href="/login"
               variant="secondary"
               size="lg"
-              className="lp-in mt-8 w-full [--i:1] md:w-auto"
+              className="lp-in mt-6 w-full [--i:1] md:mt-8 md:w-auto"
             >
               Sign in
             </ButtonLink>
@@ -324,7 +326,7 @@ export default function Landing() {
             ))}
           </nav>
         </div>
-        <div className="mt-14 flex flex-col gap-3 px-4 text-small text-ink/75 md:mt-28 md:flex-row md:justify-between md:px-8">
+        <div className="px-gutter mt-12 flex flex-col gap-3 text-small text-ink/75 md:mt-20 md:flex-row md:justify-between">
           <p>18+ only. Every companion is a fictional adult. © 2026 Amora</p>
           <p className="flex gap-6">
             <Link href="/terms" className="press hover:text-ink">

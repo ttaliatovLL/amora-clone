@@ -1,3 +1,4 @@
+import { ArrowRight } from "@phosphor-icons/react/ssr";
 import Link from "next/link";
 import { ViewTransition, type ComponentProps, type CSSProperties, type ReactNode } from "react";
 import { fitName } from "@/components/board/fit-name";
@@ -28,44 +29,94 @@ export function Wordmark({ className }: { className?: string; glyph?: boolean })
 
 /* ── Button ───────────────────────────────────────────── */
 // Square, flat, one fill. Rouge is the one action; paper is the second; ink is everything quieter.
+// Heights: sm 40, md 44, lg 48. Icons size-4 / size-[1.125rem] / size-5 (callers size their own). Press scales to 0.97; hover lifts the fill one step.
 const button = {
-  base: "press inline-flex items-center justify-center gap-2 whitespace-nowrap font-medium select-none disabled:pointer-events-none disabled:opacity-40",
+  base: "press group/btn relative inline-flex items-center justify-center whitespace-nowrap font-medium select-none disabled:pointer-events-none disabled:opacity-40 aria-busy:pointer-events-none",
   variant: {
-    primary: "bg-rouge text-ink hover:bg-rouge-hi",
-    premium: "bg-rouge text-ink hover:bg-rouge-hi",
-    paper: "bg-paper text-ink hover:bg-white",
-    secondary: "bg-ink-4 text-paper hover:bg-ink-5",
-    ghost: "text-muted hover:text-paper",
+    primary: "bg-rouge text-ink hover:bg-rouge-hi active:bg-rouge-hi",
+    premium: "bg-rouge text-ink hover:bg-rouge-hi active:bg-rouge-hi",
+    paper: "bg-paper text-ink hover:bg-white active:bg-paper-2",
+    secondary: "bg-ink-4 text-paper hover:bg-ink-5 active:bg-ink-5",
+    ghost: "text-muted hover:bg-ink-3 hover:text-paper active:bg-ink-4",
   },
-  size: { sm: "h-10 px-4 text-small", md: "h-12 px-6 text-body", lg: "h-14 px-8 text-body" },
+  size: {
+    sm: "h-10 gap-2 px-4 text-small",
+    md: "h-11 gap-2 px-5 text-body",
+    lg: "h-12 gap-2.5 px-6 text-body",
+  },
 };
-type ButtonStyle = { variant?: keyof typeof button.variant; size?: keyof typeof button.size };
+type ButtonStyle = {
+  variant?: keyof typeof button.variant;
+  size?: keyof typeof button.size;
+  /** A trailing arrow that leans forward on hover: for buttons that take you somewhere. */
+  arrow?: boolean;
+  /** Keeps the button's width and swaps its label for three breathing squares. */
+  loading?: boolean;
+};
 
-export function Button({ variant = "primary", size = "md", className, ...props }: ComponentProps<"button"> & ButtonStyle) {
-  return <button className={cx(button.base, button.variant[variant], button.size[size], className)} {...props} />;
+function ButtonInner({ children, arrow, loading }: { children: ReactNode; arrow?: boolean; loading?: boolean }) {
+  return (
+    <>
+      <span className={cx("inline-flex min-w-0 items-center gap-[inherit]", loading && "invisible")}>
+        {children}
+        {arrow && <ArrowRight weight="bold" className="size-[1.1em] shrink-0 transition-transform duration-200 ease-[var(--ease-out)] group-hover/btn:translate-x-0.5" aria-hidden />}
+      </span>
+      {loading && (
+        <span className="absolute inset-0 flex items-center justify-center gap-1" aria-hidden>
+          {[0, 1, 2].map((i) => (
+            <span key={i} className="size-1.5 bg-current motion-safe:animate-[breathe_1.1s_ease-in-out_infinite]" style={{ animationDelay: `${i * 0.15}s` }} />
+          ))}
+        </span>
+      )}
+    </>
+  );
 }
 
-export function ButtonLink({ variant = "primary", size = "md", className, ...props }: ComponentProps<typeof Link> & ButtonStyle) {
-  return <Link className={cx(button.base, button.variant[variant], button.size[size], className)} {...props} />;
+export function Button({ variant = "primary", size = "md", arrow, loading, className, children, disabled, ...props }: ComponentProps<"button"> & ButtonStyle) {
+  return (
+    <button className={cx(button.base, button.variant[variant], button.size[size], className)} disabled={disabled} aria-busy={loading || undefined} {...props}>
+      <ButtonInner arrow={arrow} loading={loading}>
+        {children}
+      </ButtonInner>
+    </button>
+  );
+}
+
+export function ButtonLink({ variant = "primary", size = "md", arrow, loading, className, children, ...props }: ComponentProps<typeof Link> & ButtonStyle) {
+  return (
+    <Link className={cx(button.base, button.variant[variant], button.size[size], className)} aria-busy={loading || undefined} {...props}>
+      <ButtonInner arrow={arrow} loading={loading}>
+        {children}
+      </ButtonInner>
+    </Link>
+  );
 }
 
 /* ── Chip ─────────────────────────────────────────────── */
-// Toggle chip when `pressed` is passed, action chip with only onClick, static tag otherwise.
-export function Chip({ pressed, className, children, ...props }: ComponentProps<"button"> & { pressed?: boolean }) {
+// Toggle chip when `pressed` is passed, action chip with only onClick, static tag otherwise. Toggles are 40 tall
+// (the filter row), static tags 32. `count` sits after the label in tabular figures.
+export function Chip({ pressed, count, className, children, ...props }: ComponentProps<"button"> & { pressed?: boolean; count?: number }) {
+  const n = count !== undefined && <span className={cx("tabular", pressed ? "text-ink/55" : "text-faint")}>{count > 999 ? "999+" : count}</span>;
   if (pressed === undefined && !props.onClick)
-    return <span className={cx("inline-flex h-9 items-center gap-1.5 bg-ink-3 px-3.5 text-small text-paper/85", className)}>{children}</span>;
+    return (
+      <span className={cx("inline-flex h-8 items-center gap-1.5 bg-ink-3 px-3 text-small text-paper/85", className)}>
+        {children}
+        {n}
+      </span>
+    );
   return (
     <button
       type="button"
       aria-pressed={pressed}
       className={cx(
-        "press inline-flex h-10 shrink-0 items-center gap-1.5 px-4 text-small",
-        pressed ? "bg-paper font-medium text-ink" : "bg-ink-3 text-muted hover:bg-ink-4 hover:text-paper",
+        "press inline-flex h-10 shrink-0 items-center gap-1.5 px-4 text-small disabled:pointer-events-none disabled:opacity-40",
+        pressed ? "bg-paper font-medium text-ink" : "bg-ink-3 text-muted hover:bg-ink-4 hover:text-paper active:bg-ink-5",
         className,
       )}
       {...props}
     >
       {children}
+      {n}
     </button>
   );
 }
@@ -73,13 +124,88 @@ export function Chip({ pressed, className, children, ...props }: ComponentProps<
 /** Her interests as quiet words, one line, fading at the edge. */
 export function Tags({ tags, className, max = 3 }: { tags: string[]; className?: string; max?: number }) {
   return (
-    <ul className={cx("fade-r flex gap-1.5 overflow-hidden", className)} aria-label="Tags">
+    <ul className={cx("fade-r flex gap-1 overflow-hidden", className)} aria-label="Tags">
       {tags.slice(0, max).map((t) => (
-        <li key={t} className="shrink-0 bg-ink/55 px-2 py-1 text-small text-paper/85">
+        <li key={t} className="inline-flex h-6 shrink-0 items-center bg-ink/55 px-2 text-[0.8125rem] text-paper/85">
           {t}
         </li>
       ))}
     </ul>
+  );
+}
+
+/* ── Switch + segmented control ───────────────────────── */
+/** A square on/off switch, 44 x 24. The thumb glides; rouge when on. */
+export function Switch({ label, on, onChange, disabled }: { label: string; on: boolean; onChange?: (v: boolean) => void; disabled?: boolean }) {
+  return (
+    <button
+      type="button"
+      role="switch"
+      aria-checked={on}
+      aria-label={label}
+      disabled={disabled}
+      onClick={() => onChange?.(!on)}
+      className={cx(
+        "group/sw relative h-6 w-11 shrink-0 transition-colors duration-200 ease-[var(--ease-out)] disabled:opacity-50",
+        on ? "bg-rouge" : "bg-ink-5 hover:bg-[#3a3a3a]",
+      )}
+    >
+      <span className={cx("absolute top-1 left-1 size-4 bg-paper transition-transform duration-200 ease-[var(--ease-out)] group-active/sw:scale-90", on && "translate-x-5")} />
+    </button>
+  );
+}
+
+/** One choice of a few, as a flat track with a sliding paper (or ink, on paper) block. Equal columns. */
+export function Segmented<T extends string | boolean>({
+  label,
+  options,
+  value,
+  onChange,
+  tone = "ink",
+  className,
+}: {
+  label: string;
+  options: { value: T; label: ReactNode; note?: ReactNode }[];
+  value: T;
+  onChange: (v: T) => void;
+  tone?: "ink" | "paper";
+  className?: string;
+}) {
+  const i = Math.max(0, options.findIndex((o) => o.value === value));
+  const tall = options.some((o) => o.note);
+  return (
+    <div
+      role="radiogroup"
+      aria-label={label}
+      className={cx("relative grid p-1", tone === "paper" ? "bg-paper-2" : "bg-ink-3", className)}
+      style={{ gridTemplateColumns: `repeat(${options.length}, minmax(0, 1fr))` }}
+    >
+      <span
+        aria-hidden
+        className={cx("absolute inset-y-1 left-1 transition-transform duration-300 ease-[var(--ease-out)]", tone === "paper" ? "bg-ink" : "bg-paper")}
+        style={{ width: `calc((100% - 0.5rem) / ${options.length})`, transform: `translateX(${i * 100}%)` }}
+      />
+      {options.map((o) => {
+        const on = o.value === value;
+        return (
+          <button
+            key={String(o.value)}
+            type="button"
+            role="radio"
+            aria-checked={on}
+            onClick={() => onChange(o.value)}
+            className={cx(
+              "relative flex min-w-0 flex-col justify-center px-4 transition-colors duration-200",
+              tall ? "h-14 items-start text-left" : "h-10 items-center",
+              on ? (tone === "paper" ? "text-paper" : "text-ink") : tone === "paper" ? "text-ink/65 hover:text-ink" : "text-muted hover:text-paper",
+            )}
+          >
+            <span className={cx("truncate", tall ? "text-body font-medium" : "text-small", on && "font-medium")}>{o.label}</span>
+            {o.note && <span className={cx("truncate text-small", on ? (tone === "paper" ? "text-rouge" : "text-rouge-lo") : "text-faint")}>{o.note}</span>}
+          </button>
+        );
+      })}
+    </div>
   );
 }
 
@@ -104,7 +230,7 @@ export function Facts({ items, className }: { items: ReactNode[]; className?: st
 /** Online: a small live light and the word, on a solid ink tab. */
 export function OnlinePill({ className, label = "Online" }: { className?: string; label?: string }) {
   return (
-    <span className={cx("inline-flex h-7 items-center gap-2 bg-ink/70 px-2.5 text-small text-paper", className)}>
+    <span className={cx("inline-flex h-6 items-center gap-1.5 bg-ink/70 px-2 text-[0.8125rem] text-paper", className)}>
       <span className="live-dot size-1.5 rounded-full bg-live" aria-hidden />
       {label}
     </span>
@@ -112,7 +238,7 @@ export function OnlinePill({ className, label = "Online" }: { className?: string
 }
 
 /* ── Avatar ───────────────────────────────────────────── */
-const avatarSize = { sm: "size-10", md: "size-14", lg: "size-[4.5rem]" };
+const avatarSize = { sm: "size-10", md: "size-12", lg: "size-16" };
 
 export function Avatar({
   companion,
@@ -132,7 +258,7 @@ export function Avatar({
         <Portrait companion={companion} face />
       </span>
       {showOnline && companion.online && (
-        <span className="absolute -right-0.5 -bottom-0.5 size-3 rounded-full bg-live ring-2 ring-ink">
+        <span className="absolute -right-0.5 -bottom-0.5 size-2.5 rounded-full bg-live ring-2 ring-ink">
           <span className="sr-only">Online</span>
         </span>
       )}
@@ -191,42 +317,77 @@ export function CompanionCard({
         ) : (
           photo
         )}
-        <div className={cx("scrim-b absolute inset-x-0 bottom-0", tile ? "h-1/2" : "h-[55%]")} />
+        <div className={cx("scrim-b absolute inset-x-0 bottom-0", tile ? "h-[45%]" : "h-1/2")} />
 
-        <div className={cx("absolute flex items-center gap-1.5", tile ? "top-2.5 left-2.5" : "top-4 left-4")}>
-          {c.isNew && <span className="inline-flex h-7 items-center bg-rouge px-2.5 text-small font-medium text-ink">New</span>}
+        <div className={cx("absolute flex items-center gap-1", tile ? "top-2 left-2" : "top-3 left-3")}>
+          {c.isNew && <span className="inline-flex h-6 items-center bg-rouge px-2 text-[0.8125rem] font-medium text-ink">New</span>}
           {c.online && <OnlinePill />}
         </div>
 
-        <div className={cx("absolute inset-x-0 bottom-0", tile ? "p-3" : "p-5 md:p-6")}>
-          {/* Sized to the card: short names reach the cap, long ones shrink or take a second line, a single word never breaks. */}
-          <p className="font-display text-paper [text-wrap:balance]" style={fitName(c.name, wide ? "5rem" : tile ? "1.6rem" : "3.25rem", tile ? "1.5rem" : "3rem", 2)}>
+        <div className={cx("absolute inset-x-0 bottom-0", tile ? "p-3 @[15rem]:p-4" : "p-5")}>
+          {/* Proportionate to the card, never filling it: short names sit at the cap, long ones shrink or wrap; one word never breaks. */}
+          <p className="font-display text-paper [text-wrap:balance]" style={fitName(c.name, wide ? "3.5rem" : tile ? "1.5rem" : "2.5rem", tile ? "2rem" : "2.5rem", 2)}>
             {c.name}
           </p>
-          <p className={cx("mt-2 truncate text-paper/80 tabular", tile ? "text-small" : "text-body")}>
+          <p className={cx("mt-1.5 truncate text-paper/75 tabular", tile ? "text-small" : "text-body")}>
             {c.age} · {c.city}
-            {!tile && <span className="text-paper/55"> · {c.sign}</span>}
+            {!tile && <span className="text-paper/50"> · {c.sign}</span>}
           </p>
-          {!tile && <p className="mt-1 line-clamp-1 text-body text-paper/60">{c.tagline}</p>}
+          {/* Her line: always on large cards; on tiles it slides in on hover (fine pointers only). */}
+          <p
+            className={cx(
+              "line-clamp-1 text-paper/65",
+              tile
+                ? "hidden text-small [@media(hover:hover)_and_(pointer:fine)]:@[13rem]:block max-h-0 translate-y-1 opacity-0 transition-[max-height,opacity,transform,margin] duration-500 ease-[var(--ease-out)] group-hover:mt-1 group-hover:max-h-6 group-hover:translate-y-0 group-hover:opacity-100"
+                : "mt-1 text-body",
+            )}
+          >
+            {c.tagline}
+          </p>
         </div>
       </Link>
-      {save && <SaveButton id={c.id} name={c.name} className={cx("absolute z-[2]", tile ? "top-1.5 right-1.5" : "top-3 right-3")} />}
+      {save && <SaveButton id={c.id} name={c.name} className={cx("absolute z-[2]", tile ? "top-1 right-1 size-9!" : "top-2 right-2")} />}
     </article>
   );
 }
 
 /* ── Input ────────────────────────────────────────────── */
-export function Field({ label, hint, icon, className, id, ...props }: ComponentProps<"input"> & { label: string; hint?: string; icon?: ReactNode }) {
+/** A labelled input, 48 tall. `hint` sits under it; `error` replaces the hint, rings the field rouge and is announced.
+ *  `trailing` holds a control inside the field's right edge (Show / Hide). */
+export function Field({
+  label,
+  hint,
+  error,
+  icon,
+  trailing,
+  className,
+  id,
+  ...props
+}: ComponentProps<"input"> & { label: string; hint?: string; error?: string; icon?: ReactNode; trailing?: ReactNode }) {
   const inputId = id ?? props.name;
+  const noteId = inputId && (error || hint) ? `${inputId}-note` : undefined;
   return (
-    <label htmlFor={inputId} className={cx("block", className)}>
-      <span className="mb-2 block text-small text-muted">{label}</span>
-      <span className="flex h-13 items-center gap-3 bg-ink-3 px-4 transition-[background-color,box-shadow] duration-150 focus-within:bg-ink-4 focus-within:ring-2 focus-within:ring-rouge">
-        {icon && <span className="text-faint">{icon}</span>}
-        <input id={inputId} className="h-full w-full bg-transparent text-base text-paper placeholder:text-faint focus:outline-none" {...props} />
+    <div className={cx("block", className)}>
+      <label htmlFor={inputId} className="mb-2 block text-small text-muted">
+        {label}
+      </label>
+      <span
+        className={cx(
+          "flex h-12 items-center gap-3 bg-ink-3 pl-4 transition-[background-color,box-shadow] duration-150 hover:bg-ink-4 focus-within:bg-ink-4 focus-within:ring-2",
+          trailing ? "pr-1" : "pr-4",
+          error ? "ring-2 ring-rouge/70 focus-within:ring-rouge" : "focus-within:ring-rouge",
+        )}
+      >
+        {icon && <span className="text-faint [&_svg]:size-[1.125rem]">{icon}</span>}
+        <input id={inputId} aria-invalid={error ? true : undefined} aria-describedby={noteId} className="h-full w-full min-w-0 bg-transparent text-base text-paper focus:outline-none" {...props} />
+        {trailing}
       </span>
-      {hint && <span className="mt-2 block text-small text-faint">{hint}</span>}
-    </label>
+      {(error || hint) && (
+        <span id={noteId} className={cx("mt-2 block text-small", error ? "text-rouge-hi" : "text-faint")} role={error ? "alert" : undefined}>
+          {error ?? hint}
+        </span>
+      )}
+    </div>
   );
 }
 

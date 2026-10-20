@@ -3,6 +3,7 @@
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import { Button, Switch } from "@/components/ui";
 
 const COOKIE = "amora_consent";
 const OPEN_EVENT = "amora:cookies";
@@ -49,11 +50,11 @@ export function CookieBanner() {
   return (
     <section
       aria-label="Cookies"
-      className={`rise fixed inset-x-3 z-[90] mx-auto max-w-[440px] bg-ink-3 p-5 text-paper shadow-[var(--shadow-float)] md:inset-x-auto md:right-6 md:bottom-6 md:mx-0 ${
-        inApp ? "bottom-[calc(env(safe-area-inset-bottom)+104px)]" : "bottom-[calc(env(safe-area-inset-bottom)+12px)]"
+      className={`rise fixed inset-x-4 z-[90] mx-auto max-w-[26rem] bg-ink-3 p-5 text-paper shadow-[var(--shadow-float)] md:inset-x-auto md:right-8 md:bottom-8 md:mx-0 ${
+        inApp ? "bottom-[calc(max(0.75rem,env(safe-area-inset-bottom))+4.75rem)]" : "bottom-[calc(env(safe-area-inset-bottom)+1rem)]"
       }`}
     >
-      <p className="font-display text-[15px]">Cookies, kept quiet</p>
+      <p className="font-display text-[0.9375rem]">Cookies, kept quiet</p>
       <p className="mt-2 text-small text-muted">
         We use essential cookies to keep you signed in and remember your age check. Anything else stays off unless you turn it on.
       </p>
@@ -65,21 +66,21 @@ export function CookieBanner() {
         </div>
       )}
       <div className="mt-5 grid grid-cols-2 gap-2">
-        <button className="press h-11 bg-ink-5 text-small font-medium" onClick={() => done({ analytics: false, personal: false }, "Only essential cookies")}>
+        <Button variant="secondary" size="sm" className="bg-ink-5 hover:bg-[#3a3a3a]" onClick={() => done({ analytics: false, personal: false }, "Only essential cookies")}>
           Essential only
-        </button>
+        </Button>
         {details ? (
-          <button className="press h-11 bg-paper text-small font-medium text-ink" onClick={() => done(choice, "Cookie choices saved")}>
+          <Button variant="paper" size="sm" onClick={() => done(choice, "Cookie choices saved")}>
             Save choices
-          </button>
+          </Button>
         ) : (
-          <button className="press h-11 bg-paper text-small font-medium text-ink" onClick={() => done({ analytics: true, personal: true }, "All cookies on")}>
+          <Button variant="paper" size="sm" onClick={() => done({ analytics: true, personal: true }, "All cookies on")}>
             Accept all
-          </button>
+          </Button>
         )}
       </div>
       {!details && (
-        <button className="mt-3 text-small text-muted underline underline-offset-4 hover:text-paper" onClick={() => setDetails(true)}>
+        <button className="press mt-3 text-small text-muted underline decoration-faint underline-offset-4 hover:text-paper hover:decoration-paper" onClick={() => setDetails(true)}>
           Choose what to allow
         </button>
       )}
@@ -89,22 +90,12 @@ export function CookieBanner() {
 
 function Row({ label, note, on, disabled, onToggle }: { label: string; note: string; on: boolean; disabled?: boolean; onToggle?: () => void }) {
   return (
-    <label className={`flex items-center gap-4 bg-ink-2 px-3.5 py-3 ${disabled ? "" : "cursor-pointer"}`}>
+    <div className="flex items-center gap-4 bg-ink-2 px-4 py-3">
       <span className="min-w-0 flex-1">
         <span className="block text-small font-medium">{label}</span>
         <span className="block text-small text-muted">{note}</span>
       </span>
-      <button
-        type="button"
-        role="switch"
-        aria-checked={on}
-        aria-label={label}
-        disabled={disabled}
-        onClick={onToggle}
-        className={`relative h-6 w-10 shrink-0 transition-colors duration-200 ${on ? "bg-rouge" : "bg-ink-5"} disabled:opacity-60`}
-      >
-        <span className={`absolute top-1 left-1 size-4 bg-paper transition-transform duration-200 ease-[var(--ease-out)] ${on ? "translate-x-4" : ""}`} />
-      </button>
-    </label>
+      <Switch label={label} on={on} disabled={disabled} onChange={onToggle} />
+    </div>
   );
 }

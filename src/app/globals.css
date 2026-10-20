@@ -23,18 +23,19 @@
   --font-display: var(--font-panchang), "Arial Black", sans-serif;
   --font-sans: var(--font-switzer), system-ui, sans-serif;
 
-  /* Five sizes do all the work. */
+  /* Five sizes do all the work, plus the page title (the board's headline scale, shared by every screen). */
   --text-small: clamp(0.8125rem, 0.79rem + 0.1vw, 0.875rem);
   --text-small--line-height: 1.4;
   --text-body: clamp(1rem, 0.97rem + 0.15vw, 1.0625rem);
   --text-body--line-height: 1.5;
-  --text-lead: clamp(1.25rem, 1.1rem + 0.7vw, 1.625rem);
+  --text-lead: clamp(1.125rem, 1rem + 0.5vw, 1.5rem);
   --text-lead--line-height: 1.3;
-  --text-head: clamp(1.75rem, 1.2rem + 2.6vw, 3.5rem);
+  --text-head: clamp(1.625rem, 1.2rem + 1.9vw, 3rem);
   --text-head--line-height: 1;
-  --text-mega: clamp(3rem, 1rem + 9vw, 10rem);
+  --text-title: clamp(2rem, calc((100vw - 2rem) / 9.5), 4.75rem);
+  --text-title--line-height: 0.92;
+  --text-mega: clamp(2.5rem, 0.5rem + 8vw, 7.5rem);
   --text-mega--line-height: 0.92;
-
 
   --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
   --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
@@ -95,6 +96,11 @@ input,
 textarea {
   caret-color: var(--color-rouge);
 }
+input::placeholder,
+textarea::placeholder {
+  color: var(--color-faint);
+  opacity: 1;
+}
 
 /* Controls fire instantly and never select their label on long-press; content stays selectable. */
 button,
@@ -115,6 +121,26 @@ a img {
 }
 a {
   touch-action: manipulation;
+}
+
+/* Spacing: one rhythm everywhere.
+   Gutters 16 / 32 (px-gutter), content capped at 1440 like the board, backgrounds stay full-bleed.
+   Page: 24 / 48 top, 48 / 96 bottom. Sections: 64 / 96 apart (mt-16 md:mt-24); landing bands 96 / 128 (py-24 md:py-32).
+   Heading to its content: 24 / 32 (mt-6 md:mt-8). Groups inside a section: 8 (gap-2); rows in a list: 4 (gap-1).
+   Inner padding steps: rows 16 (p-4), panels 20 / 24 (p-5 md:p-6), feature fields 24 / 32 (p-6 md:p-8). */
+@utility px-gutter {
+  padding-inline: 1rem;
+  @media (width >= 48rem) {
+    padding-inline: max(2rem, calc((100% - 1440px) / 2 + 2rem));
+  }
+}
+@utility page {
+  margin-inline: auto;
+  max-width: 1440px;
+  padding: 1.5rem 1rem 3rem;
+  @media (width >= 48rem) {
+    padding: 3rem 2rem 6rem;
+  }
 }
 
 /* Press feedback for anything tappable. */
@@ -293,4 +319,58 @@ html:not([data-age-ok]):has(.age-gate) { overflow: hidden; }
 
 @keyframes silk-in {
   from { opacity: 0; }
+}
+
+/* Living film grain over the whole site: a fixed noise layer that jitters a few times a second, like projected film.
+   Transform-only, so it stays on the compositor; still under reduced motion. */
+@keyframes grain-shift {
+  0% { transform: translate(0, 0); }
+  20% { transform: translate(-6%, 4%); }
+  40% { transform: translate(5%, -7%); }
+  60% { transform: translate(-3%, 8%); }
+  80% { transform: translate(7%, 2%); }
+  100% { transform: translate(0, 0); }
+}
+@utility film-grain {
+  &::after {
+    content: "";
+    position: fixed;
+    inset: -50%;
+    z-index: 60;
+    pointer-events: none;
+    opacity: 0.07;
+    mix-blend-mode: overlay;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    animation: grain-shift 0.9s steps(5) infinite;
+  }
+}
+
+/* The top bar starts clear over the silk and turns solid ink once the page scrolls under it. */
+@keyframes bar-solid {
+  to { background-color: var(--color-ink); }
+}
+@supports (animation-timeline: scroll()) {
+  .bar-solid {
+    background-color: transparent;
+    animation: bar-solid linear both;
+    animation-timeline: scroll();
+    animation-range: 0 80px;
+  }
+}
+
+/* The app's silk band. On narrow screens the canvas keeps a desktop-wide stage anchored to the right edge, so phones
+   get the wine light that sits top-right on desktop instead of the dark middle of the field; there it is softened
+   (blurred, masked to the corner, a touch fainter) so it reads as light in the room, not as a shape. */
+.silk-band > div {
+  left: auto;
+  width: max(100%, 90rem);
+}
+@media (max-width: 47.99rem) {
+  .silk-band.silk-band {
+    opacity: 0.45;
+  }
+  .silk-band > div {
+    filter: blur(32px);
+    mask-image: radial-gradient(120% 90% at 100% 0%, #000 20%, transparent 80%);
+  }
 }

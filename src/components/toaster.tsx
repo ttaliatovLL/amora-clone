@@ -23,16 +23,16 @@ export function Toaster() {
           // The same kept-card look as the record: paper, a rouge tile, her icon stamped faint into the corner.
           <Link
             href="/app/me#record"
-            className="press relative flex w-full items-center gap-4 overflow-hidden bg-paper p-3 pr-4 text-ink shadow-[var(--shadow-float)]"
+            className="press relative flex w-full items-center gap-3 overflow-hidden bg-paper p-2 pr-4 text-ink shadow-[var(--shadow-float)]"
           >
-            <span className="relative grid size-12 shrink-0 place-items-center bg-rouge text-ink">
-              <AchievementIcon name={a.icon} size={22} weight="fill" />
+            <span className="relative grid size-11 shrink-0 place-items-center bg-rouge text-ink">
+              <AchievementIcon name={a.icon} size={20} weight="fill" />
             </span>
             <span className="pointer-events-none absolute -top-5 -right-4 text-ink/[0.045]" aria-hidden>
               <AchievementIcon name={a.icon} size={96} weight="fill" />
             </span>
             <span className="relative min-w-0">
-              <span className="block font-display text-[15px] leading-tight [overflow-wrap:anywhere]">{a.title}</span>
+              <span className="block font-display text-[0.875rem] leading-tight [overflow-wrap:anywhere]">{a.title}</span>
               <span className="mt-0.5 line-clamp-2 block text-small text-ink/70">Earned. {a.how}</span>
             </span>
           </Link>
@@ -59,11 +59,11 @@ export function Toaster() {
         unstyled: true,
         classNames: {
           toast:
-            "flex w-full items-center gap-3 bg-ink-4 px-4 py-3.5 text-body text-paper shadow-[var(--shadow-float)] font-sans",
-          title: "font-medium",
+            "flex min-h-12 w-full items-center gap-3 bg-ink-4 py-2 pr-2 pl-4 text-small font-medium text-paper shadow-[var(--shadow-float)] font-sans",
+          title: "py-1",
           description: "text-small text-muted",
-          actionButton: "press ml-auto shrink-0 bg-paper px-3 py-1.5 text-small font-medium text-ink",
-          cancelButton: "press ml-auto shrink-0 px-3 py-1.5 text-small text-muted",
+          actionButton: "press ml-auto inline-flex h-8 shrink-0 items-center bg-paper px-3 text-small font-medium text-ink hover:bg-white",
+          cancelButton: "press ml-auto inline-flex h-8 shrink-0 items-center px-3 text-small text-muted hover:text-paper",
           icon: "text-rouge",
         },
       }}

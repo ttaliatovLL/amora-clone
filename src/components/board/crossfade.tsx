@@ -14,7 +14,7 @@ export function Crossfade({ a, b, every = 5200 }: { a: ReactNode; b?: ReactNode;
     <div className="absolute inset-0 overflow-hidden">
       {a}
       {b && (
-        <div aria-hidden className={`absolute inset-0 transition-opacity duration-[2400ms] ease-in-out ${on ? "opacity-100" : "opacity-0"}`}>
+        <div aria-hidden className={`absolute inset-0 transition-opacity duration-[1300ms] ease-in-out ${on ? "opacity-100" : "opacity-0"}`}>
           {b}
         </div>
       )}

@@ -84,7 +84,7 @@ export function Sheet({ open, onClose, title, children }: { open: boolean; onClo
               aria-modal="true"
               aria-label={title}
               tabIndex={-1}
-              className="relative max-h-[90dvh] w-full max-w-lg overflow-x-hidden overflow-y-auto overscroll-contain bg-ink-2 px-5 pt-8 pb-[max(1.5rem,env(safe-area-inset-bottom))] shadow-[var(--shadow-float)] outline-none! md:max-h-[86dvh] md:px-8 md:pb-8"
+              className="relative max-h-[90dvh] w-full max-w-lg overflow-x-hidden overflow-y-auto overscroll-contain bg-ink-2 px-5 pt-8 pb-[max(1.25rem,env(safe-area-inset-bottom))] shadow-[var(--shadow-float)] outline-none! md:max-h-[86dvh] md:px-8 md:pb-8"
               {...motionProps}
               drag={desktop ? false : "y"}
               dragListener={false}
@@ -95,15 +95,15 @@ export function Sheet({ open, onClose, title, children }: { open: boolean; onClo
             >
               {/* Phones: the drag strip overlays the top 2rem, so the sheet body scrolls normally on touch. */}
               <div onPointerDown={(e) => drag.start(e)} className="absolute inset-x-0 top-0 z-10 flex h-8 cursor-grab touch-none justify-center pt-3 active:cursor-grabbing md:hidden">
-                <span className="h-1 w-10 bg-paper/30" aria-hidden />
+                <span className="h-1 w-9 bg-paper/25" aria-hidden />
               </div>
               <button
                 type="button"
                 onClick={onClose}
                 aria-label="Close"
-                className="press absolute top-3 right-3 z-10 hidden size-10 place-items-center bg-ink/40 text-paper hover:bg-ink-4 md:grid"
+                className="press absolute top-3 right-3 z-10 hidden size-9 place-items-center bg-ink/50 text-muted hover:bg-ink-4 hover:text-paper md:grid"
               >
-                <X className="size-5" aria-hidden />
+                <X weight="bold" className="size-4" aria-hidden />
               </button>
               {children}
             </motion.div>

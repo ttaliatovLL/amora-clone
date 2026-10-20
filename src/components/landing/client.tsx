@@ -11,6 +11,7 @@ import {
   Button,
   ButtonLink,
   cx,
+  Segmented,
   Typing,
 } from "@/components/ui";
 import { companions } from "@/lib/companions";
@@ -66,7 +67,7 @@ export function AgeGate() {
           </Button>
           <a
             href="https://www.google.com"
-            className="press inline-flex h-12 items-center justify-center text-body text-muted hover:text-paper"
+            className="press inline-flex h-11 items-center justify-center text-body text-muted hover:text-paper"
           >
             I&apos;m under 18, leave
           </a>
@@ -198,11 +199,11 @@ export function FirstMessage() {
   }, [typing, shown, text.length]);
 
   return (
-    <div className="grid gap-10 lg:grid-cols-12 lg:gap-8">
+    <div className="grid gap-8 md:gap-10 lg:grid-cols-12 lg:gap-8">
       <div className="lg:col-span-5 lg:flex lg:flex-col lg:justify-between">
         <div>
           <h2 className="lp-in font-display text-head text-balance">Her first message</h2>
-          <p className="lp-in mt-5 max-w-[40ch] text-body [--i:1]">
+          <p className="lp-in mt-4 max-w-[40ch] text-body [--i:1] md:mt-5">
             Every companion opens the conversation, in her own voice. Choose one
             and read what she would send you tonight.
           </p>
@@ -210,7 +211,7 @@ export function FirstMessage() {
         <div
           role="radiogroup"
           aria-label="Choose a companion"
-          className="lp-in mt-8 grid grid-cols-5 gap-2 [--i:2]"
+          className="lp-in mt-6 grid max-w-md grid-cols-5 gap-2 [--i:2] md:mt-8"
         >
           {openers.map((o, k) => {
             const p = byId(o.id);
@@ -236,7 +237,7 @@ export function FirstMessage() {
                 >
                   <Portrait companion={p} sizes="96px" />
                 </span>
-                <span className="mt-2 block truncate text-small">{p.name}</span>
+                <span className="mt-1.5 block truncate text-small">{p.name}</span>
               </button>
             );
           })}
@@ -246,7 +247,7 @@ export function FirstMessage() {
       {/* Her, large, with the conversation opening over the foot of the photograph. */}
       <div
         ref={root}
-        className="lp-in relative aspect-[4/5] overflow-hidden bg-ink-3 [--i:1] md:aspect-[5/4] lg:col-span-6 lg:col-start-7 lg:aspect-auto lg:min-h-[36rem]"
+        className="lp-in relative aspect-[4/5] overflow-hidden bg-ink-3 [--i:1] md:aspect-[5/4] lg:col-span-6 lg:col-start-7 lg:aspect-auto lg:min-h-[32rem]"
       >
         {openers.map((o, k) => (
           <div
@@ -288,7 +289,8 @@ export function FirstMessage() {
           <ButtonLink
             href={`/app/${c.id}/chat`}
             variant="secondary"
-            className="mt-1 w-full justify-start text-muted hover:text-paper"
+            arrow
+            className="mt-1 w-full text-muted hover:text-paper [&>span]:w-full [&>span]:justify-between"
           >
             Reply to {c.name}
           </ButtonLink>
@@ -305,43 +307,26 @@ export function Ticket() {
   const price = annual ? p.annual : p.monthly;
   return (
     <div>
-      <div
-        role="radiogroup"
-        aria-label="Billing period"
-        className="lp-in inline-flex bg-paper-2 p-1 [--i:2]"
-      >
-        {(
-          [
-            ["Twelve months", true],
-            ["One month", false],
-          ] as const
-        ).map(([label, value]) => (
-          <button
-            key={label}
-            type="button"
-            role="radio"
-            aria-checked={annual === value}
-            onClick={() => setAnnual(value)}
-            className={cx(
-              "press h-10 px-4 text-small",
-              annual === value
-                ? "bg-ink font-medium text-paper"
-                : "text-ink/70 hover:text-ink",
-            )}
-          >
-            {label}
-          </button>
-        ))}
-      </div>
+      <Segmented
+        label="Billing period"
+        tone="paper"
+        className="lp-in w-full max-w-sm [--i:2]"
+        value={annual}
+        onChange={setAnnual}
+        options={[
+          { value: true, label: "Twelve months" },
+          { value: false, label: "One month" },
+        ]}
+      />
 
       {/* The ticket: main part and stub, a perforation where they meet, a notch bitten from each edge. */}
-      <article className="lp-in relative mt-8 grid bg-ink text-paper [--i:3] lg:grid-cols-[7fr_3fr]">
-        <div className="p-6 md:p-10">
+      <article className="lp-in relative mt-6 grid bg-ink text-paper [--i:3] md:mt-8 lg:grid-cols-[7fr_3fr]">
+        <div className="p-6 md:p-8 lg:p-10">
           <h3 className="font-display text-head text-balance">Premium</h3>
-          <p className="mt-3 max-w-[36ch] text-body text-paper">
+          <p className="mt-2 max-w-[36ch] text-body text-paper md:mt-3">
             Everything she sends, with nothing locked.
           </p>
-          <ul className="mt-10 grid gap-x-8 gap-y-3 text-body sm:grid-cols-2">
+          <ul className="mt-6 grid gap-x-8 gap-y-2.5 text-body sm:grid-cols-2 md:mt-8">
             {[
               ...p.perks,
               "Nothing auto-renews",
@@ -349,12 +334,15 @@ export function Ticket() {
               "A neutral name on every receipt",
               "Coins only for gifts and extras",
             ].map((t) => (
-              <li key={t}>{t}</li>
+              <li key={t} className="flex gap-3">
+                <span className="mt-[0.6em] size-1.5 shrink-0 bg-rouge" aria-hidden />
+                {t}
+              </li>
             ))}
           </ul>
         </div>
 
-        <div className="relative flex flex-col justify-end p-6 md:p-10 lg:pl-8">
+        <div className="relative flex flex-col justify-end p-6 md:p-8 lg:p-10 lg:pl-8">
           {/* Perforation along the stub's leading edge (top on phones, left on desktop). */}
           <div aria-hidden className="pointer-events-none">
             <span className="absolute top-0 left-0 size-7 -translate-x-1/2 -translate-y-1/2 rounded-full bg-paper" />
@@ -374,13 +362,13 @@ export function Ticket() {
               ? `$${(p.annual * 12).toFixed(2)} once, covers 12 months`
               : "$19.99 once, covers one month"}
           </p>
-          <ButtonLink href="/app" size="lg" className="mt-6 w-full">
+          <ButtonLink href="/app" size="lg" arrow className="mt-6 w-full">
             Become a member
           </ButtonLink>
         </div>
       </article>
 
-      <p className="lp-in mt-8 max-w-[60ch] text-body text-ink [--i:4]">
+      <p className="lp-in mt-6 max-w-[60ch] text-body text-ink [--i:4] md:mt-8">
         Just want to talk? Starter is $
         {annual ? plans.starter.annual : plans.starter.monthly} a month:
         unlimited messages, photos and videos, {plans.starter.coins} coins.{" "}

@@ -49,3 +49,11 @@ Idea sentence: *On Amora, the model agency's comp card becomes the companion car
 
 ## Platform
 Mobile-first PWA; one hand, at night. Root `overscroll-behavior: none`; inner scrollers `overscroll-contain`. Dock clears content (`pb-28` in the app layout). Age gate makes everything behind it inert.
+
+## Spacing (2026-10-20 revision)
+- Page: `page` utility (centred, max 1440, gutters 16/32, top 24/48, bottom 48/96); full-bleed bands use `px-gutter`.
+- Rhythm (mobile/desktop): app sections 64/96, landing bands 96/128, heading→content 24/32, groups 8, list rows 4.
+- Page titles use `text-title` (same formula as the board headline); section heads `text-head` (max 48px).
+- Controls: Button sm 40 / md 44 / lg 48; Chip 40 (static tag 32); Field 48; Switch 44×24; `Segmented` for two-way choices.
+- Board: 2/3/4/5 columns by default (`density.ts`), names proportionate to the card (`fitName` caps), never filling it.
+- Ambient: site-wide `film-grain` (body); one Silk band at the top of every app screen (app layout), the landing hero and the paywall.

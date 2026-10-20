@@ -1,7 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useEffect, useRef, useState } from "react";
+import { Component, useEffect, useRef, useState, type ReactNode } from "react";
 
 // three.js + R3F are heavy: load them only in the browser, only where the silk is shown.
 const Gradient = dynamic(
@@ -48,6 +48,31 @@ const Gradient = dynamic(
   { ssr: false },
 );
 
+// Checked once per page: a probe canvas that can't give a WebGL context means three.js would throw on mount.
+let webgl: boolean | undefined;
+function hasWebGL() {
+  if (webgl === undefined) {
+    try {
+      const c = document.createElement("canvas");
+      webgl = !!(c.getContext("webgl2") || c.getContext("webgl"));
+    } catch {
+      webgl = false;
+    }
+  }
+  return webgl;
+}
+
+/** If the shader still fails (context lost, driver refuses), render nothing: the ink ground is the fallback. */
+class Quiet extends Component<{ children: ReactNode }, { failed: boolean }> {
+  state = { failed: false };
+  static getDerivedStateFromError() {
+    return { failed: true };
+  }
+  render() {
+    return this.state.failed ? null : this.props.children;
+  }
+}
+
 /** Dark silk in motion: the landing's one moving field (shadergradient). Fades in once WebGL is up; pauses offscreen. */
 export function Silk({ className = "" }: { className?: string }) {
   const ref = useRef<HTMLDivElement>(null);
@@ -58,7 +83,7 @@ export function Silk({ className = "" }: { className?: string }) {
     if (!el) return;
     const reduce = matchMedia("(prefers-reduced-motion: reduce)");
     const io = new IntersectionObserver(([e]) => {
-      setVisible((v) => v || e.isIntersecting);
+      setVisible((v) => v || (e.isIntersecting && hasWebGL()));
       setAnimate(e.isIntersecting && !reduce.matches);
     });
     io.observe(el);
@@ -68,7 +93,9 @@ export function Silk({ className = "" }: { className?: string }) {
     <div ref={ref} aria-hidden className={`pointer-events-none overflow-hidden bg-ink ${className}`}>
       {visible && (
         <div className="absolute inset-0 animate-[silk-in_2.4s_var(--ease-out)_both]">
-          <Gradient animate={animate} />
+          <Quiet>
+            <Gradient animate={animate} />
+          </Quiet>
         </div>
       )}
     </div>

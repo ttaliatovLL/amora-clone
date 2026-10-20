@@ -42,7 +42,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         {/* Sets data-age-ok before paint so returning visitors never see the gate flash. */}
         <script dangerouslySetInnerHTML={{ __html: `try{if(document.cookie.includes("amora_age=1"))document.documentElement.dataset.ageOk=""}catch(e){}` }} />
       </head>
-      <body className="min-h-full flex flex-col">
+      <body className="film-grain min-h-full flex flex-col">
         {children}
         <CookieBanner />
         <Toaster />

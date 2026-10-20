@@ -37,23 +37,20 @@ export function parseLogo(src: ImageData): ImageData {
   }
 
   // 3) Poisson solve: u_xx + u_yy = C, u = 0 on the boundary (Jacobi iterations).
+  // Only interior pixels change; everything else stays 0. An interior pixel has all 8 neighbours inside the
+  // image (else it would be boundary), so the 4-neighbour reads need no bounds checks.
+  let count = 0;
+  for (let i = 0; i < n; i++) if (shape[i] && !boundary[i]) count++;
+  const interior = new Int32Array(count);
+  for (let i = 0, k = 0; i < n; i++) if (shape[i] && !boundary[i]) interior[k++] = i;
   let u = new Float32Array(n);
   let next = new Float32Array(n);
   const C = 0.01;
   const ITERATIONS = 300;
-  const at = (x: number, y: number, arr: Float32Array) =>
-    x < 0 || x >= width || y < 0 || y >= height || !shape[y * width + x] ? 0 : arr[y * width + x];
-
   for (let iter = 0; iter < ITERATIONS; iter++) {
-    for (let y = 0; y < height; y++) {
-      for (let x = 0; x < width; x++) {
-        const idx = y * width + x;
-        if (!shape[idx] || boundary[idx]) {
-          next[idx] = 0;
-          continue;
-        }
-        next[idx] = (C + at(x + 1, y, u) + at(x - 1, y, u) + at(x, y + 1, u) + at(x, y - 1, u)) / 4;
-      }
+    for (let k = 0; k < count; k++) {
+      const idx = interior[k];
+      next[idx] = (C + u[idx + 1] + u[idx - 1] + u[idx + width] + u[idx - width]) / 4;
     }
     [u, next] = [next, u];
   }

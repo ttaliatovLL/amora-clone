@@ -1,7 +1,9 @@
 // Ported from paper-design/liquid-logo (PolyForm Shield 1.0.0)
 // https://github.com/paper-design/liquid-logo — src/app/hero/liquid-frag.ts (one change in main(), marked "Changed").
+// Also changed: highp (always available in WebGL2 fragment shaders). With mediump, iOS GPUs run the shader in fp16,
+// so u_time (+250 per second) turns steppy within seconds and overflows to Inf after ~4 minutes.
 export const liquidFragSource = /* glsl */ `#version 300 es
-precision mediump float;
+precision highp float;
 
 in vec2 vUv;
 out vec4 fragColor;

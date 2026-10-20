@@ -40,10 +40,10 @@ export function Record() {
 
   return (
     <MotionConfig reducedMotion="user">
-      <div className="grid gap-6 md:grid-cols-[1fr_auto] md:items-end">
+      <div className="grid gap-6 md:grid-cols-[1fr_auto] md:items-end md:gap-12">
         <div>
           <h2 className="font-display text-head">Your record</h2>
-          <p className="mt-4 max-w-[44ch] text-body text-muted">
+          <p className="mt-3 max-w-[44ch] text-body text-muted md:mt-4">
             Small things you did here, kept for you.
             {next && (
               <>
@@ -56,17 +56,17 @@ export function Record() {
         </div>
         <div>
           <p
-            className="font-display text-[clamp(3rem,1rem+7vw,7rem)] leading-[0.92] whitespace-nowrap tabular"
+            className="font-display text-[clamp(2.25rem,1rem+5vw,4.75rem)] leading-[0.92] whitespace-nowrap tabular"
             aria-label={`${earned} of ${achievements.length} earned`}
           >
             {earned} of {achievements.length}
           </p>
-          <div className="mt-4 flex gap-1" aria-hidden>
+          <div className="mt-3 flex gap-1" aria-hidden>
             {rows.map((r, i) => (
               <motion.span
                 key={r.a.id}
                 className={cx(
-                  "h-2 flex-1 origin-left",
+                  "h-1.5 flex-1 origin-left",
                   r.date ? "bg-rouge" : "bg-ink-4",
                 )}
                 initial={{ scaleX: 0 }}
@@ -83,20 +83,20 @@ export function Record() {
         </div>
       </div>
 
-      <ul className="mt-10 grid grid-cols-2 gap-2 sm:gap-3 md:grid-cols-3 lg:grid-cols-4">
+      <ul className="mt-6 grid grid-cols-2 gap-2 sm:grid-cols-3 md:mt-8 lg:grid-cols-4 xl:grid-cols-6">
         {rows.map(({ a, date, value }) => {
           const closest = a.id === next?.a.id && value > 0;
           return (
             <li
               key={a.id}
               className={cx(
-                "reveal relative flex min-h-56 flex-col overflow-hidden p-3.5 sm:min-h-64 sm:p-5",
+                "reveal relative flex min-h-48 flex-col overflow-hidden p-4 md:min-h-52",
                 date ? "bg-paper text-ink" : "bg-ink-2",
               )}
             >
               <span
                 className={cx(
-                  "relative grid size-12 place-items-center sm:size-14",
+                  "relative grid size-10 place-items-center",
                   date
                     ? "bg-rouge text-ink"
                     : closest
@@ -106,7 +106,7 @@ export function Record() {
               >
                 <AchievementIcon
                   name={a.icon}
-                  size={24}
+                  size={20}
                   weight={date ? "fill" : "regular"}
                 />
               </span>
@@ -119,10 +119,10 @@ export function Record() {
                   <AchievementIcon name={a.icon} size={132} weight="fill" />
                 </span>
               )}
-              <div className="relative mt-auto pt-6">
+              <div className="relative mt-auto pt-5">
                 <h3
                   className={cx(
-                    "font-display text-[clamp(0.7rem,3.3vw,1.2rem)] [overflow-wrap:break-word]",
+                    "font-display text-[clamp(0.75rem,0.6rem+0.6vw,1rem)] leading-[1.05] [overflow-wrap:break-word]",
                     date || closest ? "" : "text-muted",
                   )}
                 >
@@ -130,7 +130,7 @@ export function Record() {
                 </h3>
                 <p
                   className={cx(
-                    "mt-2 text-small",
+                    "mt-1.5 text-small",
                     date ? "text-ink/70" : "text-faint",
                   )}
                 >

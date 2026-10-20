@@ -22,7 +22,7 @@ const lens = { type: "spring", duration: 0.45, bounce: 0.15 } as const;
 function Coins_() {
   const { coins } = useWallet();
   return (
-    <Link href="/app/me#coins" className="press inline-flex h-10 items-center gap-2 bg-ink-3 px-3.5 text-small font-medium tabular hover:bg-ink-4" aria-label={`${coins} coins`}>
+    <Link href="/app/me#coins" className="press inline-flex h-10 items-center gap-2 bg-ink-3 px-3.5 text-small font-medium tabular hover:bg-ink-4 active:bg-ink-5" aria-label={`${coins} coins`}>
       <Coins weight="fill" className="size-4 text-rouge" aria-hidden />
       {coins.toLocaleString()}
     </Link>
@@ -38,20 +38,20 @@ export function AppNav() {
 
   return (
     <>
-      <header className={`sticky top-0 z-40 bg-ink pt-[env(safe-area-inset-top)] ${detail ? "max-md:hidden" : ""}`}>
-        <div className="mx-auto flex h-16 max-w-[1600px] items-center gap-10 px-4 md:h-20 md:px-8">
+      <header className={`bar-solid sticky top-0 z-40 bg-ink pt-[env(safe-area-inset-top)] ${detail ? "max-md:hidden" : ""}`}>
+        <div className="mx-auto flex h-16 max-w-[1440px] items-center gap-8 px-4 md:h-20 md:px-8">
           <Link href="/" aria-label="Amora home" className="press">
-            <Wordmark className="md:text-[1.2rem]" />
+            <Wordmark className="md:text-[1.125rem]" />
           </Link>
-          <nav className="hidden items-center gap-1 md:flex" aria-label="App">
+          <nav className="hidden items-center gap-0.5 md:flex" aria-label="App">
             {tabs.map(({ href, label, match }) => {
               const on = match(path);
               return (
-                <Link key={href} href={href} aria-current={on ? "page" : undefined} className={`relative px-4 py-2.5 text-body transition-colors ${on ? "text-paper" : "text-muted hover:text-paper"}`}>
+                <Link key={href} href={href} aria-current={on ? "page" : undefined} className={`press relative inline-flex h-10 items-center px-4 text-small font-medium transition-colors ${on ? "text-paper" : "text-muted hover:bg-ink-2 hover:text-paper"}`}>
                   {on && <motion.span layoutId="bar-lens" transition={lens} className="absolute inset-0 bg-ink-3" />}
                   <span className="relative">
                     {label}
-                    {label === "Saved" && saved > 0 && <span className="ml-1.5 text-rouge tabular">{saved}</span>}
+                    {label === "Saved" && saved > 0 && <span className="ml-1.5 font-normal text-rouge tabular">{saved}</span>}
                   </span>
                 </Link>
               );
@@ -74,7 +74,7 @@ export function AppNav() {
         <LiquidGlass
           as="nav"
           aria-label="App"
-          className="fixed inset-x-0 bottom-[max(0.875rem,env(safe-area-inset-bottom))] z-40 mx-auto grid h-[4.25rem] w-[min(22rem,calc(100%-2rem))] grid-cols-4 p-1.5 md:hidden"
+          className="fixed inset-x-0 bottom-[max(0.75rem,env(safe-area-inset-bottom))] z-40 mx-auto grid h-16 w-[min(21rem,calc(100%-2rem))] grid-cols-4 p-1 md:hidden"
         >
           {tabs.map(({ href, label, Icon, match }) => {
             const on = match(path);
@@ -83,13 +83,13 @@ export function AppNav() {
                 key={href}
                 href={href}
                 aria-current={on ? "page" : undefined}
-                className={`press relative flex flex-col items-center justify-center gap-0.5 rounded-full text-[0.75rem] font-medium select-none ${on ? "text-paper" : "text-paper/60"}`}
+                className={`press relative flex flex-col items-center justify-center gap-1 rounded-full text-[0.6875rem] leading-none font-medium select-none transition-colors duration-200 ${on ? "text-paper" : "text-paper/60"}`}
               >
                 {on && <motion.span layoutId="dock-lens" transition={lens} className="absolute inset-0 rounded-full bg-paper/14" />}
-                <Icon weight={on ? "fill" : "regular"} className="relative size-[1.375rem]" aria-hidden />
+                <Icon weight={on ? "fill" : "regular"} className="relative size-5" aria-hidden />
                 <span className="relative">{label}</span>
                 {label === "Saved" && saved > 0 && (
-                  <span className="absolute top-1.5 right-[calc(50%-1.25rem)] grid h-4 min-w-4 place-items-center rounded-full bg-rouge px-1 text-[0.625rem] font-semibold text-ink tabular">
+                  <span className="absolute top-2 right-[calc(50%-1.125rem)] grid h-4 min-w-4 place-items-center rounded-full bg-rouge px-1 text-[0.625rem] leading-none font-semibold text-ink tabular">
                     {saved}
                   </span>
                 )}
