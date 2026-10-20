@@ -1,50 +1,81 @@
 "use client";
 
-import { ChatsCircle, Coins, Compass, Crown, UserCircle } from "@phosphor-icons/react/ssr";
+import { BookmarkSimple, ChatCircle, Coins, SquaresFour, User } from "@phosphor-icons/react/ssr";
 import { motion } from "motion/react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { LiquidGlass } from "@/components/liquid-glass";
 import { ButtonLink, Wordmark } from "@/components/ui";
+import { useProgress } from "@/lib/progress";
 import { useWallet } from "@/lib/wallet";
 
 const tabs = [
-  { href: "/app", label: "Discover", Icon: Compass, match: (p: string) => p === "/app" },
-  { href: "/app/chats", label: "Chats", Icon: ChatsCircle, match: (p: string) => p.startsWith("/app/chats") },
-  { href: "/app/me", label: "You", Icon: UserCircle, match: (p: string) => p.startsWith("/app/me") },
+  { href: "/app", label: "Board", Icon: SquaresFour, match: (p: string) => p === "/app" },
+  { href: "/app/saved", label: "Saved", Icon: BookmarkSimple, match: (p: string) => p.startsWith("/app/saved") },
+  { href: "/app/chats", label: "Chats", Icon: ChatCircle, match: (p: string) => p.startsWith("/app/chats") },
+  { href: "/app/me", label: "You", Icon: User, match: (p: string) => p.startsWith("/app/me") },
 ];
 
-// The selection lens glides between tabs instead of blinking: same spring as the sheets.
-const lens = { type: "spring", duration: 0.45, bounce: 0.18 } as const;
+// The selection glides between tabs instead of blinking.
+const lens = { type: "spring", duration: 0.45, bounce: 0.15 } as const;
 
-function CoinPill() {
+function Coins_() {
   const { coins } = useWallet();
   return (
-    <Link
-      href="/app/me#coins"
-      className="glass inline-flex h-9 items-center gap-1.5 rounded-full pr-3.5 pl-2 text-sm font-medium text-ivory tabular-nums transition-transform active:scale-95"
-      aria-label={`${coins} coins`}
-    >
-      <span className="grid size-5 place-items-center rounded-full bg-linear-to-b from-[#f6e6c4] to-[#a7854c] text-ink-950 shadow-[inset_0_1px_0_#fff8]">
-        <Coins weight="bold" className="size-3" aria-hidden />
-      </span>
+    <Link href="/app/me#coins" className="press inline-flex h-10 items-center gap-2 bg-ink-3 px-3.5 text-small font-medium tabular hover:bg-ink-4" aria-label={`${coins} coins`}>
+      <Coins weight="fill" className="size-4 text-rouge" aria-hidden />
       {coins.toLocaleString()}
     </Link>
   );
 }
 
-/** Desktop: left rail. Mobile: condensing top bar + floating liquid-glass tab bar (hidden on detail pages, which carry their own action). */
+/** Desktop: a plain top bar. Mobile: a slim top bar and a floating liquid-glass dock (hidden on detail pages, which carry their own action). */
 export function AppNav() {
   const path = usePathname();
   const { premium } = useWallet();
+  const saved = useProgress().saved.length;
   const detail = !tabs.some((t) => t.match(path));
 
   return (
     <>
-      <aside className="fixed inset-y-0 left-0 z-40 hidden w-64 flex-col border-r border-line bg-ink-950/60 px-4 py-7 backdrop-blur-2xl md:flex">
-        <Link href="/" className="px-3" aria-label="Amora home">
-          <Wordmark />
-        </Link>
-        <nav className="mt-12 flex flex-col gap-1" aria-label="App">
+      <header className={`sticky top-0 z-40 bg-ink/92 pt-[env(safe-area-inset-top)] backdrop-blur-md ${detail ? "max-md:hidden" : ""}`}>
+        <div className="mx-auto flex h-16 max-w-[1600px] items-center gap-10 px-4 md:h-20 md:px-8">
+          <Link href="/" aria-label="Amora home" className="press">
+            <Wordmark className="md:text-[1.2rem]" />
+          </Link>
+          <nav className="hidden items-center gap-1 md:flex" aria-label="App">
+            {tabs.map(({ href, label, match }) => {
+              const on = match(path);
+              return (
+                <Link key={href} href={href} aria-current={on ? "page" : undefined} className={`relative px-4 py-2.5 text-body transition-colors ${on ? "text-paper" : "text-muted hover:text-paper"}`}>
+                  {on && <motion.span layoutId="bar-lens" transition={lens} className="absolute inset-0 bg-ink-3" />}
+                  <span className="relative">
+                    {label}
+                    {label === "Saved" && saved > 0 && <span className="ml-1.5 text-rouge tabular">{saved}</span>}
+                  </span>
+                </Link>
+              );
+            })}
+          </nav>
+          <div className="ml-auto flex items-center gap-2">
+            <Coins_ />
+            {!premium && (
+              <span className="hidden md:block">
+                <ButtonLink href="/app/me#premium" size="sm">
+                  Become a member
+                </ButtonLink>
+              </span>
+            )}
+          </div>
+        </div>
+      </header>
+
+      {!detail && (
+        <LiquidGlass
+          as="nav"
+          aria-label="App"
+          className="fixed inset-x-0 bottom-[max(0.875rem,env(safe-area-inset-bottom))] z-40 mx-auto grid h-[4.25rem] w-[min(22rem,calc(100%-2rem))] grid-cols-4 p-1.5 md:hidden"
+        >
           {tabs.map(({ href, label, Icon, match }) => {
             const on = match(path);
             return (
@@ -52,67 +83,20 @@ export function AppNav() {
                 key={href}
                 href={href}
                 aria-current={on ? "page" : undefined}
-                className={`relative flex h-12 items-center gap-3 rounded-2xl px-3 text-[0.9375rem] transition-colors ${on ? "text-ivory" : "text-muted hover:text-ivory"}`}
+                className={`press relative flex flex-col items-center justify-center gap-0.5 rounded-full text-[0.75rem] font-medium select-none ${on ? "text-paper" : "text-paper/60"}`}
               >
-                {on && <motion.span layoutId="rail-lens" transition={lens} className="glass absolute inset-0 rounded-2xl" />}
+                {on && <motion.span layoutId="dock-lens" transition={lens} className="absolute inset-0 rounded-full bg-paper/14" />}
                 <Icon weight={on ? "fill" : "regular"} className="relative size-[1.375rem]" aria-hidden />
                 <span className="relative">{label}</span>
+                {label === "Saved" && saved > 0 && (
+                  <span className="absolute top-1.5 right-[calc(50%-1.25rem)] grid h-4 min-w-4 place-items-center rounded-full bg-rouge px-1 text-[0.625rem] font-semibold text-ink tabular">
+                    {saved}
+                  </span>
+                )}
               </Link>
             );
           })}
-        </nav>
-        <div className="mt-auto space-y-4">
-          <CoinPill />
-          {!premium && (
-            <div className="panel gilt sheen relative rounded-card p-5">
-              <Crown weight="regular" className="size-6 text-gold" aria-hidden />
-              <p className="mt-3 font-display text-2xl">Premium</p>
-              <p className="mt-1 text-sm text-muted">Everything she sends, no locks.</p>
-              <ButtonLink href="/app/me" variant="premium" className="relative z-[2] mt-4 h-9 w-full text-sm">
-                Become a member
-              </ButtonLink>
-            </div>
-          )}
-        </div>
-      </aside>
-
-      {!detail && (
-        <>
-          <header className="condense sticky top-0 z-40 border-b border-transparent pt-[env(safe-area-inset-top)] md:hidden">
-            <div className="flex h-14 items-center justify-between px-4">
-              <Link href="/" aria-label="Amora home" className="transition-transform active:scale-95">
-                <Wordmark className="gap-2 [&_svg:first-child]:size-6" />
-              </Link>
-              <CoinPill />
-            </div>
-          </header>
-          <nav
-            className="glass fixed inset-x-0 bottom-[max(0.875rem,env(safe-area-inset-bottom))] z-40 mx-auto grid w-[min(20rem,calc(100%-2.5rem))] grid-cols-3 rounded-full p-1 shadow-lift md:hidden"
-            aria-label="App"
-          >
-            {tabs.map(({ href, label, Icon, match }) => {
-              const on = match(path);
-              return (
-                <Link
-                  key={href}
-                  href={href}
-                  aria-current={on ? "page" : undefined}
-                  className={`relative flex h-14 flex-col items-center justify-center gap-0.5 rounded-full text-[0.6875rem] font-medium transition-colors duration-200 select-none active:scale-95 ${on ? "text-ivory" : "text-faint"}`}
-                >
-                  {on && (
-                    <motion.span
-                      layoutId="tab-lens"
-                      transition={lens}
-                      className="absolute inset-0 rounded-full bg-white/[0.1] shadow-[inset_0_1px_0_rgb(255_255_255/0.22),inset_0_-1px_0_rgb(255_255_255/0.05)]"
-                    />
-                  )}
-                  <Icon weight={on ? "fill" : "regular"} className="relative size-[1.375rem]" aria-hidden />
-                  <span className="relative">{label}</span>
-                </Link>
-              );
-            })}
-          </nav>
-        </>
+        </LiquidGlass>
       )}
     </>
   );

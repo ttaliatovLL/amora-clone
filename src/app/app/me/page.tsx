@@ -2,128 +2,262 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
-import type { Icon } from "@phosphor-icons/react";
-import { Bell, Coins, Crown, EyeSlash, SignOut, Trash } from "@phosphor-icons/react/ssr";
+import { useState, type ReactNode } from "react";
+import { toast } from "sonner";
+import { ArrowRight, Check, Coins, SealCheck } from "@phosphor-icons/react/ssr";
+import { openCookieSettings } from "@/components/cookie-banner";
+import { Record } from "@/components/me/record";
 import { Paywall } from "@/components/paywall";
 import { Sheet } from "@/components/sheet";
-import { Button } from "@/components/ui";
-import { resetWallet, useWallet } from "@/lib/wallet";
+import { Button, cx, Glyph } from "@/components/ui";
+import { achievements } from "@/lib/achievements";
+import { coinPacks, plans } from "@/lib/plans";
+import { resetProgress, useProgress } from "@/lib/progress";
+import { resetWallet, setWallet, useWallet } from "@/lib/wallet";
 
-function Toggle({ label, hint, on, onChange, icon: I }: { label: string; hint: string; on: boolean; onChange: (v: boolean) => void; icon: Icon }) {
+function Switch({ label, on, onChange }: { label: string; on: boolean; onChange: (v: boolean) => void }) {
   return (
-    <div className="flex items-center justify-between gap-6 py-4">
-      <div>
-        <p className="flex items-center gap-2.5 text-ivory">
-          <I weight="regular" className="size-5 text-muted" aria-hidden />
-          {label}
-        </p>
-        <p className="mt-0.5 pl-[1.875rem] text-sm text-muted">{hint}</p>
-      </div>
-      <button
-        type="button"
-        role="switch"
-        aria-checked={on}
-        aria-label={label}
-        onClick={() => onChange(!on)}
-        className={`relative h-[1.9rem] w-[3.1rem] shrink-0 rounded-full transition-colors duration-200 ${on ? "bg-sage" : "bg-white/15"}`}
-      >
-        <span className={`absolute top-0.5 left-0.5 size-[1.65rem] rounded-full bg-white shadow-[0_2px_6px_rgb(0_0_0/0.35)] transition-transform duration-300 ease-out-expo ${on ? "translate-x-5" : ""}`} />
-      </button>
-    </div>
+    <button
+      type="button"
+      role="switch"
+      aria-checked={on}
+      aria-label={label}
+      onClick={() => onChange(!on)}
+      className={cx("relative h-7 w-12 shrink-0 transition-colors duration-200", on ? "bg-rouge" : "bg-ink-5")}
+    >
+      <span className={cx("absolute top-1 left-1 size-5 bg-paper transition-transform duration-200 ease-[var(--ease-out)]", on && "translate-x-5")} />
+    </button>
   );
+}
+
+/** One settings row: a label, a quiet line under it, and a control or an arrow on the right. */
+function Row({ title, note, children, onClick, href, danger }: { title: string; note?: string; children?: ReactNode; onClick?: () => void; href?: string; danger?: boolean }) {
+  const body = (
+    <>
+      <span className="min-w-0 flex-1">
+        <span className={cx("block text-body", danger ? "text-rouge" : "text-paper")}>{title}</span>
+        {note && <span className="mt-0.5 block text-small text-muted">{note}</span>}
+      </span>
+      {children ?? <ArrowRight className="size-5 shrink-0 text-faint transition-transform duration-200 group-hover:translate-x-0.5" aria-hidden />}
+    </>
+  );
+  const cls = "group flex w-full items-center gap-5 bg-ink-2 px-5 py-4 text-left";
+  if (href)
+    return (
+      <Link href={href} className={cx(cls, "press hover:bg-ink-3")}>
+        {body}
+      </Link>
+    );
+  if (onClick)
+    return (
+      <button type="button" onClick={onClick} className={cx(cls, "press hover:bg-ink-3")}>
+        {body}
+      </button>
+    );
+  return <div className={cls}>{body}</div>;
 }
 
 export default function Me() {
   const w = useWallet();
+  const progress = useProgress();
   const router = useRouter();
   const [paywall, setPaywall] = useState(false);
   const [notify, setNotify] = useState(true);
   const [discreet, setDiscreet] = useState(true);
+  const [reset, setReset] = useState(false);
   const [del, setDel] = useState<"closed" | "confirm" | "working" | "done">("closed");
   const [typed, setTyped] = useState("");
+  const earned = Object.keys(progress.earned).length;
 
   // shortcut: mock deletion; production calls the account deletion API and signs out on success.
   const deleteAccount = () => {
     setDel("working");
     setTimeout(() => {
       resetWallet();
+      resetProgress();
       setDel("done");
     }, 1200);
   };
+  const closeDelete = () => del !== "working" && (setDel("closed"), setTyped(""));
+  // shortcut: mock coin purchase; real checkout (USDT/USDC) replaces this.
+  const buyCoins = (n: number) => {
+    setWallet((x) => ({ coins: x.coins + n }));
+    toast(`${n.toLocaleString()} coins added`);
+  };
 
   return (
-    <main className="mx-auto max-w-2xl px-4 pt-3 pb-36 sm:px-8 md:pt-10">
-      <div className="flex items-center gap-4">
-        <span className="pearl chrome grid size-16 place-items-center rounded-full font-display text-2xl" aria-hidden>
-          {w.name[0]}
-        </span>
-        <div className="min-w-0">
-          <h1 className="truncate font-display text-4xl leading-none">{w.name}</h1>
-          <p className="mt-1 truncate text-sm text-muted">{w.email}</p>
-        </div>
-      </div>
-
-      <section className="mt-8 grid gap-3 sm:grid-cols-2">
-        <div className={`relative rounded-card p-5 ${w.premium ? "panel gilt sheen" : "glass"}`}>
-          <Crown weight="fill" className="absolute top-5 right-5 size-5 text-gold" aria-hidden />
-          <p className="text-sm text-muted">Membership</p>
-          <p className="mt-1 font-display text-3xl">{w.premium ? "Premium" : "Free"}</p>
-          <p className="mt-1 text-sm text-muted">{w.premium ? "Every photo unlocked. Prepaid, no auto-renew." : "20 messages a day, one free photo."}</p>
-          {!w.premium && (
-            <Button variant="premium" className="mt-4 w-full" onClick={() => setPaywall(true)}>
-              Go Premium
-            </Button>
-          )}
-        </div>
-        <div id="coins" className="glass scroll-mt-20 rounded-card p-5">
-          <p className="text-sm text-muted">Coins</p>
-          <p className="mt-1 flex items-center gap-2 font-display text-3xl tabular-nums">
-            <span className="grid size-7 place-items-center rounded-full bg-linear-to-b from-[#f6e6c4] to-[#a7854c] text-ink-950 shadow-[inset_0_1px_0_#fff8]">
-              <Coins weight="bold" className="size-4" aria-hidden />
-            </span>
-            {w.coins.toLocaleString()}
-          </p>
-          <p className="mt-1 text-sm text-muted">For one-off unlocks and gifts.</p>
-          <Button variant="secondary" className="mt-4 w-full" onClick={() => setPaywall(true)}>
-            Top up
-          </Button>
-        </div>
-      </section>
-
-      <section className="mt-10">
-        <h2 className="text-sm font-medium text-muted">Privacy</h2>
-        <div className="mt-2 divide-y divide-line border-y border-line">
-          <Toggle icon={Bell} label="Notifications" hint="When she messages you." on={notify} onChange={setNotify} />
-          <Toggle icon={EyeSlash} label="Discreet previews" hint="Hide names and text in notifications." on={discreet} onChange={setDiscreet} />
-        </div>
-      </section>
-
-      <section className="mt-10">
-        <h2 className="text-sm font-medium text-muted">Account</h2>
-        <div className="mt-2 divide-y divide-line border-y border-line">
-          <Link href="/login" className="flex items-center gap-2.5 py-4 text-ivory hover:text-blush">
-            <SignOut weight="regular" className="size-5 text-muted" aria-hidden />
-            Sign out
-          </Link>
-          <button type="button" onClick={() => setDel("confirm")} className="flex w-full items-center gap-2.5 py-4 text-left text-rose hover:underline hover:underline-offset-4">
-            <Trash weight="regular" className="size-5" aria-hidden />
-            Delete account
-          </button>
-        </div>
-        <p className="mt-6 text-xs text-faint">
-          Your conversations are stored encrypted. <Link href="#" className="underline underline-offset-4">Privacy policy</Link>
+    <main className="mx-auto max-w-6xl px-4 pt-6 pb-16 md:px-8 md:pt-14">
+      {/* The member, set like a name on the agency board. */}
+      <header className="rise">
+        <h1 className="line-clamp-2 font-display text-mega [overflow-wrap:anywhere]">{w.name}</h1>
+        <p className="mt-5 text-lead text-paper">
+          {w.premium ? "Premium member" : "Free member"}
+          <span className="text-muted"> · {w.email}</span>
         </p>
+      </header>
+
+      <nav aria-label="On this page" className="rise mt-8 grid grid-cols-3 gap-2 [--i:1]">
+        {[
+          ["#premium", "Membership", w.premium ? "Premium" : "Free"],
+          ["#coins", "Coins", w.coins.toLocaleString()],
+          ["#record", "Record", `${earned} of ${achievements.length}`],
+        ].map(([href, label, value]) => (
+          <a key={href} href={href} className="press flex flex-col bg-ink-2 px-4 py-4 hover:bg-ink-3 sm:px-5">
+            <span className="text-small text-muted">{label}</span>
+            <span className="mt-1 truncate text-lead font-medium tabular">{value}</span>
+          </a>
+        ))}
+      </nav>
+
+      {/* Membership: the ticket on a paper field. */}
+      <section id="premium" aria-label="Membership" className="rise mt-16 scroll-mt-28 [--i:2] md:mt-24">
+        {w.premium ? (
+          <div className="bg-paper p-6 text-ink sm:p-8">
+            <SealCheck weight="fill" className="size-10 text-rouge-lo" aria-hidden />
+            <h2 className="mt-8 font-display text-head">Premium</h2>
+            <p className="mt-4 max-w-[46ch] text-body">Active. Every photo unlocked, unlimited messages, priority replies. Prepaid, so nothing auto-renews.</p>
+          </div>
+        ) : (
+          <div className="grid bg-paper text-ink md:grid-cols-[1fr_22rem]">
+            <div className="p-6 sm:p-8">
+              <h2 className="font-display text-head">Premium</h2>
+              <p className="mt-4 max-w-[40ch] text-body">Every photo she sends, no locks, no counting messages.</p>
+              <ul className="mt-6 grid gap-2.5 text-body sm:grid-cols-2">
+                {plans.premium.perks.map((p) => (
+                  <li key={p} className="flex items-center gap-3">
+                    <Check weight="bold" className="size-4 shrink-0 text-rouge-lo" aria-hidden />
+                    {p}
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div className="flex flex-col bg-paper-2 p-6 sm:p-8">
+              <p className="text-body">From</p>
+              <p className="mt-1 font-display text-head tabular">${plans.premium.annual}</p>
+              <p className="mt-2 text-small text-ink/70">a month, paid once for 12 months. Nothing auto-renews.</p>
+              <Button size="lg" className="mt-8 w-full md:mt-auto" onClick={() => setPaywall(true)}>
+                Go Premium
+              </Button>
+            </div>
+          </div>
+        )}
+      </section>
+
+      <section id="coins" aria-labelledby="coins-h" className="mt-3 scroll-mt-28 bg-ink-2 p-6 sm:p-8">
+        <div className="grid gap-8 lg:grid-cols-2 lg:items-end">
+          <div>
+            <h2 id="coins-h" className="text-lead text-muted">
+              Coins
+            </h2>
+            <p className="mt-2 flex items-center gap-3 font-display text-[clamp(3rem,1rem+7vw,7rem)] leading-[0.92] tabular">
+              {w.coins.toLocaleString()}
+              <Coins weight="fill" className="size-[0.6em] shrink-0 text-rouge" aria-hidden />
+            </p>
+            <p className="mt-4 text-body text-muted">For one-off unlocks and gifts.</p>
+          </div>
+          <div className="grid grid-cols-3 gap-2">
+            {coinPacks.map((c) => (
+              <button
+                key={c.coins}
+                type="button"
+                onClick={() => buyCoins(c.coins)}
+                className={cx("press flex min-h-28 flex-col items-start justify-between p-4 text-left", c.best ? "bg-paper text-ink hover:bg-white" : "bg-ink-4 hover:bg-ink-5")}
+              >
+                <span className="text-small">{c.best ? <span className="text-rouge-lo">Best value</span> : " "}</span>
+                <span>
+                  <span className="block text-lead font-medium tabular">{c.coins.toLocaleString()}</span>
+                  <span className={cx("block text-small tabular", c.best ? "text-ink/70" : "text-muted")}>${c.price}</span>
+                </span>
+              </button>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section id="record" aria-label="Achievements" className="mt-20 scroll-mt-28 md:mt-28">
+        <Record />
+      </section>
+
+      <section aria-labelledby="settings-h" className="mt-20 md:mt-28">
+        <h2 id="settings-h" className="font-display text-head">
+          Settings
+        </h2>
+        <div className="mt-8 grid gap-10 md:grid-cols-2 md:gap-6">
+          <div>
+            <h3 className="mb-3 text-lead">Notifications</h3>
+            <div className="grid gap-1">
+              <Row title="When she messages you" note="A quiet buzz, nothing more.">
+                <Switch label="Notifications" on={notify} onChange={setNotify} />
+              </Row>
+              <Row title="Discreet previews" note="Hide her name and words on your lock screen.">
+                <Switch label="Discreet previews" on={discreet} onChange={setDiscreet} />
+              </Row>
+              {/* What a glance at the phone would show. */}
+              <div className="bg-ink-2 px-5 py-5" aria-live="polite">
+                <p className="text-small text-muted">Lock screen preview</p>
+                <div className={cx("mt-3 flex items-center gap-3 bg-ink-4 p-3 transition-opacity duration-300", !notify && "opacity-40")}>
+                  <Glyph className="size-10 text-base" />
+                  <div className="min-w-0 flex-1">
+                    <p className="flex justify-between gap-3 text-small">
+                      <span className="font-medium text-paper">{!notify ? "Off" : discreet ? "Amora" : "Emma"}</span>
+                      <span className="text-faint">now</span>
+                    </p>
+                    <p className="truncate text-small text-paper/80">{!notify ? "You won't be notified." : discreet ? "New message" : "are you still up? i can't sleep"}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <h3 className="mb-3 text-lead">Privacy</h3>
+            <div className="grid gap-1">
+              <Row title="Discreet billing" note="Crypto (USDT / USDC). Statements never say Amora.">
+                <span />
+              </Row>
+              <Row title="Cookie settings" note="Essential only, unless you turn more on." onClick={openCookieSettings} />
+              <Row title="Privacy policy" note="Conversations are stored encrypted." href="#" />
+            </div>
+
+            <h3 className="mt-10 mb-3 text-lead">Account</h3>
+            <div className="grid gap-1">
+              <Row title="Sign out" href="/login" />
+              <Row title="Reset demo data" note="Coins, membership and your record start over." onClick={() => setReset(true)} />
+              <Row title="Delete account" note="Permanently, with everything in it." onClick={() => setDel("confirm")} danger />
+            </div>
+          </div>
+        </div>
       </section>
 
       <Paywall open={paywall} onClose={() => setPaywall(false)} />
 
-      <Sheet open={del !== "closed"} onClose={() => del !== "working" && (setDel("closed"), setTyped(""))} title="Delete account">
+      <Sheet open={reset} onClose={() => setReset(false)} title="Reset demo data">
+        <h2 className="font-display text-head">Start over?</h2>
+        <p className="mt-4 text-body text-muted">Your coins, Premium and every achievement go back to the beginning. Only this demo is affected.</p>
+        <div className="mt-8 grid gap-2 sm:grid-cols-2">
+          <Button
+            size="lg"
+            onClick={() => {
+              resetWallet();
+              resetProgress();
+              setReset(false);
+              toast("Demo data reset");
+            }}
+          >
+            Reset
+          </Button>
+          <Button size="lg" variant="secondary" onClick={() => setReset(false)}>
+            Keep it
+          </Button>
+        </div>
+      </Sheet>
+
+      <Sheet open={del !== "closed"} onClose={closeDelete} title="Delete account">
         {del === "done" ? (
-          <div className="py-6 text-center">
-            <p className="font-display text-4xl">Account deleted.</p>
-            <p className="mx-auto mt-3 max-w-[34ch] text-muted">Your profile, conversations and coins are gone. Thank you for the time you spent here.</p>
-            <Button size="lg" className="mt-8 w-full" onClick={() => router.push("/")}>
+          <div>
+            <h2 className="font-display text-head">Deleted</h2>
+            <p className="mt-4 max-w-[36ch] text-body text-muted">Your profile, conversations and coins are gone. Thank you for the time you spent here.</p>
+            <Button size="lg" variant="paper" className="mt-8 w-full" onClick={() => router.push("/")}>
               Leave Amora
             </Button>
           </div>
@@ -134,36 +268,35 @@ export default function Me() {
               if (typed === "DELETE") deleteAccount();
             }}
           >
-            <h2 className="font-display text-3xl">Delete your account?</h2>
-            <p className="mt-3 text-muted">This permanently removes, for good:</p>
-            <ul className="mt-3 space-y-1.5 text-ivory">
-              {["Your profile and sign-in", "Every conversation and what she remembers", "Photos you unlocked", `Your ${w.coins.toLocaleString()} coins${w.premium ? " and Premium" : ""} (no refund)`].map((t) => (
-                <li key={t} className="flex gap-3">
-                  <span className="mt-2.5 size-1 shrink-0 rounded-full bg-rose" aria-hidden />
+            <div className="-mx-5 -mt-8 bg-oxblood px-5 pt-10 pb-6 md:-mx-8 md:px-8">
+              <h2 className="font-display text-head">Delete your account?</h2>
+              <p className="mt-4 text-body text-paper">This permanently removes, for good:</p>
+            </div>
+            <ul className="mt-5 grid gap-1">
+              {["Your profile and sign-in", "Every conversation and what she remembers", "Photos you unlocked", `Your ${w.coins.toLocaleString()} coins${w.premium ? " and Premium" : ""}, with no refund`].map((t) => (
+                <li key={t} className="flex items-center gap-3 bg-ink-3 px-4 py-3 text-body">
+                  <span className="size-1.5 shrink-0 bg-rouge" aria-hidden />
                   {t}
                 </li>
               ))}
             </ul>
             <label className="mt-6 block">
-              <span className="text-sm text-muted">
-                Type <strong className="font-semibold text-ivory">DELETE</strong> to confirm
+              <span className="text-small text-muted">
+                Type <strong className="font-semibold text-paper">DELETE</strong> to confirm
               </span>
               <input
                 value={typed}
                 onChange={(e) => setTyped(e.target.value)}
                 autoComplete="off"
                 autoCapitalize="characters"
-                className="mt-2 h-12 w-full rounded-2xl border border-line-strong bg-black/30 px-4 text-base text-ivory focus:border-rose focus:outline-none"
+                spellCheck={false}
+                className="mt-2 h-13 w-full bg-ink-3 px-4 text-base text-paper tracking-[0.2em] transition-[background-color,box-shadow] duration-150 focus:bg-ink-4 focus:ring-2 focus:ring-rouge focus:outline-none"
               />
             </label>
-            <button
-              type="submit"
-              disabled={typed !== "DELETE" || del === "working"}
-              className="mt-6 h-14 w-full rounded-full border border-rose text-base font-medium text-rose transition-[background-color,opacity] duration-150 hover:bg-wine/20 active:scale-[0.98] disabled:opacity-40"
-            >
+            <Button type="submit" size="lg" className="mt-6 w-full" disabled={typed !== "DELETE" || del === "working"}>
               {del === "working" ? "Deleting…" : "Delete my account"}
-            </button>
-            <Button type="button" variant="ghost" className="mt-2 w-full" onClick={() => (setDel("closed"), setTyped(""))} disabled={del === "working"}>
+            </Button>
+            <Button type="button" variant="ghost" className="mt-2 w-full" onClick={closeDelete} disabled={del === "working"}>
               Keep my account
             </Button>
           </form>

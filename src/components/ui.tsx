@@ -1,67 +1,42 @@
-import { Camera, MapPin } from "@phosphor-icons/react/ssr";
 import Link from "next/link";
-import { useId, ViewTransition, type ComponentProps, type CSSProperties, type ReactNode } from "react";
+import { ViewTransition, type ComponentProps, type CSSProperties, type ReactNode } from "react";
 import { Portrait } from "@/components/portrait";
+import { SaveButton } from "@/components/save-button";
 import type { Companion } from "@/lib/companions";
 
-const cx = (...c: (string | false | undefined)[]) => c.filter(Boolean).join(" ");
+export const cx = (...c: (string | false | null | undefined)[]) => c.filter(Boolean).join(" ");
 
 /* ── Logo ─────────────────────────────────────────────── */
-// The mark: two linked rings in polished steel; the left one passes over at the bottom crossing.
+/** The mark: a wide A and a rouge full stop, as on the app icon. */
 export function Glyph({ className }: { className?: string }) {
-  // Per-instance id: a shared one resolves to the first copy, which may sit inside a hidden (display:none) rail.
-  const id = useId();
   return (
-    <svg viewBox="0 0 28 28" className={className} aria-hidden>
-      <defs>
-        <linearGradient id={id} gradientUnits="userSpaceOnUse" x1="3" y1="6" x2="25" y2="22">
-          <stop offset="0" stopColor="#ffffff" />
-          <stop offset="0.35" stopColor="#8d8d95" />
-          <stop offset="0.55" stopColor="#f2f2f5" />
-          <stop offset="0.8" stopColor="#5c5c64" />
-          <stop offset="1" stopColor="#d6d6dc" />
-        </linearGradient>
-      </defs>
-      <g fill="none" stroke={`url(#${id})`} strokeWidth="1.7">
-        <circle cx="10.5" cy="14" r="7.25" />
-        <circle cx="17.5" cy="14" r="7.25" />
-        <path d="M15.63 19.13A7.25 7.25 0 0 1 12.01 21.09" stroke="var(--color-ink-950)" strokeWidth="3.6" />
-        <path d="M15.9 18.85A7.25 7.25 0 0 1 11.63 21.16" />
-      </g>
-    </svg>
+    <span aria-hidden className={cx("inline-flex items-end gap-[0.12em] font-display text-[1.25rem] leading-none text-paper", className)}>
+      A<span className="mb-[0.02em] size-[0.28em] bg-rouge" />
+    </span>
   );
 }
 
-// Monoline lowercase wordmark, drawn on a 20-unit x-height: circles, stems and arches only.
-export function Wordmark({ className, glyph = true }: { className?: string; glyph?: boolean }) {
+/** The name set wide, like an agency's board. The liquid-metal version lives in components/liquid-logo. */
+export function Wordmark({ className }: { className?: string; glyph?: boolean }) {
   return (
-    <span className={cx("inline-flex items-center gap-2.5 text-ivory", className)} role="img" aria-label="Amora">
-      {glyph && <Glyph className="size-7 shrink-0" />}
-      <svg viewBox="-1 -0.5 118 22" className="h-[0.95rem] w-auto" aria-hidden>
-        <g fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
-          <circle cx="9.5" cy="10.5" r="9.25" />
-          <path d="M19 1.25V20" />
-          <path d="M24 20V1.25M24 8.75a7.25 7.25 0 0 1 14.5 0V20M38.5 8.75a7.25 7.25 0 0 1 14.5 0V20" />
-          <circle cx="67.5" cy="10.5" r="9.25" />
-          <path d="M82 20V1.25M82 11C82 4.75 86 1.25 92 1.25" />
-          <circle cx="105.5" cy="10.5" r="9.25" />
-          <path d="M115 1.25V20" />
-        </g>
-      </svg>
+    <span className={cx("inline-block font-display text-[1.05rem] leading-none tracking-[0.2em] text-paper", className)} role="img" aria-label="Amora">
+      Amora
     </span>
   );
 }
 
 /* ── Button ───────────────────────────────────────────── */
+// Square, flat, one fill. Rouge is the one action; paper is the second; ink is everything quieter.
 const button = {
-  base: "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-full font-medium tracking-[-0.005em] select-none transition-[transform,filter,background-color,border-color,color,box-shadow] duration-150 ease-out active:scale-[0.97] disabled:pointer-events-none disabled:opacity-40",
+  base: "press inline-flex items-center justify-center gap-2 whitespace-nowrap font-medium select-none disabled:pointer-events-none disabled:opacity-40",
   variant: {
-    primary: "pearl chrome hover:brightness-[1.04]",
-    premium: "pearl gilt hover:brightness-[1.04]",
-    secondary: "glass text-ivory hover:bg-white/[0.12]",
-    ghost: "text-muted hover:text-ivory",
+    primary: "bg-rouge text-ink hover:bg-rouge-hi",
+    premium: "bg-rouge text-ink hover:bg-rouge-hi",
+    paper: "bg-paper text-ink hover:bg-white",
+    secondary: "bg-ink-4 text-paper hover:bg-ink-5",
+    ghost: "text-muted hover:text-paper",
   },
-  size: { md: "h-11 px-5 text-[0.9375rem]", lg: "h-14 px-8 text-base" },
+  size: { sm: "h-10 px-4 text-small", md: "h-12 px-6 text-body", lg: "h-14 px-8 text-body" },
 };
 type ButtonStyle = { variant?: keyof typeof button.variant; size?: keyof typeof button.size };
 
@@ -77,18 +52,14 @@ export function ButtonLink({ variant = "primary", size = "md", className, ...pro
 // Toggle chip when `pressed` is passed, action chip with only onClick, static tag otherwise.
 export function Chip({ pressed, className, children, ...props }: ComponentProps<"button"> & { pressed?: boolean }) {
   if (pressed === undefined && !props.onClick)
-    return (
-      <span className={cx("inline-flex h-8 items-center gap-1.5 rounded-full border border-line bg-white/[0.04] px-3.5 text-[0.8125rem] text-ivory/85", className)}>
-        {children}
-      </span>
-    );
+    return <span className={cx("inline-flex h-9 items-center gap-1.5 bg-ink-3 px-3.5 text-small text-paper/85", className)}>{children}</span>;
   return (
     <button
       type="button"
       aria-pressed={pressed}
       className={cx(
-        "inline-flex h-9 shrink-0 items-center gap-1.5 rounded-full px-4 text-sm transition-[background-color,color,transform,box-shadow] duration-200 ease-out active:scale-[0.96]",
-        pressed ? "pearl font-medium" : "glass text-muted hover:text-ivory",
+        "press inline-flex h-10 shrink-0 items-center gap-1.5 px-4 text-small",
+        pressed ? "bg-paper font-medium text-ink" : "bg-ink-3 text-muted hover:bg-ink-4 hover:text-paper",
         className,
       )}
       {...props}
@@ -98,13 +69,12 @@ export function Chip({ pressed, className, children, ...props }: ComponentProps<
   );
 }
 
-/** Her hashtags. Small, quiet, one line, fading out at the edge. */
+/** Her interests as quiet words, one line, fading at the edge. */
 export function Tags({ tags, className, max = 3 }: { tags: string[]; className?: string; max?: number }) {
   return (
-    <ul className={cx("fade-r flex gap-1 overflow-hidden", className)} aria-label="Tags">
+    <ul className={cx("fade-r flex gap-1.5 overflow-hidden", className)} aria-label="Tags">
       {tags.slice(0, max).map((t) => (
-        <li key={t} className="shrink-0 rounded-full bg-white/[0.09] px-2 py-[0.2rem] text-[0.6875rem] tracking-[0.01em] text-ivory/85 backdrop-blur-md">
-          <span className="text-ivory/45">#</span>
+        <li key={t} className="shrink-0 bg-ink/55 px-2 py-1 text-small text-paper/85">
           {t}
         </li>
       ))}
@@ -112,11 +82,11 @@ export function Tags({ tags, className, max = 3 }: { tags: string[]; className?:
   );
 }
 
-/** Online pill: a live green light that breathes. */
+/** Online: a small live light and the word, on a solid ink tab. */
 export function OnlinePill({ className, label = "Online" }: { className?: string; label?: string }) {
   return (
-    <span className={cx("glass inline-flex h-6 items-center gap-1.5 rounded-full px-2.5 text-[0.6875rem] font-medium text-ivory", className)}>
-      <span className="live-dot size-1.5 rounded-full bg-sage" aria-hidden />
+    <span className={cx("inline-flex h-7 items-center gap-2 bg-ink/70 px-2.5 text-small text-paper", className)}>
+      <span className="live-dot size-1.5 rounded-full bg-live" aria-hidden />
       {label}
     </span>
   );
@@ -133,26 +103,17 @@ export function Avatar({
 }: {
   companion: Companion;
   size?: keyof typeof avatarSize;
-  /** Unseen story: draws the polished steel ring (blush-tinted for someone new). */
+  /** Unseen story: a rouge frame (paper for someone already seen). */
   story?: boolean;
   showOnline?: boolean;
 }) {
   return (
-    <span
-      className={cx(
-        "relative inline-block shrink-0 rounded-full",
-        avatarSize[size],
-        story &&
-          (companion.isNew
-            ? "p-[2px] [background:conic-gradient(from_200deg,#fbe4dd,#c99083,#ffffff,#8d8d95,#f1c6ba,#fbe4dd)]"
-            : "p-[1.5px] [background:conic-gradient(from_200deg,#ffffff,#6d6d75,#ececf0,#45454d,#c9c9cf,#ffffff)]"),
-      )}
-    >
-      <span className={cx("relative block size-full overflow-hidden rounded-full bg-ink-800", story && "ring-[2.5px] ring-ink-950")}>
+    <span className={cx("relative inline-block shrink-0", avatarSize[size], story && (companion.isNew ? "bg-rouge p-[2px]" : "bg-paper/70 p-[2px]"))}>
+      <span className={cx("relative block size-full overflow-hidden bg-ink-3", story && "ring-2 ring-ink")}>
         <Portrait companion={companion} face />
       </span>
       {showOnline && companion.online && (
-        <span className="absolute right-0 bottom-0 size-3 rounded-full bg-sage ring-2 ring-ink-950">
+        <span className="absolute -right-0.5 -bottom-0.5 size-3 rounded-full bg-live ring-2 ring-ink">
           <span className="sr-only">Online</span>
         </span>
       )}
@@ -160,88 +121,83 @@ export function Avatar({
   );
 }
 
-/* ── Companion card ───────────────────────────────────── */
-const compact = new Intl.NumberFormat("en", { notation: "compact" });
-
+/* ── Companion card: the comp card ────────────────────── */
+// Like a model agency's card: one big photograph, the name set wide across its foot, the facts in one line.
+// Hover (fine pointers) slowly brings her second photograph through.
 export function CompanionCard({
   companion: c,
   href,
   priority,
+  size = "large",
   wide,
   morph,
+  save = true,
   className,
   style,
 }: {
   companion: Companion;
   href: string;
   priority?: boolean;
-  /** Spans two columns as a landscape feature, with her tagline. */
+  /** large: a full-width or column card with her line; tile: a compact grid cell. */
+  size?: "large" | "tile";
+  /** Spans two grid columns as a landscape feature. */
   wide?: boolean;
   /** Names the portrait for the route morph into her profile. Only one card per companion on a page may set it. */
   morph?: boolean;
+  /** Show the save-to-board control. */
+  save?: boolean;
   className?: string;
   style?: CSSProperties;
 }) {
+  const tile = size === "tile" && !wide;
+  const second = c.gallery[0];
   const photo = (
     <div className="absolute inset-0 overflow-hidden">
       <Portrait
         companion={c}
         priority={priority}
-        sizes={wide ? "(max-width: 768px) 100vw, 50vw" : undefined}
-        className="transition-transform duration-[900ms] ease-out-expo [@media(hover:hover)]:group-hover:scale-[1.045]"
+        sizes={wide ? "(max-width: 768px) 100vw, 66vw" : tile ? "(max-width: 768px) 50vw, 25vw" : "(max-width: 768px) 100vw, 33vw"}
+        className="crossfade-a"
       />
+      {second && <Portrait companion={c} src={second} sizes={wide ? "66vw" : "33vw"} className="crossfade-b" />}
     </div>
   );
   return (
-    <Link
-      href={href}
-      style={style}
-      className={cx(
-        "group relative block overflow-hidden rounded-card bg-ink-850 shadow-lift outline-offset-4 transition-transform duration-200 ease-out active:scale-[0.98]",
-        wide ? "col-span-2 aspect-[16/12] sm:aspect-[16/10]" : "aspect-[3/4.15]",
-        className,
-      )}
-    >
-      {morph ? (
-        <ViewTransition name={`portrait-${c.id}`} share="morph" default="none">
-          {photo}
-        </ViewTransition>
-      ) : (
-        photo
-      )}
-      {/* One grade for every portrait: a clear top, a deep floor for the type. */}
-      <div className="absolute inset-0 bg-linear-to-b from-black/25 via-transparent via-45% to-ink-950/95" />
-      <div className="pointer-events-none absolute inset-0 rounded-card ring-1 ring-inset ring-white/10 transition-[box-shadow] duration-300 group-hover:ring-white/25" />
-
-      <div className="absolute inset-x-3 top-3 flex items-center justify-between gap-2">
-        {c.isNew ? (
-          <span className="glass chrome inline-flex h-6 items-center rounded-full px-2.5 text-[0.6875rem] font-medium tracking-[0.02em] text-blush-hi">New</span>
+    <article style={style} className={cx("crossfade group @container relative overflow-hidden bg-ink-2", wide ? "aspect-[4/5] md:col-span-2 md:aspect-[16/10]" : tile ? "aspect-[3/4]" : "aspect-[4/5]", className)}>
+      <Link href={href} className="press absolute inset-0 block outline-offset-[-3px] active:scale-[0.985]" aria-label={`${c.name}, ${c.age}, ${c.city}`}>
+        {morph ? (
+          <ViewTransition name={`portrait-${c.id}`} share="morph" default="none">
+            {photo}
+          </ViewTransition>
         ) : (
-          <span />
+          photo
         )}
-        {c.online && <OnlinePill />}
-      </div>
+        <div className={cx("scrim-b absolute inset-x-0 bottom-0", tile ? "h-1/2" : "h-[55%]")} />
 
-      <div className="absolute inset-x-0 bottom-0 p-3.5 sm:p-4">
-        {/* Name wraps to two lines at most (it identifies her), breaking at hyphens before mid-word. */}
-        <p className={cx("line-clamp-2 font-display leading-[0.95] text-ivory [overflow-wrap:break-word] hyphens-auto", wide ? "text-[clamp(1.9rem,7vw,2.75rem)]" : "text-[clamp(1.45rem,5.6vw,1.9rem)]")} title={c.name}>
-          {c.name}
-          <span className="ml-1.5 inline-block text-[0.62em] font-normal tracking-normal whitespace-nowrap text-ivory/55">{c.age}</span>
-        </p>
-        <p className="mt-1.5 flex items-center gap-1 text-[0.75rem] text-ivory/60">
-          <MapPin weight="regular" className="size-3 shrink-0" aria-hidden />
-          <span className="min-w-0 truncate">
-            {c.city} · {c.sign}
-          </span>
-          <span className="ml-auto inline-flex shrink-0 items-center gap-1 pl-2 tabular-nums" aria-label={`${c.photos.toLocaleString()} photos`}>
-            <Camera weight="regular" className="size-3.5" aria-hidden />
-            {compact.format(c.photos)}
-          </span>
-        </p>
-        {wide && <p className="mt-2 line-clamp-1 max-w-[40ch] text-sm text-ivory/80">{c.tagline}</p>}
-        <Tags tags={c.tags} className="mt-2.5" max={wide ? 4 : 3} />
-      </div>
-    </Link>
+        <div className={cx("absolute flex items-center gap-1.5", tile ? "top-2.5 left-2.5" : "top-4 left-4")}>
+          {c.isNew && <span className="inline-flex h-7 items-center bg-rouge px-2.5 text-small font-medium text-ink">New</span>}
+          {c.online && <OnlinePill />}
+        </div>
+
+        <div className={cx("absolute inset-x-0 bottom-0", tile ? "p-3" : "p-5 md:p-6")}>
+          <p
+            className={cx(
+              "font-display text-paper [overflow-wrap:anywhere]",
+              // Sized to the card, not the viewport: Panchang is wide, so the longest name (7 letters) must still fit.
+              wide ? "text-[min(9cqw,5rem)]" : tile ? "text-[min(12cqw,1.6rem)]" : "text-[min(12.5cqw,3.25rem)]",
+            )}
+          >
+            {c.name}
+          </p>
+          <p className={cx("mt-2 truncate text-paper/80 tabular", tile ? "text-small" : "text-body")}>
+            {c.age} · {c.city}
+            {!tile && <span className="text-paper/55"> · {c.sign}</span>}
+          </p>
+          {!tile && <p className="mt-1 line-clamp-1 text-body text-paper/60">{c.tagline}</p>}
+        </div>
+      </Link>
+      {save && <SaveButton id={c.id} name={c.name} className={cx("absolute z-[2]", tile ? "top-1.5 right-1.5" : "top-3 right-3")} />}
+    </article>
   );
 }
 
@@ -250,12 +206,12 @@ export function Field({ label, hint, icon, className, id, ...props }: ComponentP
   const inputId = id ?? props.name;
   return (
     <label htmlFor={inputId} className={cx("block", className)}>
-      <span className="mb-2 block text-sm text-muted">{label}</span>
-      <span className="glass flex h-13 items-center gap-3 rounded-2xl px-4 transition-[border-color,box-shadow] duration-150 focus-within:border-white/30">
+      <span className="mb-2 block text-small text-muted">{label}</span>
+      <span className="flex h-13 items-center gap-3 bg-ink-3 px-4 transition-[background-color,box-shadow] duration-150 focus-within:bg-ink-4 focus-within:ring-2 focus-within:ring-rouge">
         {icon && <span className="text-faint">{icon}</span>}
-        <input id={inputId} className="h-full w-full bg-transparent text-base text-ivory placeholder:text-faint focus:outline-none" {...props} />
+        <input id={inputId} className="h-full w-full bg-transparent text-base text-paper placeholder:text-faint focus:outline-none" {...props} />
       </span>
-      {hint && <span className="mt-2 block text-[0.8125rem] text-faint">{hint}</span>}
+      {hint && <span className="mt-2 block text-small text-faint">{hint}</span>}
     </label>
   );
 }
@@ -265,10 +221,8 @@ export function Bubble({ from, children, className }: { from: "her" | "me"; chil
   return (
     <div
       className={cx(
-        "max-w-[80%] rounded-[1.375rem] px-4 py-2.5 text-[0.9375rem] leading-relaxed [overflow-wrap:anywhere]",
-        from === "her"
-          ? "glass self-start rounded-bl-md text-ivory"
-          : "self-end rounded-br-md bg-linear-to-b from-blush-hi to-blush text-ink-950 shadow-[inset_0_1px_0_rgb(255_255_255/0.6),0_8px_24px_-12px_rgb(0_0_0/0.8)] [transform-origin:bottom_right]",
+        "max-w-[80%] rounded-[1.25rem] px-4 py-2.5 text-body leading-relaxed [overflow-wrap:anywhere]",
+        from === "her" ? "self-start rounded-bl-[0.3rem] bg-ink-4 text-paper" : "self-end rounded-br-[0.3rem] bg-paper text-ink [transform-origin:bottom_right]",
         className,
       )}
     >
@@ -279,9 +233,9 @@ export function Bubble({ from, children, className }: { from: "her" | "me"; chil
 
 export function Typing({ className }: { className?: string }) {
   return (
-    <div className={cx("glass flex h-10 w-16 items-center justify-center gap-1.5 self-start rounded-[1.375rem] rounded-bl-md", className)} aria-label="Typing">
+    <div className={cx("flex h-11 w-16 items-center justify-center gap-1.5 self-start rounded-[1.25rem] rounded-bl-[0.3rem] bg-ink-4", className)} aria-label="Typing">
       {[0, 1, 2].map((i) => (
-        <span key={i} className="size-1.5 rounded-full bg-ivory/80 motion-safe:animate-[breathe_1.4s_ease-in-out_infinite]" style={{ animationDelay: `${i * 0.18}s` }} />
+        <span key={i} className="size-1.5 rounded-full bg-paper/80 motion-safe:animate-[breathe_1.4s_ease-in-out_infinite]" style={{ animationDelay: `${i * 0.18}s` }} />
       ))}
     </div>
   );

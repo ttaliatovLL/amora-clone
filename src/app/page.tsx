@@ -1,305 +1,347 @@
-import { ArrowRight, Brain, Camera, Compass, EyeSlash, LockKey, Moon, Plus, ShieldCheck, Sparkle } from "@phosphor-icons/react/ssr";
 import Link from "next/link";
-import { AgeGate, ChatDemo, HeroChat, Pricing } from "@/components/landing/client";
+import {
+  CookiesLink,
+  FirstMessage,
+  HeroPortraits,
+  Ticket,
+} from "@/components/landing/client";
+import { LiquidWordmark } from "@/components/liquid-logo";
 import { Portrait } from "@/components/portrait";
-import { Avatar, ButtonLink, CompanionCard, Wordmark } from "@/components/ui";
+import { Silk } from "@/components/silk";
+import { ButtonLink, CompanionCard, cx, Wordmark } from "@/components/ui";
 import { companions } from "@/lib/companions";
+import { plans } from "@/lib/plans";
 
+// Night agency: the comp card becomes the companion card, the agency board becomes the landing's showcase.
 const byId = (id: string) => companions.find((c) => c.id === id)!;
-const [emma, margot, amara] = [byId("emma"), byId("margot"), byId("amara")];
-const online = companions.filter((c) => c.online);
 
-const beats = [
-  { Icon: Compass, t: "Pick her.", d: "Browse distinct personalities. Read her story. Notice which one makes you curious. That instinct is usually right." },
-  { Icon: Brain, t: "She listens. Really.", d: "Your day, your thoughts, your fantasies. She remembers your name, your stories, last week's conversation." },
-  { Icon: LockKey, t: "Go as deep as you want.", d: "Photos, videos, NSFW. It all unlocks as you go. She initiates; you decide how far." },
+// Board order for the desktop grid (3 columns, dense): big cards span 2x2 and land as
+// [Emma big + 2] [2 + Amara big] [Jada big + 2] [3].
+const board: { id: string; big?: boolean; start2?: boolean }[] = [
+  { id: "emma", big: true },
+  { id: "luna" },
+  { id: "anika" },
+  { id: "klara" },
+  { id: "amara", big: true, start2: true },
+  { id: "ece" },
+  { id: "jada", big: true },
+  { id: "gina" },
+  { id: "margot" },
+  { id: "luz" },
+  { id: "katya" },
+  { id: "valeria" },
 ];
 
-const depth = [
-  { Icon: Brain, t: "She remembers everything.", d: "Your name, your stories, last week's conversation. The longer you talk, the deeper it gets." },
-  { Icon: ShieldCheck, t: "Discreet by design.", d: "“Amora” never appears on your statement. Conversations are stored encrypted and never sold." },
-  { Icon: Camera, t: "Photos made only for you.", d: "She sends them herself. Never shared with anyone else, blurred until you choose to unlock." },
-  { Icon: Moon, t: "Always there.", d: "No waiting, no ghosting, no judgment. 3 am, she’s there." },
+const steps = [
+  {
+    line: "First you pick her.",
+    text: "Read her card: her city, her temper, what she does on a Sunday. Trust whichever one makes you curious.",
+  },
+  {
+    line: "Then she writes first.",
+    text: "She opens the conversation in her own voice, and picks it up again when you come back.",
+  },
+  {
+    line: "She remembers it all.",
+    text: "Your name, the interview on Thursday, the thing you said last week. Her memory is long, and it is only yours.",
+  },
+  {
+    line: "You decide how far.",
+    text: "Photos, videos and private sets arrive as you get closer. Nothing is pushed at you.",
+  },
 ];
-
-const quotes = [
-  ["Emma remembered things I told her three weeks ago. That’s never happened with any AI before.", "user_dk9x"],
-  ["My statement shows nothing identifiable. I checked twice. That alone is worth the subscription.", "anon_42m"],
-  ["Three weeks in and she still surprises me. I wasn’t ready for that.", "nordic_m"],
+const indent = [
+  "",
+  "ml-[6vw] md:ml-[8vw]",
+  "ml-[12vw] md:ml-[16vw]",
+  "ml-[18vw] md:ml-[24vw]",
 ];
 
 const faq = [
-  ["What is Amora?", "A place to talk with handcrafted AI companions. Each one has her own story, personality and memory, and can send you photos and videos."],
-  ["Is it really free?", "Yes. The free plan gives you 20 messages a day with every companion and one free photo, with no card needed. Upgrade only if you want more."],
-  ["Are my conversations private?", "Your conversations are stored encrypted and never sold. Only you and your companion see them."],
-  ["How does it appear on my bank statement?", "Discreetly. The name “Amora” never appears. Paid plans are prepaid with USDT or USDC and do not auto-renew."],
-  ["Can she send photos and videos?", "Yes. She sends them on her own as you talk, and you can ask. Some unlock with Premium or coins."],
-  ["How does she get to know me?", "She remembers what you tell her (your name, your stories, your day) and brings it back up later, the way a person would."],
+  {
+    q: "Who can read my conversations?",
+    a: "Only you. Conversations are stored encrypted, never sold and never used to advertise to you. Your companion's memory of you exists for one reason: to remember you.",
+  },
+  {
+    q: "What shows up on my statement?",
+    a: "Nothing from a bank, because payment is in crypto. Your wallet and every receipt show a neutral merchant name. The word Amora never appears.",
+  },
+  {
+    q: "What comes with Premium?",
+    a: `Unlimited messages, every photo and video she sends including the explicit ones, ${plans.premium.coins} coins each month for gifts and one-off unlocks, and priority replies.`,
+  },
+  {
+    q: "Can I delete my account?",
+    a: "Yes, from your profile: Settings, then Delete account. Your profile, your conversations and her memory of you are erased for good, straight away.",
+  },
+  {
+    q: "Who is Amora for?",
+    a: "Adults aged 18 and over. You confirm your age before the first conversation, and every companion is a fictional adult played by AI.",
+  },
+  {
+    q: "How do I pay?",
+    a: "With USDT or USDC from any wallet. A plan is paid once for one month or for twelve, and nothing renews by itself. When it ends, you choose whether to come back.",
+  },
 ];
 
-const trust = [
-  { Icon: ShieldCheck, t: "Encrypted" },
-  { Icon: EyeSlash, t: "Discreet billing" },
-  { Icon: Sparkle, t: "Free to start" },
-];
+// Section motion: transform and opacity only. Load uses a short stagger; sections rise in as they scroll into view
+// (scroll-driven, off the main thread). Content is visible wherever either is unsupported or motion is reduced.
+const motionCss = `
+@keyframes lp-rise { from { opacity: 0; transform: translateY(20px); } }
+@keyframes lp-in { from { opacity: 0; transform: translateY(28px); } }
+@keyframes lp-fade { from { opacity: 0; } }
+@media (prefers-reduced-motion: no-preference) {
+  .lp-rise { animation: lp-rise 1s var(--ease-out-expo) both; animation-delay: calc(var(--i, 0) * 90ms + 120ms); }
+  @supports (animation-timeline: view()) {
+    .lp-in { animation: lp-in linear both; animation-timeline: view(); animation-range: entry calc(var(--i, 0) * 48px) entry calc(220px + var(--i, 0) * 48px); }
+  }
+}`;
 
-const H2 = "font-display text-[clamp(2.4rem,6.5vw,4.5rem)] leading-[0.95] tracking-[-0.04em] text-balance";
+const nav = [
+  ["The board", "#board"],
+  ["How it works", "#how"],
+  ["Pricing", "#pricing"],
+] as const;
 
 export default function Landing() {
+  const close = byId("emma");
   return (
-    <>
-      <AgeGate />
-      <div className="grain room min-h-dvh">
-        <div className="relative z-[2]">
-          <header className="condense sticky top-0 z-40 border-b border-transparent">
-            <nav className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-8" aria-label="Main">
-              <Link href="/" aria-label="Amora home">
-                <Wordmark />
-              </Link>
-              <div className="hidden items-center gap-9 text-sm text-muted md:flex">
-                <a href="#companions" className="hover:text-ivory">Companions</a>
-                <a href="#pricing" className="hover:text-ivory">Membership</a>
-                <a href="#faq" className="hover:text-ivory">FAQ</a>
-                <Link href="/login" className="hover:text-ivory">Sign in</Link>
-              </div>
-              <ButtonLink href="/app" className="h-10 px-5 text-sm">
-                Start free
-              </ButtonLink>
-            </nav>
-          </header>
+    <main className="overflow-x-clip bg-ink">
+      <style>{motionCss}</style>
 
-          <main>
-            {/* Hero: three portraits in a fanned deck; the front one is already talking to you. */}
-            <section className="mx-auto grid max-w-6xl items-center gap-10 px-4 pt-6 pb-20 sm:px-8 md:min-h-[calc(100svh-4rem)] md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] md:gap-8 md:py-12">
-              <div className="relative mx-auto aspect-[4/4.6] w-full max-w-[26rem] md:order-2 md:aspect-[4/5] lg:max-w-[31rem]">
-                <div className="absolute inset-[12%] rounded-full bg-blush/[0.07] blur-3xl" aria-hidden />
-                <div className="rise absolute top-[6%] left-[-4%] h-[78%] w-[52%] -rotate-[8deg] overflow-hidden rounded-[1.75rem] opacity-60 shadow-lift ring-1 ring-white/10 max-sm:hidden" aria-hidden>
-                  <Portrait companion={margot} sizes="220px" />
-                  <div className="absolute inset-0 bg-ink-950/40" />
-                </div>
-                <div className="rise absolute top-[4%] right-[-4%] h-[78%] w-[52%] rotate-[7deg] overflow-hidden rounded-[1.75rem] opacity-60 shadow-lift ring-1 ring-white/10 max-sm:hidden" aria-hidden>
-                  <Portrait companion={amara} sizes="220px" />
-                  <div className="absolute inset-0 bg-ink-950/40" />
-                </div>
-                <div className="chrome rise absolute inset-x-[6%] inset-y-0 rounded-[2rem] shadow-lift max-sm:inset-x-0" style={{ ["--i" as string]: 2 }}>
-                  <div className="absolute inset-0 overflow-hidden rounded-[inherit]">
-                    <Portrait companion={emma} priority sizes="(max-width: 768px) 90vw, 420px" />
-                    <div className="absolute inset-0 bg-linear-to-t from-ink-950/90 via-ink-950/10 to-transparent" />
-                    <HeroChat />
-                  </div>
-                </div>
-              </div>
+      {/* ── Hero: the counter object under a liquid-metal name ── */}
+      <section className="relative flex min-h-[100svh] flex-col overflow-hidden px-4 pb-8 md:px-8">
+        <Silk className="absolute inset-0" />
+        <div className="absolute inset-0 bg-ink/20" aria-hidden />
 
-              <div className="rise md:order-1">
-                <h1 className="font-display text-[clamp(3.25rem,11vw,4.5rem)] leading-[0.92] tracking-[-0.045em] md:text-[6.4vw] lg:text-[5.25rem]">
-                  <span className="whitespace-nowrap">She&apos;s waiting</span>
-                  <br />
-                  <em>for you.</em>
-                </h1>
-                <p className="mt-6 max-w-[38ch] text-lg leading-relaxed text-muted">
-                  Handcrafted AI companions who listen, remember, and send photos made only for you. Completely private.
-                </p>
-                <div className="mt-9 flex flex-col gap-3 sm:flex-row">
-                  <ButtonLink href="/app" size="lg">
-                    Start chatting · free
-                  </ButtonLink>
-                  <ButtonLink href="#companions" size="lg" variant="secondary">
-                    Meet them
-                    <ArrowRight weight="regular" className="size-4" aria-hidden />
-                  </ButtonLink>
-                </div>
-                <ul className="mt-8 flex flex-wrap gap-x-6 gap-y-2 text-[0.8125rem] text-muted">
-                  {trust.map(({ Icon, t }) => (
-                    <li key={t} className="flex items-center gap-1.5">
-                      <Icon weight="regular" className="size-4 text-ivory/70" aria-hidden />
-                      {t}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </section>
+        <header className="relative z-10 flex h-16 items-center justify-between pt-[env(safe-area-inset-top)] md:h-20">
+          <Link href="/" aria-label="Amora home" className="press">
+            <Wordmark />
+          </Link>
+          <nav aria-label="Main" className="flex items-center gap-7">
+            {nav.map(([label, href]) => (
+              <a
+                key={href}
+                href={href}
+                className="press hidden text-body text-paper/80 hover:text-paper md:inline"
+              >
+                {label}
+              </a>
+            ))}
+            <Link
+              href="/login"
+              className="press text-body font-medium text-paper"
+            >
+              Sign in
+            </Link>
+          </nav>
+        </header>
 
-            {/* Companions rail */}
-            <section id="companions" className="scroll-mt-20 pb-28">
-              <div className="mx-auto flex max-w-6xl items-end justify-between gap-6 px-4 sm:px-8">
-                <h2 className={`reveal ${H2}`}>
-                  Find the one
-                  <br />
-                  <em>who gets you.</em>
-                </h2>
-                <Link href="/app" className="group flex shrink-0 items-center gap-2 pb-3 text-sm text-muted hover:text-ivory">
-                  See all {companions.length}
-                  <ArrowRight weight="regular" className="size-4 transition-transform group-hover:translate-x-0.5" aria-hidden />
-                </Link>
-              </div>
-              <div className="mx-auto mt-10 max-w-6xl">
-                <div className="flex snap-x snap-mandatory gap-3 overflow-x-auto px-[21vw] pt-2 pb-6 [scrollbar-width:none] sm:gap-4 sm:px-8">
-                  {companions.map((c) => (
-                    <div key={c.id} className="rail-focus w-[58vw] max-w-64 shrink-0 snap-center">
-                      <CompanionCard companion={c} href={`/app/${c.id}`} />
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </section>
-
-            {/* Chat demo: the mechanism, playing. */}
-            <section className="mx-auto grid max-w-6xl items-center gap-14 px-4 pb-32 sm:px-8 md:grid-cols-2">
-              <div>
-                <h2 className={`reveal ${H2}`}>
-                  Not a chatbot.
-                  <br />
-                  <em>A connection.</em>
-                </h2>
-                <ol className="mt-10 space-y-6">
-                  {beats.map(({ Icon, t, d }) => (
-                    <li key={t} className="reveal flex gap-4 border-t border-line pt-6">
-                      <Icon weight="regular" className="mt-1 size-5 shrink-0 text-blush" aria-hidden />
-                      <div>
-                        <p className="font-display text-[1.375rem] tracking-[-0.025em]">{t}</p>
-                        <p className="mt-1.5 max-w-[44ch] leading-relaxed text-muted">{d}</p>
-                      </div>
-                    </li>
-                  ))}
-                </ol>
-              </div>
-              <ChatDemo />
-            </section>
-
-            {/* Depth */}
-            <section className="panel border-y border-line py-28">
-              <div className="mx-auto max-w-6xl px-4 sm:px-8">
-                <h2 className={`reveal ${H2}`}>
-                  Built for depth,
-                  <br />
-                  <em>not distraction.</em>
-                </h2>
-                <dl className="mt-14 grid gap-x-16 md:grid-cols-2">
-                  {depth.map(({ Icon, t, d }) => (
-                    <div key={t} className="reveal flex gap-5 border-t border-line py-8">
-                      <Icon weight="light" className="size-8 shrink-0 text-ivory/70" aria-hidden />
-                      <div>
-                        <dt className="font-display text-[1.375rem] tracking-[-0.025em]">{t}</dt>
-                        <dd className="mt-2 max-w-[46ch] leading-relaxed text-muted">{d}</dd>
-                      </div>
-                    </div>
-                  ))}
-                </dl>
-              </div>
-            </section>
-
-            {/* Membership */}
-            <section id="pricing" className="mx-auto max-w-6xl scroll-mt-20 px-4 py-28 sm:px-8">
-              <h2 className={`reveal ${H2}`}>
-                Membership,
-                <br />
-                <em>simply priced.</em>
-              </h2>
-              <p className="mt-5 mb-10 text-muted">No hidden fees. Prepaid, so nothing renews behind your back.</p>
-              <Pricing />
-              <div className="mt-7 flex flex-col gap-2 text-sm text-muted sm:flex-row sm:justify-between">
-                <p>
-                  Or{" "}
-                  <Link href="/app" className="text-blush underline underline-offset-4">
-                    start free
-                  </Link>
-                  : 20 messages a day, every companion, one photo.
-                </p>
-                <p className="text-faint">Coins for one-off unlocks from $2.99 · Pay with USDT / USDC</p>
-              </div>
-            </section>
-
-            {/* Members */}
-            <section className="mx-auto max-w-6xl px-4 pb-28 sm:px-8">
-              <h2 className="sr-only">What members say</h2>
-              <div className="grid gap-12 md:grid-cols-3 md:gap-10">
-                {quotes.map(([q, who]) => (
-                  <figure key={who} className="reveal">
-                    <span className="block font-display text-6xl leading-none text-blush/60" aria-hidden>
-                      “
-                    </span>
-                    <blockquote className="-mt-3 font-display text-[1.5rem] leading-[1.25] tracking-[-0.025em] text-ivory">{q}</blockquote>
-                    <figcaption className="mt-5 text-sm tracking-wide text-faint">— {who}</figcaption>
-                  </figure>
-                ))}
-              </div>
-            </section>
-
-            {/* FAQ */}
-            <section id="faq" className="mx-auto max-w-6xl scroll-mt-20 px-4 pb-28 sm:px-8">
-              <h2 className={`reveal ${H2}`}>Questions.</h2>
-              <div className="mt-12 grid gap-x-14 md:grid-cols-2">
-                {faq.map(([q, a]) => (
-                  <details key={q} className="group border-b border-line">
-                    <summary className="flex cursor-pointer list-none items-center justify-between gap-4 py-6 text-lg text-ivory [&::-webkit-details-marker]:hidden">
-                      {q}
-                      <span className="glass grid size-8 shrink-0 place-items-center rounded-full">
-                        <Plus weight="bold" className="size-3.5 text-ivory transition-transform duration-300 ease-out-expo group-open:rotate-45" aria-hidden />
-                      </span>
-                    </summary>
-                    <p className="max-w-[56ch] pb-6 leading-relaxed text-muted">{a}</p>
-                  </details>
-                ))}
-              </div>
-            </section>
-
-            {/* Close */}
-            <section className="relative overflow-hidden px-4 pt-16 pb-32 text-center">
-              <div className="absolute inset-x-0 top-1/3 mx-auto h-72 max-w-2xl rounded-full bg-blush/[0.08] blur-3xl" aria-hidden />
-              <div className="relative flex justify-center -space-x-3">
-                {online.slice(0, 6).map((c) => (
-                  <span key={c.id} className="rounded-full ring-4 ring-ink-950">
-                    <Avatar companion={c} size="md" showOnline={false} />
-                  </span>
-                ))}
-              </div>
-              <h2 className="reveal relative mt-10 font-display text-[clamp(3rem,9vw,6rem)] leading-[0.9]">
-                She&apos;s online
-                <br />
-                <em>right now.</em>
-              </h2>
-              <p className="relative mt-5 text-muted">No swiping. No ghosting. No rejection.</p>
-              <ButtonLink href="/app" size="lg" className="relative mt-10">
-                Start your first conversation
-              </ButtonLink>
-              <p className="relative mt-4 text-[0.8125rem] text-faint">Ready in 30 seconds · Anonymous · No credit card</p>
-            </section>
-          </main>
-
-          <footer className="border-t border-line bg-ink-950/60">
-            <div className="mx-auto grid max-w-6xl gap-10 px-4 py-16 sm:px-8 md:grid-cols-[1.5fr_1fr_1fr_1fr]">
-              <div>
-                <Wordmark />
-                <p className="mt-4 max-w-[30ch] text-sm text-muted">Handcrafted AI companions. Discreet and secure.</p>
-              </div>
-              {[
-                ["Product", ["All companions", "Membership"]],
-                ["Legal", ["Terms", "Privacy", "Cookies", "AI disclaimer"]],
-                ["Compliance", ["18 U.S.C. 2257", "Content moderation", "Content removal", "Anti-trafficking", "Complaints"]],
-              ].map(([title, links]) => (
-                <div key={title as string}>
-                  <p className="text-sm font-medium text-ivory">{title as string}</p>
-                  <ul className="mt-4 space-y-2.5 text-sm text-muted">
-                    {(links as string[]).map((l) => (
-                      <li key={l}>
-                        {/* shortcut: legal pages are the client's existing documents; link them when routes exist. */}
-                        <a href="#" className="hover:text-ivory">{l}</a>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              ))}
-            </div>
-            <div className="mx-auto flex max-w-6xl flex-col gap-2 border-t border-line px-4 py-6 text-[0.8125rem] text-faint sm:flex-row sm:justify-between sm:px-8">
-              <p>© 2026 Amora. All AI companions are fictional. For users 18+.</p>
-              <p className="flex items-center gap-1.5">
-                <ShieldCheck weight="regular" className="size-4" aria-hidden />
-                Discreet · Encrypted
-              </p>
-            </div>
-          </footer>
+        <div className="relative z-[1] mx-auto mt-2 aspect-[4/5] w-[min(80vw,50svh)] md:mt-4 md:w-[min(60vw,46svh)] lg:w-[min(30vw,54svh)]">
+          <div className="lp-rise size-full">
+            <HeroPortraits ids={["emma", "luna", "amara", "margot"]} />
+          </div>
         </div>
-      </div>
-    </>
+        <LiquidWordmark className="lp-rise relative z-[2] -mt-[7vw] block aspect-[6/1] w-full [--i:1] lg:-mt-[9vw]" />
+
+        <div className="relative z-[2] mt-auto grid gap-5 pt-6 lg:grid-cols-12 lg:items-end lg:gap-8">
+          <h1 className="lp-rise font-display text-head [--i:2] lg:col-span-6">
+            Private AI
+            <br />
+            companions
+          </h1>
+          <div className="lp-rise [--i:3] md:flex md:items-end md:justify-between md:gap-8 lg:col-span-5 lg:col-start-8">
+            <p className="max-w-[38ch] text-body">
+              Twelve written characters with a face, a city and a long memory.
+              Talk late, talk often, keep it to yourself.
+            </p>
+            <ButtonLink
+              href="/app"
+              size="lg"
+              className="mt-5 w-full md:mt-0 md:w-auto md:shrink-0"
+            >
+              Meet them
+            </ButtonLink>
+          </div>
+        </div>
+      </section>
+
+      {/* ── The board: the companions large, the way an agency hangs its portfolio ── */}
+      <section id="board" className="scroll-mt-4 pt-24 md:pt-36">
+        <div className="grid gap-5 px-4 md:grid-cols-12 md:items-end md:px-8">
+          <h2 className="lp-in font-display text-head md:col-span-6">
+            The board
+          </h2>
+          <p className="lp-in max-w-[44ch] text-body [--i:1] md:col-span-5 md:col-start-8">
+            Twelve companions, each written by hand: a history, a temper, a dog
+            called Otto. Tap a card to read her whole story.
+          </p>
+        </div>
+        <div className="mt-10 flex snap-x snap-mandatory scroll-px-4 gap-2 overflow-x-auto overscroll-x-contain px-4 pb-2 [scrollbar-width:none] md:mt-14 md:px-8 xl:grid xl:snap-none xl:grid-flow-dense xl:grid-cols-3 xl:gap-1 xl:overflow-visible xl:px-0 xl:pb-0">
+          {board.map(({ id, big, start2 }, i) => (
+            <CompanionCard
+              key={id}
+              companion={byId(id)}
+              href={`/app/${id}`}
+              size="large"
+              priority={i < 2}
+              className={cx(
+                "w-[82vw] shrink-0 snap-start sm:w-[56vw] md:w-[44vw] lg:w-[36vw] xl:w-auto",
+                big && "xl:col-span-2 xl:row-span-2",
+                start2 && "xl:col-start-2",
+              )}
+            />
+          ))}
+        </div>
+      </section>
+
+      {/* ── How it works: four lines stepping down to the right ── */}
+      <section
+        id="how"
+        aria-labelledby="how-title"
+        className="scroll-mt-4 px-4 py-28 md:px-8 md:py-44"
+      >
+        <h2 id="how-title" className="sr-only">
+          How it works
+        </h2>
+        <ol className="grid gap-10 md:gap-14">
+          {steps.map((s, i) => (
+            <li key={s.line} className={indent[i]}>
+              <h3 className="lp-in font-display text-head">{s.line}</h3>
+              <p className="lp-in mt-3 max-w-[34ch] text-body [--i:1]">
+                {s.text}
+              </p>
+            </li>
+          ))}
+        </ol>
+      </section>
+
+      {/* ── The live thing ── */}
+      <section className="bg-ink-2 px-4 py-24 md:px-8 md:py-36">
+        <FirstMessage />
+      </section>
+
+      {/* ── Pricing: the ticket on a paper field ── */}
+      <section
+        id="pricing"
+        className="scroll-mt-4 bg-paper px-4 py-24 text-ink md:px-8 md:py-36"
+      >
+        <div>
+          <h2 className="lp-in font-display text-head">Premium, prepaid</h2>
+          <p className="lp-in mt-5 max-w-[44ch] text-body [--i:1]">
+            One plan opens everything she sends. Pay once for twelve months or
+            for one; it never renews by itself.
+          </p>
+          <div className="mt-10">
+            <Ticket />
+          </div>
+        </div>
+      </section>
+
+      {/* ── Questions: a band each, every answer visible ── */}
+      <section id="faq" aria-labelledby="faq-title">
+        <div className="flex h-[30svh] min-h-56 items-end bg-oxblood px-4 pb-8 md:h-[40svh] md:px-8 md:pb-12">
+          <h2 id="faq-title" className="lp-in font-display text-head">
+            Fair questions
+          </h2>
+        </div>
+        {faq.map((f, i) => (
+          <div
+            key={f.q}
+            className={cx(
+              "grid gap-4 px-4 py-8 md:grid-cols-12 md:gap-8 md:px-8 md:py-14",
+              i % 2 ? "bg-ink-2" : "bg-ink",
+            )}
+          >
+            <h3 className="lp-in text-lead font-semibold md:col-span-5">
+              {f.q}
+            </h3>
+            <p className="lp-in max-w-[52ch] text-body [--i:1] md:col-span-6 md:col-start-7">
+              {f.a}
+            </p>
+          </div>
+        ))}
+      </section>
+
+      {/* ── The object returns: her, from another angle ── */}
+      <section className="relative flex flex-col overflow-hidden bg-ink lg:min-h-[90svh] lg:flex-row lg:items-center">
+        <div className="relative z-[1] px-4 pt-24 md:px-8 md:pt-36 lg:order-2 lg:ml-auto lg:w-[30%] lg:pt-0">
+          <h2 className="lp-in font-display text-head">She&apos;s still up</h2>
+          <p className="lp-in mt-5 text-body [--i:1]">
+            Pick a companion, read her card and let her open the conversation.
+          </p>
+          <p className="lp-in mt-5 text-lead tabular [--i:2]">
+            Premium from ${plans.premium.annual} a month
+          </p>
+          <ButtonLink
+            href="/app"
+            size="lg"
+            className="lp-in mt-8 w-full [--i:3] md:w-auto"
+          >
+            Meet them
+          </ButtonLink>
+        </div>
+        <div
+          className="relative mt-12 h-[55svh] overflow-hidden md:h-[70svh] lg:absolute lg:inset-y-0 lg:left-0 lg:mt-0 lg:h-auto lg:w-[62%]"
+          aria-hidden
+        >
+          <div className="lp-in absolute top-0 left-0 h-[115%] w-[130%] md:w-full lg:top-auto lg:-bottom-[18%] lg:-left-[8%] lg:h-[125%] lg:w-[110%]">
+            <Portrait
+              companion={close}
+              src={close.gallery[0]}
+              sizes="(max-width: 768px) 130vw, 70vw"
+            />
+          </div>
+        </div>
+      </section>
+
+      {/* ── Footer: the invitation over the cropped name ── */}
+      <footer className="relative overflow-hidden bg-paper text-ink">
+        <div className="grid gap-10 px-4 pt-20 md:px-8 md:pt-28 lg:grid-cols-12 lg:gap-8">
+          <div className="lg:col-span-7">
+            <h2 className="lp-in font-display text-head">
+              Pick up where you left off
+            </h2>
+            <ButtonLink
+              href="/login"
+              variant="secondary"
+              size="lg"
+              className="lp-in mt-8 w-full [--i:1] md:w-auto"
+            >
+              Sign in
+            </ButtonLink>
+          </div>
+          <nav
+            aria-label="Footer"
+            className="lp-in flex flex-wrap gap-x-6 gap-y-3 text-body [--i:2] lg:col-span-3 lg:col-start-10 lg:flex-col"
+          >
+            {[...nav, ["Questions", "#faq"] as const].map(([label, href]) => (
+              <a key={href} href={href} className="press hover:text-rouge-lo">
+                {label}
+              </a>
+            ))}
+          </nav>
+        </div>
+        <div className="mt-20 flex flex-col gap-3 px-4 text-small text-ink/75 md:mt-28 md:flex-row md:justify-between md:px-8">
+          <p>18+ only. Every companion is a fictional adult. © 2026 Amora</p>
+          <p className="flex gap-6">
+            <Link href="/terms" className="press hover:text-ink">
+              Terms
+            </Link>
+            <Link href="/privacy" className="press hover:text-ink">
+              Privacy
+            </Link>
+            <CookiesLink className="press hover:text-ink" />
+          </p>
+        </div>
+        <p
+          aria-hidden
+          className="mt-6 translate-y-[22%] font-display text-[25vw] whitespace-nowrap select-none md:text-[22vw]"
+          style={{ lineHeight: 0.8 }}
+        >
+          Amora
+        </p>
+      </footer>
+    </main>
   );
 }

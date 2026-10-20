@@ -1,108 +1,113 @@
 "use client";
 
 import { useState } from "react";
-import { Check, Coins, Crown } from "@phosphor-icons/react/ssr";
+import { toast } from "sonner";
+import { Check, Coins } from "@phosphor-icons/react/ssr";
 import { Sheet } from "@/components/sheet";
-import { Button } from "@/components/ui";
+import { Silk } from "@/components/silk";
+import { Button, cx } from "@/components/ui";
 import { coinPacks, plans } from "@/lib/plans";
+import { track } from "@/lib/progress";
 import { setWallet, useWallet } from "@/lib/wallet";
 
-/** The one place money is asked for: Premium first, coins as the quiet alternative. */
+const usd = (n: number) => `$${n.toFixed(2)}`;
+
+/** The one place money is asked for: Premium is the decision; coins sit underneath as the quiet alternative. */
 export function Paywall({ open, onClose, reason }: { open: boolean; onClose: () => void; reason?: string }) {
   const { premium } = useWallet();
   const [annual, setAnnual] = useState(true);
-  const [done, setDone] = useState<string | null>(null);
+  const p = plans.premium;
+  const total = annual ? p.annual * 12 : p.monthly;
 
   // shortcut: demo purchases credit instantly; real checkout (USDT/USDC) replaces these handlers.
   const buyPlan = () => {
     setWallet((w) => ({ premium: true, coins: w.coins + 1800 }));
-    setDone("You're Premium. 1,800 coins added.");
+    track.premium();
+    toast("You're Premium. 1,800 coins added.");
+    onClose();
   };
   const buyCoins = (n: number) => {
     setWallet((w) => ({ coins: w.coins + n }));
-    setDone(`${n.toLocaleString()} coins added.`);
-  };
-  const close = () => {
-    setDone(null);
+    toast(`${n.toLocaleString()} coins added`);
     onClose();
   };
 
   return (
-    <Sheet open={open} onClose={close} title="Unlock more">
-      {done ? (
-        <div className="py-6 text-center">
-          <span className="pearl gilt mx-auto grid size-16 place-items-center rounded-full">
-            <Check weight="bold" className="size-7" aria-hidden />
-          </span>
-          <p className="mt-5 font-display text-4xl">Welcome in.</p>
-          <p className="mt-3 text-muted">{done}</p>
-          <Button size="lg" className="mt-8 w-full" onClick={close}>
-            Back to her
-          </Button>
-        </div>
-      ) : (
+    <Sheet open={open} onClose={onClose} title={premium ? "Top up coins" : "Premium"}>
+      {!premium && (
         <>
-          {reason && <p className="mb-4 text-sm text-muted">{reason}</p>}
-          {!premium && (
-            <section className="panel gilt sheen relative rounded-card p-5">
-              <div className="flex items-start justify-between gap-4">
-                <div>
-                  <h2 className="flex items-center gap-2 font-display text-3xl">
-                    <Crown weight="fill" className="size-5 text-gold" aria-hidden />
-                    Premium
-                  </h2>
-                  <p className="mt-1 text-sm text-muted">Every photo she sends, no locks.</p>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setAnnual(!annual)}
-                  className="glass relative z-[2] shrink-0 rounded-full px-3 py-1.5 text-xs text-ivory transition-transform active:scale-95"
-                  aria-label={`Billing: ${annual ? "annual" : "monthly"}. Switch`}
-                >
-                  {annual ? "Annual · −30%" : "Monthly"}
-                </button>
-              </div>
-              <p className="mt-5 flex items-baseline gap-2">
-                <span className="font-display text-5xl tabular-nums">${plans.premium[annual ? "annual" : "monthly"]}</span>
-                <span className="text-muted">/ month</span>
-              </p>
-              <p className="mt-1 text-xs text-faint">{annual ? `$${(plans.premium.annual * 12).toFixed(2)} once for 12 months` : "Billed monthly"} · no auto-renew</p>
-              <ul className="mt-4 grid grid-cols-2 gap-x-3 gap-y-1.5 text-sm text-ivory">
-                {plans.premium.perks.map((p) => (
-                  <li key={p} className="flex gap-2">
-                    <Check weight="bold" className="mt-0.5 size-3.5 shrink-0 text-ivory/70" aria-hidden />
-                    {p}
-                  </li>
-                ))}
-              </ul>
-              <Button size="lg" variant="premium" className="relative z-[2] mt-5 w-full" onClick={buyPlan}>
-                Go Premium
-              </Button>
-            </section>
-          )}
+          <header className="relative -mx-5 -mt-8 h-60 overflow-hidden md:-mx-8 md:h-64">
+            <Silk className="absolute inset-0" />
+            <div className="absolute inset-x-0 bottom-0 px-5 pb-6 md:px-8">
+              <h2 className="font-display text-head text-paper">Premium</h2>
+              <p className="mt-3 max-w-[34ch] text-body text-paper">{reason ?? "Every photo she sends, no locks, no counting."}</p>
+            </div>
+          </header>
 
-          <h2 id="coins" className={`text-sm font-medium text-muted ${premium ? "" : "mt-6"}`}>
-            {premium ? "Top up coins" : "Or just top up coins"}
-          </h2>
-          <div className="mt-3 grid grid-cols-3 gap-2">
-            {coinPacks.map((p) => (
+          <div role="radiogroup" aria-label="Billing" className="mt-6 grid grid-cols-2 bg-ink-3 p-1">
+            {([
+              [true, "Annual", "Save 30%"],
+              [false, "Monthly", "One month"],
+            ] as const).map(([v, label, note]) => (
               <button
-                key={p.coins}
+                key={label}
                 type="button"
-                onClick={() => buyCoins(p.coins)}
-                className={`glass flex flex-col items-center gap-1 rounded-2xl px-2 py-4 transition-transform duration-150 active:scale-[0.97] ${p.best ? "chrome bg-white/[0.12]" : ""}`}
+                role="radio"
+                aria-checked={annual === v}
+                onClick={() => setAnnual(v)}
+                className={cx("press flex h-14 flex-col items-start justify-center px-4 text-left", annual === v ? "bg-paper text-ink" : "text-muted hover:text-paper")}
               >
-                <span className="grid size-7 place-items-center rounded-full bg-linear-to-b from-[#f6e6c4] to-[#a7854c] text-ink-950 shadow-[inset_0_1px_0_#fff8]">
-                  <Coins weight="bold" className="size-4" aria-hidden />
-                </span>
-                <span className="font-medium tabular-nums">{p.coins.toLocaleString()}</span>
-                <span className="text-sm text-muted tabular-nums">${p.price}</span>
+                <span className="text-body font-medium">{label}</span>
+                <span className={cx("text-small", annual === v ? "text-rouge-lo" : "text-faint")}>{note}</span>
               </button>
             ))}
           </div>
-          <p className="mt-4 text-center text-xs text-faint">Pay with USDT / USDC · Discreet: “Amora” never appears on statements · Demo: no payment is taken</p>
+
+          <p className="mt-6 flex items-baseline gap-3">
+            <span className="font-display text-head tabular">{usd(annual ? p.annual : p.monthly)}</span>
+            <span className="text-body text-muted">a month</span>
+          </p>
+          <p className="mt-2 text-small text-muted tabular">{annual ? `${usd(total)} once, for 12 months.` : `${usd(total)} for one month.`} Nothing auto-renews.</p>
+
+          <ul className="mt-6 grid gap-2.5 text-body">
+            {p.perks.map((perk) => (
+              <li key={perk} className="flex items-center gap-3">
+                <span className="grid size-6 shrink-0 place-items-center bg-ink-4">
+                  <Check weight="bold" className="size-3.5 text-rouge" aria-hidden />
+                </span>
+                {perk}
+              </li>
+            ))}
+          </ul>
+
+          <Button size="lg" className="mt-7 w-full" onClick={buyPlan}>
+            Go Premium · <span className="tabular">{usd(total)}</span>
+          </Button>
+          <p className="mt-3 text-small text-faint">Pay with USDT or USDC. Your statement never says Amora. Demo: no payment is taken.</p>
         </>
       )}
+
+      <section aria-label="Coins" className={premium ? "" : "mt-8 bg-ink-3 p-4"}>
+        <h2 className={premium ? "font-display text-head" : "text-body font-medium"}>{premium ? "Top up" : "Just this once? Top up coins"}</h2>
+        {premium && <p className="mt-3 text-body text-muted">For one-off unlocks and gifts.</p>}
+        <div className="mt-4 grid grid-cols-3 gap-2">
+          {coinPacks.map((c) => (
+            <button
+              key={c.coins}
+              type="button"
+              onClick={() => buyCoins(c.coins)}
+              className={cx("press flex flex-col items-start gap-1 px-3 py-3.5 text-left", c.best ? "bg-paper text-ink" : premium ? "bg-ink-3 hover:bg-ink-4" : "bg-ink-4 hover:bg-ink-5")}
+            >
+              <span className="flex items-center gap-1.5 font-medium tabular">
+                <Coins weight="fill" className={cx("size-4", c.best ? "text-rouge-lo" : "text-rouge")} aria-hidden />
+                {c.coins.toLocaleString()}
+              </span>
+              <span className={cx("text-small tabular", c.best ? "text-ink/70" : "text-muted")}>{usd(c.price)}</span>
+            </button>
+          ))}
+        </div>
+        {premium && <p className="mt-4 text-small text-faint">Pay with USDT or USDC. Demo: no payment is taken.</p>}
+      </section>
     </Sheet>
   );
 }

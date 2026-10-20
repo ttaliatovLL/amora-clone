@@ -3,9 +3,10 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { AppleLogo, GoogleLogo } from "@phosphor-icons/react/ssr";
 import { AgeGate } from "@/components/landing/client";
 import { Portrait } from "@/components/portrait";
-import { Button, Field, Wordmark } from "@/components/ui";
+import { Button, cx, Field, Wordmark } from "@/components/ui";
 import { companions } from "@/lib/companions";
 import { setWallet } from "@/lib/wallet";
 
@@ -17,7 +18,7 @@ export default function Login() {
   const [show, setShow] = useState(false);
   const [error, setError] = useState("");
 
-  // shortcut: mock auth; real sign-in/up (and Google OAuth) replaces this submit.
+  // shortcut: mock auth, nothing leaves the browser; real sign-in/up (and OAuth) replaces this submit.
   const submit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const f = new FormData(e.currentTarget);
@@ -26,32 +27,50 @@ export default function Login() {
     setWallet({ email, name: String(f.get("name") || email.split("@")[0]) });
     router.push("/app");
   };
+  const switchTo = (m: "in" | "up") => (setMode(m), setError(""));
 
   return (
     <>
       <AgeGate />
-      <main className="grain room grid min-h-dvh md:grid-cols-2">
-        <div className="vignette relative hidden overflow-hidden md:block">
-          <Portrait companion={luna} priority sizes="50vw" />
-          <div className="absolute inset-0 bg-linear-to-t from-ink-950 via-ink-950/40 to-transparent" />
-          <p className="absolute bottom-10 left-10 z-[2] max-w-[18ch] font-display text-5xl leading-[0.95] text-ivory">She&apos;s been waiting.</p>
-        </div>
-
-        {/* Phones: she watches from the top of the screen and fades into the form. */}
-        <div className="absolute inset-x-0 top-0 h-[46svh] overflow-hidden md:hidden" aria-hidden>
-          <Portrait companion={luna} sizes="100vw" className="opacity-55" />
-          <div className="absolute inset-0 bg-linear-to-b from-ink-950/40 via-ink-950/60 to-ink-950" />
-        </div>
-        <div className="relative z-[2] flex flex-col px-5 pt-[max(1.5rem,env(safe-area-inset-top))] pb-10 sm:px-10">
-          <Link href="/" aria-label="Amora home" className="self-start">
+      <main className="min-h-dvh bg-ink md:grid md:grid-cols-[1.05fr_1fr]">
+        {/* Her comp card: the whole left half on desktop, the top of the screen on phones. */}
+        <div className="relative h-[44svh] min-h-72 overflow-hidden bg-ink-2 md:sticky md:top-0 md:h-dvh">
+          <Portrait companion={luna} priority sizes="(max-width: 768px) 100vw, 52vw" />
+          <div className="scrim-b absolute inset-x-0 bottom-0 h-2/3" />
+          <Link href="/" aria-label="Amora home" className="press absolute top-[max(1.25rem,env(safe-area-inset-top))] left-5 md:top-8 md:left-10">
             <Wordmark />
           </Link>
+          <div className="absolute inset-x-0 bottom-0 p-5 md:p-10">
+            <p className="font-display text-mega">{luna.name}</p>
+            <p className="mt-3 truncate text-body text-paper/80 tabular">
+              {luna.age} · {luna.city} · {luna.tagline}
+            </p>
+          </div>
+        </div>
 
-          <div className="mx-auto my-auto w-full max-w-sm py-10 max-md:mt-[26svh]">
-            <h1 className="font-display text-5xl leading-none">{mode === "up" ? "Make it yours." : "Welcome back."}</h1>
-            <p className="mt-3 text-muted">{mode === "up" ? "Free to start. Anonymous. No card." : "She remembers where you left off."}</p>
+        <div className="flex px-5 pt-8 pb-12 sm:px-10 md:items-center md:py-16">
+          <div className="rise mx-auto w-full max-w-md">
+            <div aria-label="Account" className="grid grid-cols-2 bg-ink-2 p-1">
+              {([
+                ["up", "Create account"],
+                ["in", "Sign in"],
+              ] as const).map(([m, label]) => (
+                <button
+                  key={m}
+                  type="button"
+                  aria-pressed={mode === m}
+                  onClick={() => switchTo(m)}
+                  className={cx("press h-11 text-small font-medium", mode === m ? "bg-paper text-ink" : "text-muted hover:text-paper")}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
 
-            <form onSubmit={submit} className="mt-8 grid gap-5" noValidate={false}>
+            <h1 className="mt-10 font-display text-head">{mode === "up" ? "Make it yours" : "Welcome back"}</h1>
+            <p className="mt-4 text-body text-muted">{mode === "up" ? "Free to start. Anonymous. No card." : "She remembers where you left off."}</p>
+
+            <form onSubmit={submit} className="mt-8 grid gap-5">
               {mode === "up" && <Field label="What should she call you?" name="name" autoComplete="nickname" placeholder="A name or nickname" />}
               <Field label="Email" name="email" type="email" required autoComplete="email" placeholder="you@example.com" />
               <div className="relative">
@@ -64,21 +83,27 @@ export default function Login() {
                   autoComplete={mode === "up" ? "new-password" : "current-password"}
                   onChange={() => setError("")}
                   hint={mode === "up" ? "At least 8 characters." : undefined}
+                  className="[&_input]:pr-14"
                 />
-                <button type="button" onClick={() => setShow(!show)} className="absolute top-[2.375rem] right-4 text-sm text-muted hover:text-ivory">
+                <button
+                  type="button"
+                  onClick={() => setShow(!show)}
+                  aria-pressed={show}
+                  className="absolute top-[1.875rem] right-1 flex h-13 items-center px-3 text-small text-muted hover:text-paper"
+                >
                   {show ? "Hide" : "Show"}
                 </button>
               </div>
               {mode === "up" && (
-                <label className="flex gap-3 text-sm text-muted">
-                  <input type="checkbox" required className="mt-0.5 size-5 shrink-0 accent-[var(--color-blush)]" />
+                <label className="flex gap-3 text-small text-muted">
+                  <input type="checkbox" required className="mt-0.5 size-5 shrink-0 accent-[var(--color-rouge)]" />
                   <span>
                     I&apos;m 18 or older and accept the{" "}
-                    <Link href="#" className="text-ivory underline underline-offset-4">
+                    <Link href="#" className="text-paper underline underline-offset-4">
                       Terms
                     </Link>{" "}
                     and{" "}
-                    <Link href="#" className="text-ivory underline underline-offset-4">
+                    <Link href="#" className="text-paper underline underline-offset-4">
                       Privacy policy
                     </Link>
                     .
@@ -86,30 +111,27 @@ export default function Login() {
                 </label>
               )}
               {error && (
-                <p role="alert" className="text-sm text-rose">
+                <p role="alert" className="text-small text-rouge">
                   {error}
                 </p>
               )}
-              <Button size="lg" type="submit">
+              <Button size="lg" type="submit" className="mt-1">
                 {mode === "up" ? "Create account" : "Sign in"}
               </Button>
             </form>
 
-            <div className="my-6 flex items-center gap-4 text-xs text-faint">
-              <span className="h-px flex-1 bg-line" />
-              or
-              <span className="h-px flex-1 bg-line" />
+            <p className="mt-8 text-small text-muted">Or continue with</p>
+            <div className="mt-3 grid grid-cols-2 gap-2">
+              <Button variant="secondary" size="lg" type="button" onClick={() => router.push("/app")}>
+                <GoogleLogo weight="bold" className="size-5" aria-hidden />
+                Google
+              </Button>
+              <Button variant="secondary" size="lg" type="button" onClick={() => router.push("/app")}>
+                <AppleLogo weight="fill" className="size-5" aria-hidden />
+                Apple
+              </Button>
             </div>
-            <Button variant="secondary" size="lg" className="w-full" type="button" onClick={() => router.push("/app")}>
-              Continue with Google
-            </Button>
-
-            <p className="mt-8 text-center text-sm text-muted">
-              {mode === "up" ? "Already have an account?" : "New here?"}{" "}
-              <button type="button" onClick={() => (setMode(mode === "up" ? "in" : "up"), setError(""))} className="text-blush underline underline-offset-4">
-                {mode === "up" ? "Sign in" : "Create one"}
-              </button>
-            </p>
+            <p className="mt-8 text-small text-faint">Demo: nothing you type here is sent anywhere.</p>
           </div>
         </div>
       </main>

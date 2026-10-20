@@ -10,16 +10,23 @@
   },
   "dependencies": {
     "@phosphor-icons/react": "^2.1.10",
+    "@react-three/fiber": "^9.8.2",
+    "@shadergradient/react": "^2.4.20",
+    "camera-controls": "^3.1.2",
     "motion": "^14.4.0",
     "next": "16.4.2",
     "react": "19.3.0",
-    "react-dom": "19.3.0"
+    "react-dom": "19.3.0",
+    "sonner": "^2.0.8",
+    "three": "^0.186.1",
+    "three-stdlib": "^2.36.1"
   },
   "devDependencies": {
     "@tailwindcss/turbopack": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "@types/three": "^0.186.0",
     "eslint": "^9",
     "eslint-config-next": "16.4.2",
     "tailwindcss": "^4",

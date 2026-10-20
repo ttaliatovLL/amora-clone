@@ -1,429 +1,506 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
-import { ArrowUp, Camera, CaretLeft, Checks, Coins, Heart, LockSimple, Microphone, Pause, Play } from "@phosphor-icons/react/ssr";
-import { Sheet } from "@/components/sheet";
-import { Portrait } from "@/components/portrait";
+import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
+import { toast } from "sonner";
+import { ArrowDown, ArrowUp, Camera, CaretLeft, Coins, Gift, Heart, Info, X } from "@phosphor-icons/react";
+import { GiftBubble, PhotoBubble, TextBubble, VoiceNote, giftIcon } from "@/components/chat/message";
 import { Paywall } from "@/components/paywall";
-import { Avatar, Button, ButtonLink, Chip } from "@/components/ui";
+import { Portrait } from "@/components/portrait";
+import { SaveButton } from "@/components/save-button";
+import { Sheet } from "@/components/sheet";
+import { Avatar, ButtonLink, Tags, cx } from "@/components/ui";
+import { PHOTO_PRICE, gifts, intent, photoSrc, typingMs, type Beat, type GiftId, type Option } from "@/lib/chat-script";
+import { scripts } from "@/lib/chat-scripts";
+import { getConvo, setConvo, useConvo, type Msg } from "@/lib/chat-scripts/store";
 import { bios, type Companion } from "@/lib/companions";
-import { firstChips, persona, reply, type Beat } from "@/lib/chat-script";
+import { track } from "@/lib/progress";
 import { spend, useWallet } from "@/lib/wallet";
 
-type Msg = {
-  id: number;
-  from: "her" | "me";
-  day: string;
-  time: string;
-  text?: string;
-  photo?: { unlocked: boolean };
-  voice?: { text: string; secs: number };
-  react?: string;
-};
-
-const PHOTO_PRICE = 10;
-// shortcut: re-crops of her portrait stand in for distinct photos.
-const CROPS = ["scale-[1.35] origin-[50%_25%]", "scale-[1.6] origin-[40%_35%]", "scale-[1.2] origin-[60%_70%]"];
-
-const clock = () => new Date().toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+const clock = () => new Date().toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
 const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
-const isEmoji = (t: string) => t.length <= 12 && /^[\p{Extended_Pictographic}️‍\s]+$/u.test(t);
+const isGallery = (b: Beat) => typeof b === "object" && "photo" in b && b.photo === "gallery";
+type Status = "typing" | "recording" | "photo" | null;
 
 export function Chat({ companion: c }: { companion: Companion }) {
-  const p = persona(c);
-  const [msgs, setMsgs] = useState<Msg[]>(() => p.history.map((l, id) => ({ ...l, id, day: "Yesterday" })));
-  const [draft, setDraft] = useState("");
-  const [status, setStatus] = useState<"typing" | "recording" | null>(null);
-  const [chips, setChips] = useState<string[]>([]);
-  const [readUpTo, setReadUpTo] = useState(p.history.length - 1);
+  const s = scripts[c.id];
+  const convo = useConvo(c.id);
+  const { msgs, turn, readUpTo, readAt } = convo;
   const { coins, premium } = useWallet();
+  const [status, setStatus] = useState<Status>(null);
+  const [busy, setBusy] = useState(false);
+  const [draft, setDraft] = useState("");
+  const [tray, setTray] = useState(false);
   const [paywall, setPaywall] = useState(false);
   const [profile, setProfile] = useState(false);
-  const nextId = useRef(p.history.length);
-  const turn = useRef(0);
+  const [viewer, setViewer] = useState<string | null>(null);
+  const [pill, setPill] = useState(false);
+  const [online, setOnline] = useState(() => c.online || getConvo(c.id).touched > 0);
+
+  const list = useRef<HTMLDivElement>(null);
+  const atBottom = useRef(true);
+  const first = useRef(true);
   const queue = useRef<Beat[]>([]);
-  const nextChips = useRef(firstChips);
   const running = useRef(false);
   const alive = useRef(true);
-  const opened = useRef(false);
-  const end = useRef<HTMLDivElement>(null);
-  const settled = useRef(false);
-
-  useEffect(() => {
-    const smooth = settled.current && !matchMedia("(prefers-reduced-motion: reduce)").matches;
-    end.current?.scrollIntoView({ behavior: smooth ? "smooth" : "auto", block: "end" });
-    settled.current = true;
-  }, [msgs.length, status]);
+  const input = useRef<HTMLInputElement>(null);
 
   const push = (m: Omit<Msg, "id" | "day" | "time">) => {
-    const id = nextId.current++;
-    setMsgs((all) => [...all, { ...m, id, day: "Today", time: clock() }]);
+    const id = Math.max(-1, ...getConvo(c.id).msgs.map((x) => x.id)) + 1;
+    setConvo(c.id, (v) => ({ msgs: [...v.msgs, { ...m, id, day: "Today", time: clock() }], touched: Date.now() }));
     return id;
   };
 
-  // She sends one beat at a time: typing (or recording) for as long as the beat would take, then the bubble.
+  // She sends one beat at a time: typing (or recording) for as long as it would take, then the bubble.
   const run = async () => {
     if (running.current) return;
     running.current = true;
-    setChips([]);
+    setBusy(true);
     while (queue.current.length && alive.current) {
       const b = queue.current[0];
-      const voice = typeof b === "object" && "voice" in b;
-      setStatus(voice ? "recording" : "typing");
-      await wait(Math.min(650 + (typeof b === "string" ? b.length * 28 : 900), voice ? 2600 : 2200));
+      if (isGallery(b) && getConvo(c.id).photoSent) {
+        queue.current.shift();
+        continue;
+      }
+      setOnline(true);
+      setStatus(typeof b === "string" ? "typing" : "voice" in b ? "recording" : "photo");
+      await wait(typingMs(b));
       if (!alive.current) break;
       queue.current.shift();
       setStatus(null);
-      push(typeof b === "string" ? { from: "her", text: b } : "photo" in b ? { from: "her", photo: { unlocked: false } } : { from: "her", voice: { text: b.voice, secs: b.secs } });
-      await wait(420);
+      push({ from: "her", beat: b, unlocked: !(typeof b === "object" && "photo" in b && b.locked) });
+      if (isGallery(b)) setConvo(c.id, () => ({ photoSent: true }));
+      if (!atBottom.current) setPill(true);
+      await wait(380);
     }
     running.current = false;
     if (alive.current) {
       setStatus(null);
-      setChips(nextChips.current);
+      setBusy(false);
     }
+  };
+
+  const say = (beats: Beat[]) => {
+    queue.current.push(...beats);
+    run();
   };
 
   useEffect(() => {
     alive.current = true;
-    if (!opened.current) {
-      opened.current = true;
-      queue.current.push(...p.opener);
+    setConvo(c.id, () => ({ unread: 0 }));
+    let t: ReturnType<typeof setTimeout> | undefined;
+    if (!getConvo(c.id).opened && s) {
+      // Marked inside the timer so a dev double-mount doesn't swallow her greeting.
+      t = setTimeout(() => {
+        setConvo(c.id, () => ({ opened: true }));
+        say(s.live);
+      }, 1100);
     }
-    const t = setTimeout(run, 900);
     return () => {
       alive.current = false;
+      running.current = false;
+      queue.current = [];
       clearTimeout(t);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- once per mount; `run` reads refs only
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- once per mount; say/run read refs only
+  }, [c.id]);
 
-  const send = (text: string) => {
-    const t = text.trim();
-    if (!t) return;
-    const id = push({ from: "me", text: t });
-    setDraft("");
-    setChips([]);
-    const r = reply(c, t, turn.current++);
+  // Follow the conversation unless the reader scrolled up to look at something.
+  useLayoutEffect(() => {
+    const el = list.current;
+    if (!el) return;
+    // Instant, not smooth: a smooth scroll's in-between positions would read as "the reader scrolled up". Bubbles animate in instead.
+    if (first.current || atBottom.current) el.scrollTop = el.scrollHeight;
+    first.current = false;
+  }, [msgs.length, status]);
+  useEffect(() => {
+    const el = list.current;
+    if (!el) return;
+    const ro = new ResizeObserver(() => atBottom.current && (el.scrollTop = el.scrollHeight));
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+  const onScroll = () => {
+    const el = list.current!;
+    atBottom.current = el.scrollHeight - el.scrollTop - el.clientHeight < 96;
+    if (atBottom.current) setPill(false);
+  };
+  const jump = () => {
+    atBottom.current = true;
+    setPill(false);
+    if (list.current) list.current.scrollTop = list.current.scrollHeight;
+  };
+
+  /** I send something; she reads it after a moment, maybe hearts it, then answers. */
+  const send = (beat: Msg["beat"], answer: Beat[], heart = false) => {
+    atBottom.current = true;
+    const id = push({ from: "me", beat });
+    track.message(c.id);
     setTimeout(() => {
       if (!alive.current) return;
-      setReadUpTo(id);
-      if (r.react) setMsgs((all) => all.map((m) => (m.id === id ? { ...m, react: r.react } : m)));
-      queue.current.push(...r.beats);
-      nextChips.current = r.chips;
-      run();
-    }, 650 + (t.length % 5) * 130);
+      setOnline(true);
+      setConvo(c.id, (v) => ({ readUpTo: id, readAt: clock(), msgs: heart ? v.msgs.map((m) => (m.id === id ? { ...m, heart: true } : m)) : v.msgs }));
+      setTimeout(() => alive.current && say(answer), 450);
+    }, 700 + (id % 4) * 190);
   };
 
-  const react = (id: number) => setMsgs((all) => all.map((m) => (m.id === id ? { ...m, react: m.react ? undefined : "❤️" } : m)));
+  const pick = (o: Option) => {
+    setConvo(c.id, (v) => ({ turn: v.turn + 1 }));
+    send(o.say, o.her, o.heart);
+  };
+
+  const sendText = (text: string) => {
+    const t = text.trim();
+    if (!t || !s) return;
+    setDraft("");
+    const v = getConvo(c.id);
+    const kind = intent(t);
+    if (kind === "photo") return send(t, v.photoSent ? s.photoAgain : s.photo);
+    if (kind === "night") return send(t, s.night);
+    setConvo(c.id, (x) => ({ fallback: x.fallback + 1 }));
+    send(t, s.fallback[v.fallback % s.fallback.length]);
+  };
+
+  const sendGift = (id: GiftId) => {
+    const g = gifts.find((x) => x.id === id)!;
+    if (!s) return;
+    if (!spend(g.price)) {
+      toast("Not enough coins", { description: `${g.name} is ${g.price} coins.`, action: { label: "Get coins", onClick: () => setPaywall(true) } });
+      return;
+    }
+    setTray(false);
+    track.gift();
+    toast(`${g.name} for ${c.name}`, { description: `${g.price} coins spent` });
+    send({ gift: id }, id === s.love ? s.loveReply : s.gift(g.name), true);
+  };
 
   const unlock = (id: number) => {
-    if (!spend(PHOTO_PRICE)) return setPaywall(true);
-    setMsgs((all) => all.map((m) => (m.id === id && m.photo ? { ...m, photo: { unlocked: true } } : m)));
+    if (!spend(PHOTO_PRICE)) {
+      toast("Not enough coins", { description: `A private photo is ${PHOTO_PRICE} coins.`, action: { label: "Get coins", onClick: () => setPaywall(true) } });
+      return;
+    }
+    setConvo(c.id, (v) => ({ msgs: v.msgs.map((m) => (m.id === id ? { ...m, unlocked: true } : m)) }));
+    track.unlock();
+    toast("Photo unlocked", { description: `${PHOTO_PRICE} coins spent` });
   };
 
+  const toggleHeart = (id: number) => setConvo(c.id, (v) => ({ msgs: v.msgs.map((m) => (m.id === id ? { ...m, heart: !m.heart } : m)) }));
+
+  const options = !busy && s ? s.turns[turn] : undefined;
   const lastMine = msgs.findLast((m) => m.from === "me")?.id;
-  const seen = msgs.filter((m) => m.photo && (m.photo.unlocked || premium));
+  const statusLine =
+    status === "typing" ? "typing…" : status === "recording" ? "recording a voice note…" : status === "photo" ? "sending a photo…" : online ? "Online" : `Last seen ${s?.lastSeen ?? "recently"}`;
 
   return (
-    <main className="relative flex h-dvh flex-col overflow-hidden">
-      {/* Her, out of focus, filling the room. */}
-      <div className="pointer-events-none absolute inset-0" aria-hidden>
-        <Portrait companion={c} sizes="100vw" className="scale-125 opacity-80 blur-3xl" />
-        <div className="absolute inset-0 bg-linear-to-b from-ink-950/50 via-ink-950/55 to-ink-950/95" />
-      </div>
-
-      <header className="glass relative z-10 flex items-center gap-1 rounded-none border-x-0 border-t-0 px-2 pt-[env(safe-area-inset-top)] backdrop-blur-xl sm:px-4">
-        <Link href="/app/chats" aria-label="Back to chats" className="grid size-11 place-items-center rounded-full text-ivory active:scale-95">
-          <CaretLeft weight="regular" className="size-5" aria-hidden />
-        </Link>
-        <button type="button" onClick={() => setProfile(true)} className="flex min-w-0 flex-1 items-center gap-3 py-2.5 text-left active:opacity-70">
-          <Avatar companion={c} size="sm" />
-          <span className="min-w-0 leading-tight">
-            <span className="block truncate text-[1.0625rem] font-medium tracking-[-0.01em]">{c.name}</span>
-            <span className={`block truncate text-xs transition-colors ${status ? "text-blush" : c.online ? "text-sage" : "text-faint"}`}>
-              {status === "typing" ? "typing…" : status === "recording" ? "recording a voice note…" : c.online ? "online now" : "last seen recently"}
-            </span>
-          </span>
-        </button>
-        <button type="button" onClick={() => setPaywall(true)} className="glass mr-1 inline-flex h-8 items-center gap-1.5 rounded-full pr-3 pl-1.5 text-sm font-medium tabular-nums active:scale-95" aria-label={`${coins} coins. Get more`}>
-          <span className="grid size-5 place-items-center rounded-full bg-linear-to-b from-[#f6e6c4] to-[#a7854c] text-ink-950 shadow-[inset_0_1px_0_#fff8]">
-            <Coins weight="bold" className="size-3" aria-hidden />
-          </span>
-          {coins.toLocaleString()}
-        </button>
-      </header>
-
-      <div className="relative z-10 flex-1 overflow-y-auto overscroll-contain">
-        <div className="mx-auto max-w-2xl px-3 pt-8 pb-4 sm:px-4">
-          {/* Start of the conversation: who she is. */}
-          <div className="rise flex flex-col items-center text-center">
-            <button type="button" onClick={() => setProfile(true)} className="relative aspect-[4/5] w-24 overflow-hidden rounded-[1.25rem] shadow-lift ring-1 ring-white/15 active:scale-[0.97]" aria-label={`View ${c.name}'s profile`}>
-              <Portrait companion={c} sizes="96px" />
+    <main className="fixed inset-0 z-30 flex bg-ink md:top-20">
+      <section className="flex min-w-0 flex-1 flex-col">
+        {/* Header bar */}
+        <header className="bg-ink-2 pt-[env(safe-area-inset-top)]">
+          <div className="mx-auto flex h-16 w-full max-w-[760px] items-center gap-1 px-2 sm:px-4">
+            <Link href="/app/chats" aria-label="Back to chats" className="press grid size-11 shrink-0 place-items-center text-paper hover:bg-ink-3">
+              <CaretLeft size={22} aria-hidden />
+            </Link>
+            <button type="button" onClick={() => setProfile(true)} className="press flex min-w-0 flex-1 items-center gap-3 py-2 pr-2 text-left" aria-label={`${c.name}'s profile`}>
+              <Avatar companion={c} size="sm" showOnline={false} />
+              <span className="min-w-0">
+                <span className="block truncate font-display text-[1.05rem]">{c.name}</span>
+                <span className={cx("mt-1 flex items-center gap-1.5 truncate text-small", status ? "text-rouge" : online ? "text-paper/80" : "text-muted")} aria-live="polite">
+                  {online && !status && <span className="size-1.5 shrink-0 rounded-full bg-live" aria-hidden />}
+                  {statusLine}
+                </span>
+              </span>
             </button>
-            <p className="mt-3 text-xl font-medium tracking-[-0.02em]">
-              {c.name}, {c.age}
-            </p>
-            <p className="text-sm text-muted">
-              {c.city} · {c.sign}
-            </p>
-            <p className="mt-2 max-w-64 text-[0.8125rem] text-balance text-faint">{c.tagline}</p>
+            <Link href="/app/me#coins" className="press inline-flex h-10 items-center gap-2 bg-ink-3 px-3 text-small font-medium tabular hover:bg-ink-4 md:hidden" aria-label={`${coins} coins`}>
+              <Coins size={16} weight="fill" className="text-rouge" aria-hidden />
+              {coins.toLocaleString()}
+            </Link>
+            <button type="button" onClick={() => setProfile(true)} className="press grid size-11 shrink-0 place-items-center text-paper hover:bg-ink-3" aria-label={`About ${c.name}`}>
+              <Info size={22} aria-hidden />
+            </button>
           </div>
+        </header>
 
-          <div role="log" aria-live="polite" aria-label={`Conversation with ${c.name}`} className="mt-6 flex flex-col">
-            {msgs.map((m, i) => {
-              const prev = msgs[i - 1];
-              const next = msgs[i + 1];
-              const newDay = prev?.day !== m.day;
-              const first = newDay || prev.from !== m.from;
-              const last = !next || next.from !== m.from || next.day !== m.day;
-              const her = m.from === "her";
-              const shape = her ? `rounded-bl-md ${first ? "" : "rounded-tl-md"}` : `rounded-br-md ${first ? "" : "rounded-tr-md"}`;
-              return (
-                <div key={m.id} className="contents">
-                  {newDay && <p className="my-4 text-center text-[0.6875rem] font-medium tracking-wide text-faint uppercase">{m.day}</p>}
-                  <div className={`flex items-end gap-2 ${her ? "" : "flex-row-reverse"} ${first ? "mt-3" : "mt-[3px]"} ${m.react ? "mb-4" : ""}`}>
-                    {her && (
-                      <span className="w-7 shrink-0">
-                        {last && (
-                          <span className="relative block size-7 overflow-hidden rounded-full bg-ink-800">
-                            <Portrait companion={c} face />
-                          </span>
-                        )}
-                      </span>
-                    )}
-                    <div className={`relative flex max-w-[78%] min-w-0 flex-col animate-bubble-in ${her ? "items-start" : "items-end [transform-origin:bottom_right]"}`} onDoubleClick={() => react(m.id)}>
-                      {m.photo ? (
-                        <PhotoMsg c={c} m={m} open={m.photo.unlocked || premium} shape={shape} canPay={coins >= PHOTO_PRICE} onUnlock={() => unlock(m.id)} onPaywall={() => setPaywall(true)} />
-                      ) : m.voice ? (
-                        <VoiceNote {...m.voice} shape={shape} />
-                      ) : m.text && isEmoji(m.text) ? (
-                        <p className="text-[2.75rem] leading-none">{m.text}</p>
-                      ) : (
-                        <p
-                          className={`rounded-[1.25rem] px-3.5 py-2 text-[0.9375rem] leading-[1.4] whitespace-pre-line [overflow-wrap:anywhere] ${shape} ${
-                            her ? "glass text-ivory" : "bg-linear-to-b from-blush-hi to-blush text-ink-950 shadow-[inset_0_1px_0_rgb(255_255_255/0.6),0_8px_24px_-12px_rgb(0_0_0/0.8)]"
-                          }`}
-                        >
-                          {m.text}
+        {/* Messages */}
+        <div className="relative min-h-0 flex-1">
+          <div ref={list} onScroll={onScroll} className="h-full overflow-y-auto overscroll-contain">
+            <div className="mx-auto w-full max-w-[760px] px-3 pt-8 pb-5 sm:px-5">
+              <Intro c={c} onOpen={() => setProfile(true)} />
+              <div role="log" aria-label={`Conversation with ${c.name}`} className="flex flex-col">
+                {msgs.map((m, i) => {
+                  const prev = msgs[i - 1];
+                  const next = msgs[i + 1];
+                  const newDay = prev?.day !== m.day;
+                  const her = m.from === "her";
+                  const firstOfRun = newDay || prev.from !== m.from;
+                  const tail = !next || next.from !== m.from || next.day !== m.day;
+                  return (
+                    <div key={m.id} className="contents">
+                      {newDay && <p className="my-6 text-center text-small text-faint">{m.day}</p>}
+                      <Row her={her} first={firstOfRun} heart={m.heart} onHeart={her ? () => toggleHeart(m.id) : undefined} animate={m.day === "Today" && m.id >= convoStart(c.id)}>
+                        <Content m={m} c={c} her={her} tail={tail} premium={premium} onUnlock={() => unlock(m.id)} onOpen={setViewer} />
+                      </Row>
+                      {tail && (
+                        <p className={cx("mt-1.5 text-small text-faint tabular", her ? "" : "text-right")}>
+                          {m.time}
+                          {m.id === lastMine && (m.id <= readUpTo ? ` · Read ${readAt}` : " · Delivered")}
                         </p>
                       )}
-                      {m.react && (
-                        <span className={`absolute -bottom-3.5 grid h-6 min-w-6 place-items-center rounded-full bg-ink-700 px-1 text-xs shadow-glow ring-2 ring-ink-950 animate-bubble-in ${her ? "left-2" : "right-2"}`} aria-label={`Reacted ${m.react}`}>
-                          {m.react}
-                        </span>
-                      )}
                     </div>
-                  </div>
-                  {last && (
-                    <p className={`mt-1 flex items-center gap-1 text-[0.6875rem] text-faint tabular-nums ${her ? "pl-9" : "justify-end pr-1"} ${m.react ? "mt-2" : ""}`}>
-                      {m.time}
-                      {m.id === lastMine && (
-                        <>
-                          {" · "}
-                          {m.id <= readUpTo ? (
-                            <span className="inline-flex items-center gap-0.5 text-blush">
-                              <Checks weight="bold" className="size-3" aria-hidden /> Read
-                            </span>
-                          ) : (
-                            "Delivered"
-                          )}
-                        </>
-                      )}
-                    </p>
-                  )}
-                </div>
-              );
-            })}
-
-            {status && (
-              <div className="mt-3 flex items-end gap-2 animate-bubble-in" aria-label={status === "typing" ? `${c.name} is typing` : `${c.name} is recording a voice note`}>
-                <span className="relative block size-7 shrink-0 overflow-hidden rounded-full bg-ink-800">
-                  <Portrait companion={c} face />
-                </span>
-                {status === "typing" ? (
-                  <span className="glass flex h-9 items-center gap-1 rounded-[1.25rem] rounded-bl-md px-3.5">
-                    {[0, 1, 2].map((i) => (
-                      <span key={i} className="size-1.5 rounded-full bg-ivory/80 motion-safe:animate-[breathe_1.2s_ease-in-out_infinite]" style={{ animationDelay: `${i * 0.16}s` }} />
+                  );
+                })}
+                {status && (
+                  <div
+                    className="animate-bubble-in mt-4 flex h-11 w-16 items-center justify-center gap-1.5 self-start rounded-[1.25rem] rounded-bl-[0.3125rem] bg-ink-4"
+                    aria-label={`${c.name} is ${statusLine}`}
+                  >
+                    {[0, 1, 2].map((d) => (
+                      <span key={d} className="size-1.5 rounded-full bg-paper/80 motion-safe:animate-[breathe_1.4s_ease-in-out_infinite]" style={{ animationDelay: `${d * 0.18}s` }} />
                     ))}
-                  </span>
-                ) : (
-                  <span className="glass flex h-9 items-center gap-2 rounded-[1.25rem] rounded-bl-md px-3.5 text-[0.8125rem] text-muted">
-                    <span className="size-2 rounded-full bg-rose motion-safe:animate-[breathe_1s_ease-in-out_infinite]" />
-                    <Microphone weight="fill" className="size-3.5 text-ivory" aria-hidden />
-                    recording…
-                  </span>
+                  </div>
                 )}
               </div>
+            </div>
+          </div>
+          {pill && (
+            <button
+              type="button"
+              onClick={jump}
+              className="press animate-bubble-in absolute bottom-4 left-1/2 inline-flex h-10 -translate-x-1/2 items-center gap-2 bg-paper px-4 text-small font-medium text-ink shadow-[var(--shadow-float)]"
+            >
+              <ArrowDown size={16} weight="bold" aria-hidden />
+              New message
+            </button>
+          )}
+        </div>
+
+        {/* Composer */}
+        <div className="bg-ink-2 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+          <div className="mx-auto w-full max-w-[760px]">
+            {options && !tray && (
+              <div className="flex gap-2 overflow-x-auto overscroll-x-contain px-3 pt-3 [scrollbar-width:none] sm:px-5 md:flex-wrap" aria-label="Quick replies">
+                {options.map((o, i) => (
+                  <button
+                    key={`${turn}-${o.say}`}
+                    type="button"
+                    onClick={() => pick(o)}
+                    style={{ animationDelay: `${i * 60}ms` }}
+                    className="press animate-bubble-in h-10 shrink-0 bg-ink-4 px-4 text-small text-paper hover:bg-ink-5"
+                  >
+                    {o.say}
+                  </button>
+                ))}
+              </div>
             )}
-            <div ref={end} className="h-px" />
+            <div className={cx("grid transition-[grid-template-rows] duration-300 ease-[var(--ease-out)]", tray ? "grid-rows-[1fr]" : "grid-rows-[0fr]")}>
+              <div className="min-h-0 overflow-hidden" inert={!tray}>
+                <div className="px-3 pt-4 sm:px-5">
+                  <div className="flex items-baseline justify-between gap-4">
+                    <p className="text-body font-medium">Send {c.name} a gift</p>
+                    <button type="button" onClick={() => setPaywall(true)} className="press text-small text-muted tabular hover:text-paper">
+                      {coins.toLocaleString()} coins · Top up
+                    </button>
+                  </div>
+                  <div className="mt-3 grid grid-cols-4 gap-2 sm:grid-cols-7">
+                    {gifts.map((g) => {
+                      const Icon = giftIcon[g.id];
+                      return (
+                        <button key={g.id} type="button" onClick={() => sendGift(g.id)} className="press flex flex-col items-center gap-1.5 bg-ink-3 px-1 pt-3.5 pb-2.5 hover:bg-ink-4" aria-label={`${g.name}, ${g.price} coins`}>
+                          <Icon size={26} weight="light" aria-hidden />
+                          <span className="line-clamp-1 text-small leading-tight">{g.label}</span>
+                          <span className="inline-flex items-center gap-1 text-small text-faint tabular">
+                            <Coins size={12} weight="fill" className="text-rouge" aria-hidden />
+                            {g.price}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+            </div>
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                sendText(draft);
+              }}
+              className="flex items-center gap-2 px-3 pt-3 sm:px-5"
+            >
+              <IconButton label={tray ? "Close gifts" : "Send a gift"} pressed={tray} onClick={() => setTray(!tray)}>
+                {tray ? <X size={20} aria-hidden /> : <Gift size={22} aria-hidden />}
+              </IconButton>
+              <IconButton label="Ask for a photo" onClick={() => sendText("Send me a photo?")} disabled={busy}>
+                <Camera size={22} aria-hidden />
+              </IconButton>
+              <input
+                ref={input}
+                value={draft}
+                onChange={(e) => setDraft(e.target.value)}
+                onFocus={() => setTray(false)}
+                placeholder={`Message ${c.name}`}
+                enterKeyHint="send"
+                autoComplete="off"
+                aria-label={`Message ${c.name}`}
+                className="h-12 min-w-0 flex-1 bg-ink-3 px-4 text-base text-paper placeholder:text-faint focus:bg-ink-4 focus:ring-2 focus:ring-rouge focus:outline-none"
+              />
+              <button type="submit" disabled={!draft.trim()} aria-label="Send" className="press grid size-12 shrink-0 place-items-center bg-rouge text-ink hover:bg-rouge-hi disabled:bg-ink-3 disabled:text-faint">
+                <ArrowUp size={20} weight="bold" aria-hidden />
+              </button>
+            </form>
           </div>
         </div>
-      </div>
+      </section>
 
-      <div className="glass relative z-10 rounded-none border-x-0 border-b-0 pb-[max(0.625rem,env(safe-area-inset-bottom))]">
-        {chips.length > 0 && (
-          <div className="mx-auto flex max-w-2xl gap-2 overflow-x-auto px-3 pt-2.5 [scrollbar-width:none]">
-            {chips.map((q, i) => (
-              <Chip key={q} onClick={() => send(q)} className="h-8 animate-bubble-in text-[0.8125rem]" style={{ animationDelay: `${i * 50}ms` }}>
-                {q}
-              </Chip>
-            ))}
+      {/* Desktop: her, large, beside the conversation. */}
+      <aside className="relative hidden w-[min(36vw,560px)] shrink-0 bg-ink-2 xl:block">
+        <Portrait companion={c} sizes="560px" priority />
+        <div className="scrim-b absolute inset-x-0 bottom-0 h-2/3" />
+        <div className="absolute inset-x-0 bottom-0 p-8">
+          <p className="font-display text-[clamp(3rem,4.6vw,5rem)]">{c.name}</p>
+          <p className="mt-3 text-lead text-paper/85 tabular">
+            {c.age} · {c.city} · {c.sign}
+          </p>
+          <p className="mt-3 max-w-[34ch] text-body text-paper/70">{bios[c.id] ?? c.tagline}</p>
+          <div className="mt-6 flex gap-2">
+            <ButtonLink href={`/app/${c.id}`} variant="paper">
+              View profile
+            </ButtonLink>
+            <SaveButton id={c.id} name={c.name} label />
           </div>
-        )}
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            send(draft || "❤️");
-          }}
-          className="mx-auto flex max-w-2xl items-end gap-2 px-3 pt-2.5"
-        >
-          <button type="button" onClick={() => send("Send me a photo 📸")} aria-label="Ask for a photo" className="glass grid size-11 shrink-0 place-items-center rounded-full text-ivory active:scale-90">
-            <Camera weight="regular" className="size-5" aria-hidden />
-          </button>
-          <label htmlFor="msg" className="sr-only">
-            Message {c.name}
-          </label>
-          <textarea
-            id="msg"
-            rows={1}
-            value={draft}
-            onChange={(e) => setDraft(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) {
-                e.preventDefault();
-                if (draft.trim()) send(draft);
-              }
-            }}
-            placeholder={`Message ${c.name}…`}
-            autoComplete="off"
-            enterKeyHint="send"
-            maxLength={1000}
-            className="max-h-32 min-h-11 min-w-0 flex-1 resize-none rounded-[1.375rem] border border-white/10 bg-black/30 px-4 py-[0.625rem] text-base leading-[1.375rem] text-ivory shadow-[inset_0_1px_2px_rgb(0_0_0/0.5)] transition-[border-color] [field-sizing:content] placeholder:text-faint focus:border-white/30 focus:outline-none"
-          />
-          {/* Empty composer sends a heart; with text it becomes send. */}
-          <button type="submit" aria-label={draft.trim() ? "Send" : "Send a heart"} className="pearl chrome relative grid size-11 shrink-0 place-items-center rounded-full transition-transform duration-150 active:scale-90">
-            <ArrowUp weight="bold" className={`absolute size-5 transition-[opacity,transform] duration-200 ${draft.trim() ? "scale-100 opacity-100" : "scale-50 opacity-0"}`} aria-hidden />
-            <Heart weight="fill" className={`absolute size-5 text-blush-lo transition-[opacity,transform] duration-200 ${draft.trim() ? "scale-50 opacity-0" : "scale-100 opacity-100"}`} aria-hidden />
-          </button>
-        </form>
-      </div>
+        </div>
+      </aside>
 
-      <Paywall open={paywall} onClose={() => setPaywall(false)} reason={`Unlock everything ${c.name} sends you.`} />
-
-      <Sheet open={profile} onClose={() => setProfile(false)} title={`About ${c.name}`}>
-        <div className="flex items-center gap-4">
-          <Avatar companion={c} size="lg" />
-          <div>
-            <p className="font-display text-3xl leading-none">{c.name}</p>
-            <p className="mt-1 text-sm text-muted">
-              {c.age} · {c.city}
+      <Sheet open={profile} onClose={() => setProfile(false)} title={c.name}>
+        <div className="relative aspect-[4/5] w-full overflow-hidden bg-ink-3">
+          <Portrait companion={c} sizes="512px" />
+          <div className="scrim-b absolute inset-x-0 bottom-0 h-1/2" />
+          <div className="absolute inset-x-0 bottom-0 p-5">
+            <p className="font-display text-[clamp(2.25rem,10vw,3.25rem)]">{c.name}</p>
+            <p className="mt-2 text-body text-paper/85 tabular">
+              {c.age} · {c.city} · {c.sign}
             </p>
           </div>
         </div>
-        <p className="mt-5 leading-relaxed text-ivory">{bios[c.id]}</p>
-        <div className="mt-5 flex flex-wrap gap-2">
-          {c.traits.map((t) => (
-            <Chip key={t}>{t}</Chip>
-          ))}
-        </div>
-        <p className="mt-6 text-sm font-medium text-muted">Photos she&apos;s sent</p>
-        <div className="mt-3 grid grid-cols-3 gap-1.5 overflow-hidden rounded-card">
-          {seen.length ? (
-            seen.map((m) => (
-              <div key={m.id} className="relative aspect-[4/5] overflow-hidden">
-                <Portrait companion={c} src={c.gallery[m.id % 2 ? 0 : 1]} sizes="160px" className={CROPS[m.id % CROPS.length]} />
-              </div>
-            ))
-          ) : (
-            <p className="col-span-3 rounded-2xl border border-line bg-white/[0.03] p-4 text-sm text-muted">Nothing yet. Ask her for one.</p>
-          )}
-        </div>
-        <div className="mt-8 flex gap-2">
-          <ButtonLink size="lg" variant="secondary" className="flex-1" href={`/app/${c.id}`}>
-            Full profile
+        <p className="mt-5 text-body">{bios[c.id] ?? c.tagline}</p>
+        <Tags tags={c.tags.map((t) => `#${t}`)} max={4} className="mt-4" />
+        <div className="mt-6 grid grid-cols-[1fr_auto] gap-2">
+          <ButtonLink href={`/app/${c.id}`} variant="paper" size="lg">
+            View profile
           </ButtonLink>
-          <Button size="lg" className="flex-1" onClick={() => setProfile(false)}>
-            Keep talking
-          </Button>
+          <SaveButton id={c.id} name={c.name} label />
         </div>
       </Sheet>
+      <Paywall open={paywall} onClose={() => setPaywall(false)} reason={`Coins unlock ${c.name}'s private photos and gifts. Premium opens every photo.`} />
+      {viewer && <Viewer src={viewer} name={c.name} onClose={() => setViewer(null)} />}
     </main>
   );
 }
 
-function PhotoMsg({ c, m, open, shape, canPay, onUnlock, onPaywall }: { c: Companion; m: Msg; open: boolean; shape: string; canPay: boolean; onUnlock: () => void; onPaywall: () => void }) {
+/** Messages seeded from the script appear still; only new ones animate in. */
+const convoStart = (id: string) => scripts[id]?.history.reduce((n, d) => n + d.lines.length, 0) ?? 0;
+
+function Intro({ c, onOpen }: { c: Companion; onOpen: () => void }) {
   return (
-    <figure className={`relative aspect-[4/5] w-52 overflow-hidden rounded-[1.25rem] shadow-lift ring-1 ring-white/15 ${shape}`}>
-      <Portrait companion={c} src={c.gallery[m.id % 2 ? 0 : 1]} sizes="208px" className={`${CROPS[m.id % CROPS.length]} ${open ? "animate-develop" : "blur-xl brightness-[1.3] saturate-150"}`} />
-      {!open && (
-        <figcaption className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-ink-950/30 p-3 text-center">
-          <span className="glass grid size-11 place-items-center rounded-full">
-            <LockSimple weight="fill" className="size-[1.125rem] text-ivory" aria-hidden />
-          </span>
-          <Button onClick={canPay ? onUnlock : onPaywall} className="h-9 px-4 text-sm">
-            {canPay ? `Unlock · ${PHOTO_PRICE} coins` : "Get coins"}
-          </Button>
-          <button type="button" onClick={onPaywall} className="text-xs font-medium text-ivory drop-shadow underline-offset-4 hover:underline">
-            Free with Premium
-          </button>
-        </figcaption>
-      )}
-    </figure>
+    <div className="mb-2 flex items-center gap-4">
+      <button type="button" onClick={onOpen} className="press relative aspect-[4/5] w-20 shrink-0 overflow-hidden bg-ink-3" aria-label={`View ${c.name}'s profile`}>
+        <Portrait companion={c} sizes="80px" />
+      </button>
+      <div className="min-w-0">
+        <p className="font-display text-lead">{c.name}</p>
+        <p className="mt-1.5 text-body text-paper/80 tabular">
+          {c.age} · {c.city}
+        </p>
+        <p className="mt-0.5 text-small text-muted">Private conversation. Only you can see it.</p>
+      </div>
+    </div>
   );
 }
 
-/** A voice note from her. No audio in the demo: playing it reveals the transcript word by word. */
-function VoiceNote({ text, secs, shape }: { text: string; secs: number; shape: string }) {
-  const [t, setT] = useState(0);
-  const [on, setOn] = useState(false);
-  useEffect(() => {
-    if (!on) return;
-    const id = setInterval(
-      () =>
-        setT((x) => {
-          const n = Math.min(x + 0.1, secs);
-          if (n >= secs) setOn(false);
-          return n;
-        }),
-      100,
-    );
-    return () => clearInterval(id);
-  }, [on, secs]);
-
-  const words = text.split(" ");
-  const shown = Math.ceil((words.length * t) / secs);
-  const bars = Array.from({ length: 30 }, (_, i) => 0.25 + 0.75 * Math.abs(Math.sin(i * 1.7 + text.length) * Math.cos(i * 0.6)));
-  const left = Math.ceil(on ? secs - t : secs);
-
+/** One bubble row. Double-tap or long-press her bubble to heart it. */
+function Row({ her, first, heart, onHeart, animate, children }: { her: boolean; first: boolean; heart?: boolean; onHeart?: () => void; animate: boolean; children: ReactNode }) {
+  const lastTap = useRef(0);
+  const press = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const fired = useRef(false);
+  const cancel = () => clearTimeout(press.current);
+  const handlers = onHeart && {
+    onPointerDown: (e: React.PointerEvent) => {
+      if ((e.target as HTMLElement).closest("button")) return;
+      fired.current = false;
+      press.current = setTimeout(() => {
+        fired.current = true;
+        navigator.vibrate?.(8);
+        onHeart();
+      }, 480);
+    },
+    onPointerUp: (e: React.PointerEvent) => {
+      cancel();
+      if (fired.current || (e.target as HTMLElement).closest("button")) return;
+      const now = e.timeStamp;
+      if (now - lastTap.current < 320) {
+        lastTap.current = 0;
+        onHeart();
+      } else lastTap.current = now;
+    },
+    onPointerLeave: cancel,
+    onPointerCancel: cancel,
+    onContextMenu: (e: React.MouseEvent) => e.preventDefault(),
+  };
   return (
-    <div className={`glass w-60 rounded-[1.25rem] px-2.5 py-2 ${shape}`}>
-      <div className="flex items-center gap-2.5">
-        <button
-          type="button"
-          onClick={() => {
-            if (t >= secs) setT(0);
-            setOn(!on);
-          }}
-          aria-label={on ? "Pause voice note" : "Play voice note"}
-          className="pearl grid size-9 shrink-0 place-items-center rounded-full active:scale-90"
-        >
-          {on ? <Pause weight="fill" className="size-4" aria-hidden /> : <Play weight="fill" className="size-4 translate-x-px" aria-hidden />}
-        </button>
-        <span className="flex h-8 flex-1 items-center gap-[2px]" aria-hidden>
-          {bars.map((b, i) => (
-            <span key={i} className={`w-[3px] rounded-full transition-colors duration-100 ${i / bars.length < t / secs ? "bg-blush" : "bg-ivory/35"}`} style={{ height: `${b * 100}%` }} />
-          ))}
-        </span>
-        <span className="w-8 text-right text-[0.6875rem] text-muted tabular-nums">0:{String(left).padStart(2, "0")}</span>
+    <div className={cx("flex", her ? "justify-start" : "justify-end", first ? "mt-4" : "mt-1", heart && "mb-3")}>
+      <div
+        {...handlers}
+        className={cx("relative max-w-[min(80%,34rem)] min-w-0 select-none [-webkit-touch-callout:none]", animate && "animate-bubble-in", !her && "[transform-origin:bottom_right]")}
+      >
+        {children}
+        {heart && (
+          <span
+            className={cx("animate-bubble-in absolute -bottom-3 grid size-6 place-items-center rounded-full bg-ink-5 text-rouge ring-2 ring-ink", her ? "right-2" : "left-2")}
+            aria-label={her ? "You loved this" : "She loved this"}
+          >
+            <Heart size={12} weight="fill" aria-hidden />
+          </span>
+        )}
       </div>
-      {t > 0 && (
-        <p className="mt-1.5 px-1 pb-0.5 text-[0.8125rem] leading-snug text-ivory/90">
-          {words.slice(0, shown).join(" ")}
-          {shown < words.length && <span className="text-faint"> …</span>}
-        </p>
-      )}
+    </div>
+  );
+}
+
+function Content({ m, c, her, tail, premium, onUnlock, onOpen }: { m: Msg; c: Companion; her: boolean; tail: boolean; premium: boolean; onUnlock: () => void; onOpen: (src: string) => void }) {
+  const b = m.beat;
+  if (typeof b === "string") return <TextBubble her={her} tail={tail} text={b} />;
+  if ("gift" in b) return <GiftBubble id={b.gift} tail={tail} name={c.name} />;
+  if ("voice" in b) return <VoiceNote her={her} tail={tail} transcript={b.voice} secs={b.secs} />;
+  const src = photoSrc(c, b.photo) ?? "";
+  return <PhotoBubble src={src} her={her} tail={tail} locked={!m.unlocked && !premium} name={c.name} onUnlock={onUnlock} onOpen={() => onOpen(src)} />;
+}
+
+function IconButton({ label, pressed, onClick, disabled, children }: { label: string; pressed?: boolean; onClick: () => void; disabled?: boolean; children: ReactNode }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      aria-label={label}
+      aria-pressed={pressed}
+      className={cx("press grid size-12 shrink-0 place-items-center disabled:opacity-40", pressed ? "bg-paper text-ink" : "bg-ink-3 text-paper hover:bg-ink-4")}
+    >
+      {children}
+    </button>
+  );
+}
+
+function Viewer({ src, name, onClose }: { src: string; name: string; onClose: () => void }) {
+  useEffect(() => {
+    const k = (e: KeyboardEvent) => e.key === "Escape" && onClose();
+    document.addEventListener("keydown", k);
+    return () => document.removeEventListener("keydown", k);
+  }, [onClose]);
+  return (
+    <div role="dialog" aria-modal="true" aria-label={`Photo from ${name}`} className="animate-bubble-in fixed inset-0 z-50 bg-ink/95" onClick={onClose}>
+      <Image src={src} alt={`Photo from ${name}`} fill sizes="100vw" className="object-contain" />
+      <button type="button" onClick={onClose} autoFocus className="press absolute top-[max(1rem,env(safe-area-inset-top))] right-4 grid size-11 place-items-center bg-ink-3 text-paper" aria-label="Close photo">
+        <X size={20} aria-hidden />
+      </button>
     </div>
   );
 }

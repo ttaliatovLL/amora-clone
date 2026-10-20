@@ -1,55 +1,51 @@
-# Design: Graphite
+# Design: Night Agency
 
-A dark glass room at night. Source of truth for values: `src/app/globals.css` (`@theme`). Live reference: `/system`.
+Amora is dressed as a **model agency after dark**. The borrowed category is the agency: its board of big portraits,
+its comp cards (one large photograph, the name set wide, the facts in one line), its blunt confidence. The subject
+stays intimate and private: black room, one rouge light. Source of truth for values: `src/app/globals.css` (`@theme`).
 
-## World
-Neutral cool blacks, one soft overhead light and a faint blush bounce. Interface chrome is liquid glass; the one action surface is pearl; polished steel hairlines mark what matters; blush is reserved for her (emphasis, her side of the room, my message bubble). Gold survives only as a white-gold rim (`gilt`) on Premium and its purchase button, and as the small coin badge.
+Idea sentence: *On Amora, the model agency's comp card becomes the companion card, and the agency board becomes Discover.*
 
-## Colour roles
+## House rules (from the owner's taste skill; non-negotiable)
+- Square corners on everything: media, cards, buttons, inputs, sheets, toasts. Exceptions: chat bubbles (radius 20px, one 5px tail corner), round live dots, the liquid-glass dock (pill).
+- No eyebrows (small label above a heading), no tiny uppercase letter-spaced labels, no monospace, no 01/02/03 numbering.
+- No thin rules / hairline borders / 1px outlined boxes. Separate surfaces by a tone step (`ink` → `ink-2` → `ink-3` → `ink-4` → `ink-5`) or space. Form fields may use a focus ring.
+- No gradients except: the `scrim-b`/`scrim-t` neutral scrim under text on photos, and the Silk shader (landing). No glass except the dock (`LiquidGlass`). No glows; shadows (`shadow-[var(--shadow-float)]`) only on things that truly float (dock, sheets, toasts, menus).
+- No emoji. No styled accent word in headlines (no `<em>` greying, no italics, no colour). One face per job.
+- Headlines two lines or fewer at every width. Body text 16px+ in full `paper` ink; `muted` for secondary only.
+- Left-aligned by default.
+
+## Colour
 | Token | Use |
 |---|---|
-| `ink-950…600` | grounds and raised surfaces (neutral graphite) |
-| `ivory` / `muted` / `faint` | text: primary / secondary / fine print (≥4.5:1 on ink-800 and darker) |
-| `blush` (+`-hi`, `-lo`) | her accents, focus ring, caret, my bubbles, "New" |
-| `gold` | Premium crown and `gilt` rim only |
-| `wine` | destructive hover wash |
-| `rose` | destructive and warning text |
-| `sage` | online, switches on |
+| `ink` #0a0a0a | page ground |
+| `ink-2…ink-5` | raised surfaces, each one tone step up |
+| `paper` #f3f0eb | text; the light "field" for a whole module (e.g. pricing ticket, comp card back) with `ink` text on it; secondary button |
+| `muted` / `faint` | secondary text / fine print |
+| `rouge` #ff5a6e (+`-hi`, `-lo`) | the ONE accent: primary action fill (ink text on it), focus ring, unread, saved, "New". On paper use `rouge-lo` for text. |
+| `oxblood` | deep wine field, rare (destructive wash, silk) |
+| `live` | online dot only |
 
-## Surfaces (utilities)
-- `room`: page atmosphere. `panel`: raised panel with its own top light.
-- `glass`: liquid glass. Dark tint + white gradient, 24px blur at 180% saturation, bright top edge, dim bottom edge, soft drop. Bars, tab bar, chips, bubbles from her, captions over photos.
-- `pearl`: lit white pill, the primary action. Always paired with `chrome` (steel rim) or `gilt` (Premium).
-- `chrome` / `gilt`: 1px metal rims via masked gradient on `::after`. Don't combine with `grain` on the same element.
-- `sheen`: one slow specular pass, membership surfaces only. `grain` (4.5%), `vignette`, `live-dot` (breathing online light), `fade-r` (tag rows).
+## Type (5 sizes: `text-small`, `text-body`, `text-lead`, `text-head`, `text-mega`)
+- Display: **Panchang** 700, class `font-display` (uppercase, tracking −0.02em, leading 1). A very wide face: ≤ 4 short words per line. Names on cards are display.
+- Text: **Switzer** 400/500/600 (default `font-sans`). `tabular` class for numbers.
 
-## Type
-- **General Sans** only (self-hosted WOFF2, ITF Free Font License). Display: 500, tracking −0.035 to −0.045em, leading 0.9–0.95. The second half of a headline steps back to `muted` via `<em>` (no italics, no serif).
-- No eyebrow labels.
-
-## Logo
-`Wordmark` in `components/ui.tsx`: a monoline lowercase "amora" drawn from circles, stems and arches on a 20-unit x-height, plus the `Glyph`: two linked steel rings (left ring passes over at the bottom crossing). App icon: same rings on graphite (`public/icon.svg`, PNGs rendered from it).
-
-## Icons
-Phosphor `regular` throughout, `fill` for the active tab and small status marks, `bold` inside pearl buttons. No duotone.
-
-## Imagery
-`Portrait` renders `public/companions/<id>.jpg` (4:5 hero) or a gallery shot via `src` (`<id>-2.jpg`, listed in `companion.gallery`). Editorial fashion grade: graphite shadows, true skin. Locked media: `blur-xl brightness-[1.3]` under a glass lock, unlocks with `animate-develop`.
-
-## Companion card
-Photo, top/bottom grade, glass "Online" pill with breathing dot, steel-rimmed "New", name + age (age never splits), city · sign, compact photo count, 3 hashtags fading at the edge. Every 7th card in Discover is a 2-column landscape feature with her tagline.
+## Components (src/components)
+- `ui.tsx`: `Button`/`ButtonLink` (variants `primary` rouge, `paper`, `secondary` ink-4, `ghost`; sizes sm/md/lg), `Chip`, `Tags`, `OnlinePill`, `Avatar` (square), `CompanionCard` (the comp card: `size="large" | "tile"`, `wide`, `morph`, `save`; hover crossfades to her second photo), `Field`, `Bubble`, `Typing`, `Wordmark` (static), `Glyph`, `cx`.
+- `save-button.tsx` `SaveButton` (save to board; `label` for a text button). `lib/progress.ts`: `toggleSaved`, `track.*`, `useProgress`. Achievements in `lib/achievements.ts`; earning one fires a toast automatically.
+- `toaster.tsx` (sonner, styled). Use `import { toast } from "sonner"` anywhere: `toast("Photo unlocked")`, `toast("…", { action: { label, onClick } })`.
+- `cookie-banner.tsx`: consent (essential default). `openCookieSettings()` reopens it.
+- `liquid-glass.tsx` `LiquidGlass` (real refraction in Chromium, blur elsewhere). Use only for the dock and at most one floating control per screen.
+- `liquid-logo/` `LiquidWordmark` (WebGL liquid-metal "AMORA"). Use on the landing hero and the age gate only.
+- `silk.tsx` `Silk` (shadergradient, dark wine silk). Landing atmosphere and the paywall only.
+- `portrait.tsx` `Portrait` (4:5 photo, `src` for gallery shot, `face` for avatar crop), `sheet.tsx` `Sheet`, `paywall.tsx`.
 
 ## Motion
-- Press: scale 0.96–0.98, 150ms. Hover (pointer devices only): photo scale 1.045 over 900ms expo-out.
-- Tab bar and desktop rail: a glass lens glides between tabs (Motion `layoutId`, spring 0.45s / bounce 0.18).
-- Route morph: the tapped card's portrait becomes the profile hero (`<ViewTransition name="portrait-<id>" share="morph">`, 450ms drawer curve with a mid-flight blur).
-- Scroll-driven (CSS `animation-timeline`, off the main thread, visible by default): `reveal` (rise + unblur on entry), `condense` (bars go from clear to glass), `drift` / `drift-out` (profile hero parallax), `rail-focus` (landing rail cards scale toward the centre).
-- `rise`: one staggered settle on load (`--i` for order). Sheets: spring 0.5s, drag from the handle.
-- Reduced motion: movement dropped, state changes kept; bars still condense.
+- Press: `press` utility (scale .97, 160ms). Hover only on fine pointers.
+- `rise` (staggered settle on load, `--i`), `reveal` (scroll-driven entry), `animate-bubble-in`, `animate-develop` (unlock), `live-dot`.
+- Signature: the slow crossfade (card hover → second photo; profile hero cycles portrait/gallery).
+- Route morph portrait → profile hero via `<ViewTransition name="portrait-<id>" share="morph">`.
+- Reduced motion: movement dropped, state kept.
 
-## Platform rules
-- Controls: `touch-action: manipulation`, no label selection on long-press; content stays selectable.
-- Root `overscroll-behavior: none`; inner scrollers use `overscroll-contain`.
-- Sheets portal to `<body>`. SVG gradient ids are per instance (`useId`).
-- Names wrap (cards clamp to 2 lines, break at hyphens), previews truncate, counts compact (`1.3K`), button labels never wrap.
-- The age gate makes everything behind it `inert` until confirmed.
+## Platform
+Mobile-first PWA; one hand, at night. Root `overscroll-behavior: none`; inner scrollers `overscroll-contain`. Dock clears content (`pb-28` in the app layout). Age gate makes everything behind it inert.

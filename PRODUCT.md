@@ -27,7 +27,7 @@ Age gate on entry. Discover companions → chat → media unlocks. Money: one Pr
 - Backend (auth, AI chat, payments) is mocked until the UI shell is approved.
 
 ## Brand Commitments
-Name "Amora". Custom monoline lowercase wordmark plus a linked-rings steel glyph (user decision, 2026-10-19). Graphite + chrome palette: liquid glass, pearl primary action with metal rims, blush accent; gold only as a rim on Premium (user decision, 2026-10-19). Companion imagery is editorial-sensual fashion, no nudity (user decision, 2026-10-19).
+Name "Amora". Night Agency look (2026-10-20, replaces Graphite after the owner rejected the Apple-style direction): Amora dressed as a model agency after dark — black room, big square portraits, Panchang wide capitals for names, Switzer text, one rouge accent; liquid-metal wordmark, shadergradient silk on the landing, liquid-glass dock (owner-requested libraries). Wide "A." mark as app icon. Companion imagery is editorial-sensual fashion, no nudity (user decision, 2026-10-19).
 
 ## Evidence on Hand
 Screenshots of the current site in `reference/screenshots/`. Companion names, taglines and traits come from the current site. Testimonials, member counts and press must not be invented.

@@ -1,41 +1,46 @@
 @import "tailwindcss";
 
-/* Graphite: a dark glass room at night. Neutral cool blacks, liquid glass for chrome, pearl for action,
-   polished steel hairlines on what matters, warm blush only where she is. Gold is a rim, never a fill. */
+/* Night agency. Amora is dressed as a model agency after dark: a black room, big square portraits,
+   names set wide like an agency board, one rouge accent on the action. Square corners everywhere;
+   the only glass is the floating dock, the only gradient the silk behind the landing and the scrim under text on photos. */
 @theme {
-  --color-ink-950: #070708;
-  --color-ink-900: #0c0c0e;
-  --color-ink-850: #111114;
-  --color-ink-800: #17171b;
-  --color-ink-700: #222227;
-  --color-ink-600: #313138;
+  --color-ink: #0a0a0a;
+  --color-ink-2: #121212;
+  --color-ink-3: #1a1a1a;
+  --color-ink-4: #242424;
+  --color-ink-5: #303030;
+  --color-paper: #f3f0eb;
+  --color-paper-2: #e4dfd7;
+  --color-muted: #a39e98;
+  --color-faint: #8a857f;
+  --color-rouge: #ff5a6e;
+  --color-rouge-hi: #ff8292;
+  --color-rouge-lo: #b3233b;
+  --color-oxblood: #3a0a14;
+  --color-live: #7be0a1;
 
-  --color-ivory: #f4f2ef;
-  --color-muted: #a6a4a9;
-  --color-faint: #8a888f;
 
-  --color-blush: #f1c6ba;
-  --color-blush-hi: #fbe4dd;
-  --color-blush-lo: #c99083;
-  --color-wine: #4a1c26;
-  --color-gold: #d8b77c;
-  --color-rose: #ff8e9b;
-  --color-sage: #6fe39a;
+  --font-display: var(--font-panchang), "Arial Black", sans-serif;
+  --font-sans: var(--font-switzer), system-ui, sans-serif;
 
-  --color-line: rgb(255 255 255 / 0.07);
-  --color-line-strong: rgb(255 255 255 / 0.14);
+  /* Five sizes do all the work. */
+  --text-small: clamp(0.8125rem, 0.79rem + 0.1vw, 0.875rem);
+  --text-small--line-height: 1.4;
+  --text-body: clamp(1rem, 0.97rem + 0.15vw, 1.0625rem);
+  --text-body--line-height: 1.5;
+  --text-lead: clamp(1.25rem, 1.1rem + 0.7vw, 1.625rem);
+  --text-lead--line-height: 1.3;
+  --text-head: clamp(1.75rem, 1.2rem + 2.6vw, 3.5rem);
+  --text-head--line-height: 1;
+  --text-mega: clamp(3rem, 1rem + 9vw, 10rem);
+  --text-mega--line-height: 0.92;
 
-  --font-display: var(--font-general-sans), system-ui, sans-serif;
-  --font-sans: var(--font-general-sans), system-ui, sans-serif;
-
-  --radius-card: 1.75rem;
-  --radius-sheet: 2.25rem;
 
   --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
   --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
   --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
-  --shadow-lift: 0 30px 60px -30px rgb(0 0 0 / 0.9), 0 8px 20px -10px rgb(0 0 0 / 0.6);
-  --shadow-glow: 0 12px 32px -12px rgb(0 0 0 / 0.8), 0 2px 6px -2px rgb(0 0 0 / 0.5);
+  /* Only things that truly float (dock, sheets, menus, toasts) cast a shadow. */
+  --shadow-float: 0 24px 48px -16px rgb(0 0 0 / 0.75), 0 6px 16px -6px rgb(0 0 0 / 0.5);
 }
 
 html {
@@ -43,41 +48,49 @@ html {
   -webkit-text-size-adjust: 100%;
   /* App, not a document: no pull-to-refresh or page rubber-band; inner scrollers use overscroll-contain. */
   overscroll-behavior: none;
-  background: var(--color-ink-950);
+  background: var(--color-ink);
   -webkit-tap-highlight-color: transparent;
-  scrollbar-color: var(--color-ink-600) transparent;
+  scrollbar-color: var(--color-ink-5) transparent;
 }
 
 body {
-  background: var(--color-ink-950);
-  color: var(--color-ivory);
+  background: var(--color-ink);
+  color: var(--color-paper);
   font-family: var(--font-sans);
+  font-size: var(--text-body);
+  line-height: 1.5;
   text-rendering: optimizeLegibility;
 }
 
-/* Display voice: one family, set tight like a product keynote. The second half of a headline steps back in grey. */
+/* Display voice: a wide flat-sided grotesk in capitals, like an agency's board. One colour; words carry emphasis. */
 .font-display {
-  font-weight: 500;
-  letter-spacing: -0.035em;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: -0.02em;
+  line-height: 1;
+  font-kerning: normal;
 }
 .font-display em {
   font-style: normal;
-  color: var(--color-muted);
+}
+
+.tabular {
+  font-variant-numeric: tabular-nums;
 }
 
 ::selection {
-  background: rgb(241 198 186 / 0.35);
-  color: var(--color-ivory);
+  background: rgb(255 90 110 / 0.4);
+  color: var(--color-paper);
 }
 
 :focus-visible {
-  outline: 1.5px solid var(--color-blush);
+  outline: 2px solid var(--color-rouge);
   outline-offset: 3px;
 }
 
 input,
 textarea {
-  caret-color: var(--color-blush);
+  caret-color: var(--color-rouge);
 }
 
 /* Controls fire instantly and never select their label on long-press; content stays selectable. */
@@ -85,6 +98,7 @@ button,
 [role="button"],
 [role="switch"],
 [role="radio"],
+[role="tab"],
 summary {
   touch-action: manipulation;
   user-select: none;
@@ -94,114 +108,30 @@ a {
   touch-action: manipulation;
 }
 
-/* Film grain, barely there. Fixed to the viewport so tall pages never blend a huge layer. */
-@utility grain {
-  position: relative;
-  isolation: isolate;
-  &::after {
-    content: "";
-    position: fixed;
-    inset: 0;
-    pointer-events: none;
-    z-index: 1;
-    opacity: 0.045;
-    mix-blend-mode: overlay;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+/* Press feedback for anything tappable. */
+@utility press {
+  transition: transform 160ms var(--ease-out), background-color 200ms var(--ease-out), color 200ms var(--ease-out), opacity 200ms var(--ease-out);
+  &:active {
+    transform: scale(0.97);
   }
 }
 
-/* The room: a cool overhead light and one warm blush bounce, low and off to the side. */
-@utility room {
-  background:
-    radial-gradient(70% 45% at 50% -12%, rgb(255 255 255 / 0.07), transparent 70%),
-    radial-gradient(50% 40% at 100% 85%, rgb(241 198 186 / 0.06), transparent 70%),
-    var(--color-ink-950);
+/* Under text on a photograph: the one allowed gradient, a neutral scrim. */
+@utility scrim-b {
+  background: linear-gradient(180deg, transparent 0%, rgb(10 10 10 / 0.15) 45%, rgb(10 10 10 / 0.85) 100%);
+}
+@utility scrim-t {
+  background: linear-gradient(0deg, transparent 0%, rgb(10 10 10 / 0.6) 100%);
 }
 
-/* A raised panel with its own soft top light. */
-@utility panel {
-  background:
-    radial-gradient(120% 70% at 50% 0%, rgb(255 255 255 / 0.06), transparent 60%),
-    var(--color-ink-900);
-}
 
-/* Liquid glass: refracting blur, a bright specular top edge, a dim lower edge, real depth below. */
-@utility glass {
-  /* The tint underneath keeps text legible over bright photos. */
-  background: linear-gradient(180deg, rgb(255 255 255 / 0.1), rgb(255 255 255 / 0.03)), rgb(18 18 22 / 0.42);
-  backdrop-filter: blur(24px) saturate(180%);
-  -webkit-backdrop-filter: blur(24px) saturate(180%);
-  border: 1px solid rgb(255 255 255 / 0.1);
-  box-shadow:
-    inset 0 1px 0 rgb(255 255 255 / 0.2),
-    inset 0 -1px 0 rgb(255 255 255 / 0.04),
-    0 10px 30px -14px rgb(0 0 0 / 0.7);
-}
 
-/* Polished steel hairline: a 1px metal rim with light catching top-left and bottom-right. */
-@utility chrome {
-  position: relative;
-  &::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    border-radius: inherit;
-    padding: 1px;
-    background: linear-gradient(150deg, #ffffff 0%, #7a7a83 24%, #e9e9ee 46%, #4d4d55 64%, #cfcfd6 84%, #6a6a72 100%);
-    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-    -webkit-mask-composite: xor;
-    mask-composite: exclude;
-    pointer-events: none;
-    opacity: 0.55;
-  }
-}
 
-/* Gilt: the same rim in white gold. Premium and its purchase button only. */
-@utility gilt {
-  position: relative;
-  &::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    border-radius: inherit;
-    padding: 1px;
-    background: linear-gradient(150deg, #fff6e2 0%, #a7854c 26%, #f6e6c4 48%, #7d6236 66%, #e9d3a6 86%, #9b7b45 100%);
-    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-    -webkit-mask-composite: xor;
-    mask-composite: exclude;
-    pointer-events: none;
-  }
-}
 
-/* Pearl: the one action surface. Lit from above, pressed into the page, with a steel rim. */
-@utility pearl {
-  background: linear-gradient(180deg, #ffffff 0%, #ecebe8 55%, #dcdad6 100%);
-  color: var(--color-ink-950);
-  box-shadow:
-    inset 0 1px 0 #fff,
-    inset 0 -1px 1px rgb(0 0 0 / 0.12),
-    0 0 0 1px rgb(255 255 255 / 0.35),
-    0 10px 28px -10px rgb(0 0 0 / 0.9);
-}
 
-/* Specular sweep across a membership surface. One slow pass, then rest. */
-@keyframes sheen {
-  0% { transform: translateX(-140%) skewX(-18deg); }
-  55%, 100% { transform: translateX(260%) skewX(-18deg); }
-}
-@utility sheen {
-  position: relative;
-  overflow: hidden;
-  &::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    width: 40%;
-    background: linear-gradient(90deg, transparent, rgb(255 255 255 / 0.12), transparent);
-    animation: sheen 7s var(--ease-out-expo) 1.5s infinite;
-    pointer-events: none;
-  }
-}
+
+
+
 
 /* Online: a soft pulse ring, like a status light breathing. */
 @keyframes ping-soft {
@@ -225,9 +155,6 @@ a {
   mask-image: linear-gradient(90deg, #000 78%, transparent);
 }
 
-@utility vignette {
-  box-shadow: inset 0 0 140px 30px rgb(7 7 8 / 0.6);
-}
 
 /* Typing dots breathe rather than bounce. */
 @keyframes breathe {
@@ -251,7 +178,7 @@ a {
 
 /* Page content settles in once on load. */
 @keyframes rise {
-  from { opacity: 0; transform: translateY(14px); filter: blur(6px); }
+  from { opacity: 0; transform: translateY(14px); }
 }
 @utility rise {
   animation: rise 700ms var(--ease-out-expo) both;
@@ -259,16 +186,9 @@ a {
 }
 
 /* Scroll-driven motion (CSS only, off the main thread). Content is visible by default; where the
-   browser supports scroll timelines it rises into place as it enters, and chrome condenses on scroll. */
+   browser supports scroll timelines it rises into place as it enters,. */
 @keyframes reveal {
-  from { opacity: 0; transform: translateY(32px) scale(0.96); filter: blur(8px); }
-}
-@keyframes condense {
-  to {
-    background-color: rgb(7 7 8 / 0.72);
-    border-color: var(--color-line);
-    backdrop-filter: blur(24px) saturate(180%);
-  }
+  from { opacity: 0; transform: translateY(32px) scale(0.97); }
 }
 @keyframes drift {
   to { transform: translateY(18%) scale(1.08); }
@@ -306,21 +226,6 @@ a {
   }
 }
 
-/* Bars start clear over the page and condense into glass once content slides under them. */
-@supports (animation-timeline: scroll()) {
-  .condense {
-    animation: condense linear both;
-    animation-timeline: scroll();
-    animation-range: 0 96px;
-  }
-}
-@supports not (animation-timeline: scroll()) {
-  .condense {
-    background-color: rgb(7 7 8 / 0.72);
-    backdrop-filter: blur(24px) saturate(180%);
-    -webkit-backdrop-filter: blur(24px) saturate(180%);
-  }
-}
 
 /* Route morph: the portrait you tapped becomes the page you land on. */
 ::view-transition-group(.morph) {
@@ -348,4 +253,19 @@ html:not([data-age-ok]):has(.age-gate) { overflow: hidden; }
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }
+}
+
+/* Card hover: her second photograph slowly comes through, like light changing in a room. */
+@media (hover: hover) and (pointer: fine) {
+  .crossfade .crossfade-b { opacity: 0; transition: opacity 1.2s var(--ease-out); }
+  .crossfade:hover .crossfade-b { opacity: 1; }
+  .crossfade .crossfade-a { transition: transform 1.4s var(--ease-out-expo); }
+  .crossfade:hover .crossfade-a, .crossfade:hover .crossfade-b { transform: scale(1.03); }
+}
+@media not ((hover: hover) and (pointer: fine)) {
+  .crossfade .crossfade-b { display: none; }
+}
+
+@keyframes silk-in {
+  from { opacity: 0; }
 }

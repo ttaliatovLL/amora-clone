@@ -28,7 +28,8 @@ export function Portrait({
       alt={`Portrait of ${c.name}`}
       fill
       sizes={face ? "96px" : sizes}
-      priority={priority}
+      loading={priority ? "eager" : undefined}
+      fetchPriority={priority ? "high" : undefined}
       className={`object-cover ${face ? "object-[50%_18%] scale-[1.6] origin-[50%_22%]" : "object-[50%_28%]"} ${className}`}
     />
   );

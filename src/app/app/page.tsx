@@ -1,127 +1,166 @@
 "use client";
 
-import type { Icon } from "@phosphor-icons/react";
-import { ArrowRight, Fire, Heart, MoonStars, Sparkle, SquaresFour } from "@phosphor-icons/react/ssr";
+import { ChatCircleDots, Square, SquaresFour } from "@phosphor-icons/react/ssr";
 import Link from "next/link";
-import { useState } from "react";
+import { useState, ViewTransition } from "react";
+import { boardGrid, setDensity, useDensity } from "@/components/board/density";
+import { Crossfade } from "@/components/board/crossfade";
+import { fitName } from "@/components/board/fit-name";
 import { Portrait } from "@/components/portrait";
-import { Avatar, Chip, CompanionCard, OnlinePill, Tags } from "@/components/ui";
+import { SaveButton } from "@/components/save-button";
+import { Button, ButtonLink, Chip, CompanionCard, cx } from "@/components/ui";
 import { companions, vibes } from "@/lib/companions";
 
-const stories = [...companions.filter((c) => c.isNew), ...companions.filter((c) => c.online && !c.isNew)];
-const vibeIcon: Record<(typeof vibes)[number], Icon> = { Sweet: Heart, Playful: Sparkle, Mysterious: MoonStars, Bold: Fire };
-// shortcut: fixed editor's pick until there's a ranking signal.
-const pick = companions.find((c) => c.id === "katya")!;
-// Every seventh card opens up into a landscape feature, so the grid has a rhythm instead of a wall.
-const isWide = (i: number) => i % 7 === 4;
+type Vibe = (typeof vibes)[number];
+type Filter = { online: boolean; fresh: boolean; vibe: Vibe | null };
+const everyone: Filter = { online: false, fresh: false, vibe: null };
 
-export default function Discover() {
-  const [vibe, setVibe] = useState<string | null>(null);
-  const [onlineOnly, setOnlineOnly] = useState(false);
-  const shown = companions.filter((c) => (!vibe || c.vibe === vibe) && (!onlineOnly || c.online));
-  const online = companions.filter((c) => c.online).length;
-  const clear = () => {
-    setVibe(null);
-    setOnlineOnly(false);
-  };
+// shortcut: fixed editor's pick until there's a ranking signal.
+const pick = companions.find((c) => c.id === "luna")!;
+const online = companions.filter((c) => c.online).length;
+// She is already the hero, so on the board she goes to the end instead of repeating right under it.
+const board = [...companions.filter((c) => c.id !== pick.id), pick];
+/**
+ * Which cards open into landscape features on the 3-column desktop board, so it has a rhythm instead of a wall:
+ * about every sixth card, only where two columns are free (no broken rows), then one added or dropped so the last row ends full.
+ */
+function features(n: number) {
+  const wide: number[] = [];
+  const cols: number[] = [];
+  let col = 0;
+  for (let i = 0; i < n; i++) {
+    cols.push(col);
+    const w = i >= 3 && col <= 1 && (!wide.length || i - wide[wide.length - 1] >= 6);
+    if (w) wide.push(i);
+    col = (col + (w ? 2 : 1)) % 3;
+  }
+  const gap = (n + wide.length) % 3;
+  const last = wide.at(-1) ?? -1;
+  if (gap === 1) wide.pop();
+  else if (gap === 2) {
+    // Only single cards follow the last feature, so their columns stay valid.
+    const j = cols.findLastIndex((c, i) => i > last + 1 && c <= 1);
+    if (j > 0) wide.push(j);
+  }
+  return new Set(wide);
+}
+
+export default function Board() {
+  const [f, setF] = useState<Filter>(everyone);
+  const density = useDensity();
+  const all = !f.online && !f.fresh && !f.vibe;
+  const shown = board.filter((c) => (!f.online || c.online) && (!f.fresh || c.isNew) && (!f.vibe || c.vibe === f.vibe));
+  const wide = features(shown.length);
 
   return (
-    <main className="mx-auto max-w-6xl px-4 pt-3 pb-36 sm:px-8 md:pt-10 md:pb-16">
-      <div className="rise flex items-end justify-between gap-4">
-        <h1 className="font-display text-[clamp(2.25rem,9vw,3.75rem)] leading-[0.95]">
+    <main className="mx-auto max-w-[1600px] pt-4 pb-10 md:px-8 md:pt-10 md:pb-20">
+      <header className="rise flex flex-col gap-3 px-4 md:px-0 xl:flex-row xl:items-end xl:justify-between">
+        <h1 className="font-display text-[clamp(2.25rem,calc((100vw-2rem)/7.8),7.5rem)] leading-[0.92]">
           Who&apos;s up
-          <br className="sm:hidden" /> <em>tonight.</em>
+          <br /> tonight
         </h1>
-        <p className="mb-1.5 flex shrink-0 items-center gap-1.5 text-[0.8125rem] text-muted tabular-nums">
-          <span className="live-dot size-1.5 rounded-full bg-sage" aria-hidden />
-          {online} online
+        <p className="flex items-center gap-2 text-body text-muted tabular xl:mb-3">
+          <span className="live-dot size-2 rounded-full bg-live" aria-hidden />
+          <span>
+            <span className="text-paper">{online} online</span> of {companions.length} on the board
+          </span>
         </p>
-      </div>
+      </header>
 
-      <section aria-label="Online and new" className="rise -mx-4 mt-6 sm:-mx-8" style={{ ["--i" as string]: 1 }}>
-        <div className="flex gap-3.5 overflow-x-auto px-4 pb-2 [scrollbar-width:none] sm:px-8">
-          {stories.map((c) => (
-            <Link key={c.id} href={`/app/${c.id}`} className="flex w-[4.5rem] shrink-0 flex-col items-center gap-2 transition-transform active:scale-[0.94]">
-              <Avatar companion={c} size="lg" story showOnline={false} />
-              <span className={`w-full truncate text-center text-[0.75rem] ${c.isNew ? "text-blush" : "text-muted"}`}>{c.isNew ? "New" : c.name}</span>
-            </Link>
-          ))}
+      {/* Tonight's pick: her comp card, opened up. */}
+      <section aria-label="Tonight's pick" className="rise mt-6 md:mt-10 md:flex md:gap-1" style={{ ["--i" as string]: 1 }}>
+        <Link
+          href={`/app/${pick.id}`}
+          aria-label={`${pick.name}, ${pick.age}, ${pick.city}`}
+          className="press @container relative block aspect-[4/5] w-full overflow-hidden bg-ink-2 active:scale-[0.99] md:w-[min(55%,calc(min(78svh,54rem)*0.8))] md:shrink-0"
+        >
+          <ViewTransition name={`portrait-${pick.id}`} share="morph" default="none">
+            <div className="absolute inset-0">
+              <Crossfade
+                a={<Portrait companion={pick} priority sizes="(max-width: 768px) 100vw, 45vw" />}
+                b={pick.gallery[0] && <Portrait companion={pick} src={pick.gallery[0]} sizes="(max-width: 768px) 100vw, 45vw" />}
+              />
+            </div>
+          </ViewTransition>
+          <div className="scrim-b absolute inset-x-0 bottom-0 h-1/2 md:hidden" />
+          <p className="absolute inset-x-0 bottom-0 p-4 font-display leading-[0.9] text-paper md:hidden" style={fitName(pick.name, "6rem")}>{pick.name}</p>
+        </Link>
+
+        <div className="@container flex flex-col px-4 pt-4 md:min-w-0 md:flex-1 md:justify-end md:bg-ink-2 md:p-8 lg:p-14">
+          <h2 className="hidden font-display leading-[0.9] md:block" style={fitName(pick.name, "8.5rem", "0rem")}>{pick.name}</h2>
+          <p className="flex flex-wrap items-center gap-x-2 text-body text-paper/80 tabular md:mt-5 md:text-lead">
+            <span className="text-paper">Tonight&apos;s pick</span>
+            <span aria-hidden>·</span>
+            {pick.age} · {pick.city} · {pick.sign}
+            {pick.online && <span className="live-dot ml-1 size-2 rounded-full bg-live" aria-label="Online" />}
+          </p>
+          <p className="mt-1 text-body text-muted md:mt-2 md:max-w-[40ch] md:text-lead">{pick.tagline}.</p>
+          <div className="mt-5 flex gap-2 md:mt-8">
+            <ButtonLink href={`/app/${pick.id}/chat`} className="flex-1 lg:flex-none lg:px-10">
+              <ChatCircleDots weight="fill" className="size-5" aria-hidden />
+              Chat with {pick.name}
+            </ButtonLink>
+            <SaveButton id={pick.id} name={pick.name} label />
+          </div>
         </div>
       </section>
 
-      {/* Tonight's pick: one cinematic moment before the grid. */}
-      <Link
-        href={`/app/${pick.id}`}
-       
-        className="rise group relative mt-6 block aspect-[4/5] overflow-hidden rounded-[2rem] shadow-lift transition-transform duration-200 ease-out active:scale-[0.99] sm:aspect-[16/8]"
-        style={{ ["--i" as string]: 2 }}
-      >
-        <Portrait companion={pick} priority sizes="(max-width: 640px) 100vw, 1100px" className="transition-transform duration-[1400ms] ease-out-expo sm:object-[50%_22%] [@media(hover:hover)]:group-hover:scale-[1.03]" />
-        <div className="absolute inset-0 bg-linear-to-t from-ink-950/90 via-ink-950/10 to-black/20" />
-        <div className="pointer-events-none absolute inset-0 rounded-[2rem] ring-1 ring-inset ring-white/12" />
-        <div className="absolute inset-x-3 top-3 flex items-center justify-between">
-          <span className="glass inline-flex h-7 items-center gap-1.5 rounded-full px-3 text-xs font-medium text-ivory">
-            <Sparkle weight="fill" className="size-3.5 text-blush" aria-hidden />
-            Tonight&apos;s pick
-          </span>
-          {pick.online && <OnlinePill />}
-        </div>
-        <div className="glass absolute inset-x-3 bottom-3 flex items-end justify-between gap-4 rounded-[1.5rem] p-4 sm:inset-x-auto sm:right-4 sm:bottom-4 sm:w-[24rem] sm:p-5">
-          <div className="min-w-0">
-            <p className="font-display text-[2.25rem] leading-none">
-              {pick.name}
-              <span className="ml-2 text-[0.55em] font-normal text-ivory/55">{pick.age}</span>
-            </p>
-            <p className="mt-1.5 line-clamp-2 text-sm text-ivory/75">{pick.tagline}.</p>
-            <Tags tags={pick.tags} className="mt-3" />
-          </div>
-          <span className="pearl chrome grid size-12 shrink-0 place-items-center rounded-full transition-transform duration-200 group-active:scale-95" aria-hidden>
-            <ArrowRight weight="bold" className="size-5 transition-transform duration-300 ease-out group-hover:translate-x-0.5" />
-          </span>
-          <span className="sr-only">Say hi to {pick.name}</span>
-        </div>
-      </Link>
-
-      <div className="sticky top-[calc(3.5rem+env(safe-area-inset-top))] z-30 -mx-4 mt-8 py-3 sm:-mx-8 md:top-0">
-        <div className="pointer-events-none absolute inset-0 bg-linear-to-b from-ink-950 via-ink-950/85 to-transparent" aria-hidden />
-        <div className="relative flex gap-2 overflow-x-auto px-4 [scrollbar-width:none] sm:px-8" role="group" aria-label="Filter companions">
-          <Chip pressed={vibe === null && !onlineOnly} onClick={clear}>
-            <SquaresFour weight="regular" className="size-4" aria-hidden />
+      {/* Filters: one row, scrolls sideways on phones; density toggle pinned at its end. */}
+      <div className="sticky top-[calc(4rem+env(safe-area-inset-top))] z-30 mt-10 flex items-center gap-2 bg-ink py-3 md:top-20 md:mt-14">
+        <div role="group" aria-label="Filter companions" className="flex min-w-0 flex-1 gap-1.5 overflow-x-auto overscroll-x-contain px-4 [scrollbar-width:none] md:px-0 [&::-webkit-scrollbar]:hidden">
+          <Chip pressed={all} onClick={() => setF(everyone)}>
             All
           </Chip>
-          <Chip pressed={onlineOnly} onClick={() => setOnlineOnly(!onlineOnly)}>
-            <span className="size-2 rounded-full bg-sage" aria-hidden />
-            Online now
+          <Chip pressed={f.online} onClick={() => setF({ ...f, online: !f.online })}>
+            <span className="size-2 rounded-full bg-live" aria-hidden />
+            Online
           </Chip>
-          {vibes.map((v) => {
-            const I = vibeIcon[v];
-            return (
-              <Chip key={v} pressed={vibe === v} onClick={() => setVibe(vibe === v ? null : v)}>
-                <I weight={vibe === v ? "fill" : "regular"} className="size-4" aria-hidden />
-                {v}
-              </Chip>
-            );
-          })}
+          <Chip pressed={f.fresh} onClick={() => setF({ ...f, fresh: !f.fresh })}>
+            New
+          </Chip>
+          {vibes.map((v) => (
+            <Chip key={v} pressed={f.vibe === v} onClick={() => setF({ ...f, vibe: f.vibe === v ? null : v })}>
+              {v}
+            </Chip>
+          ))}
         </div>
+        <button
+          type="button"
+          onClick={() => setDensity(density === 1 ? 2 : 1)}
+          aria-label={density === 1 ? "Show more per row" : "Show bigger cards"}
+          className="press mr-4 grid size-10 shrink-0 place-items-center bg-ink-3 text-paper hover:bg-ink-4 md:mr-0"
+        >
+          {density === 1 ? <SquaresFour size={20} aria-hidden /> : <Square size={20} aria-hidden />}
+        </button>
       </div>
-
-      <p className="mt-1 text-[0.8125rem] text-faint tabular-nums" aria-live="polite">
+      <p className="sr-only" aria-live="polite">
         {shown.length} {shown.length === 1 ? "companion" : "companions"}
       </p>
 
       {shown.length ? (
-        <div className="mt-3 grid grid-flow-dense grid-cols-2 gap-2.5 sm:gap-4 lg:grid-cols-3 xl:grid-cols-4">
+        <div className={boardGrid[density]}>
           {shown.map((c, i) => (
-            <CompanionCard key={c.id} companion={c} href={`/app/${c.id}`} priority={i < 4} wide={isWide(i)} morph className="reveal" />
+            <CompanionCard
+              key={c.id}
+              companion={c}
+              href={`/app/${c.id}`}
+              size={density === 2 ? "tile" : "large"}
+              wide={density === 1 && wide.has(i)}
+              // The pick's portrait above already carries her morph name.
+              morph={c.id !== pick.id}
+              // Features are a desktop rhythm; on the 2-column tablet board they stay single.
+              className={cx(i < 3 ? "rise" : "reveal", density === 1 && wide.has(i) && "md:col-span-1! md:aspect-[4/5]! lg:col-span-2! lg:aspect-auto!")}
+              style={{ ["--i" as string]: i + 2 }}
+            />
           ))}
         </div>
       ) : (
-        <div className="mt-16 text-center">
-          <MoonStars weight="light" className="mx-auto size-12 text-muted" aria-hidden />
-          <p className="mt-4 font-display text-2xl">Nobody like that is up right now.</p>
-          <button type="button" onClick={clear} className="mt-3 text-blush underline underline-offset-4">
+        <div className="px-4 py-20 md:px-0 md:py-32">
+          <p className="font-display text-head">Nobody like that</p>
+          <p className="mt-3 max-w-[40ch] text-body text-muted">No one on the board matches all of those right now. Try fewer filters.</p>
+          <Button variant="paper" className="mt-6" onClick={() => setF(everyone)}>
             Show everyone
-          </button>
+          </Button>
         </div>
       )}
     </main>

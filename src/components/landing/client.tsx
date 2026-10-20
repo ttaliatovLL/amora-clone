@@ -1,16 +1,23 @@
 "use client";
 
-import { Check, Crown, LockSimple } from "@phosphor-icons/react/ssr";
-import { useReducedMotion } from "motion/react";
+import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
+import { openCookieSettings } from "@/components/cookie-banner";
+import { LiquidWordmark } from "@/components/liquid-logo";
 import { Portrait } from "@/components/portrait";
-import { Avatar, Bubble, ButtonLink, Button, Typing, Wordmark } from "@/components/ui";
+import {
+  Avatar,
+  Bubble,
+  Button,
+  ButtonLink,
+  cx,
+  Typing,
+} from "@/components/ui";
 import { companions } from "@/lib/companions";
 import { plans } from "@/lib/plans";
 
-const emma = companions[0];
-const gina = companions.find((c) => c.id === "gina")!;
-const katya = companions.find((c) => c.id === "katya")!;
+const byId = (id: string) => companions.find((c) => c.id === id)!;
+const reduced = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 /* ── Age gate ─────────────────────────────────────────── */
 export function AgeGate() {
@@ -19,7 +26,9 @@ export function AgeGate() {
   // While the gate is up, everything behind it is inert: no tabbing or screen-reader browsing past it.
   useEffect(() => {
     if ("ageOk" in document.documentElement.dataset) return;
-    const behind = [...(gate.current?.parentElement?.children ?? [])].filter((e) => e !== gate.current);
+    const behind = [...(gate.current?.parentElement?.children ?? [])].filter(
+      (e) => e !== gate.current,
+    );
     behind.forEach((e) => e.setAttribute("inert", ""));
     release.current = () => behind.forEach((e) => e.removeAttribute("inert"));
     return () => release.current();
@@ -30,216 +39,369 @@ export function AgeGate() {
     document.documentElement.dataset.ageOk = "";
   };
   return (
-    <div ref={gate} className="age-gate grain fixed inset-0 z-[100] flex items-center justify-center bg-ink-950 px-4" role="dialog" aria-modal="true" aria-labelledby="age-title">
-      {/* The door: her, out of focus, behind frosted glass. */}
-      <div className="absolute inset-0 opacity-90" aria-hidden>
-        <Portrait companion={katya} sizes="100vw" className="scale-105 blur-md" />
-        <div className="absolute inset-0 bg-linear-to-b from-ink-950/50 via-ink-950/40 to-ink-950/90" />
+    <div
+      ref={gate}
+      className="age-gate fixed inset-0 z-[100] flex flex-col bg-ink px-4 pt-[max(1.5rem,env(safe-area-inset-top))] pb-[max(1.5rem,env(safe-area-inset-bottom))] md:px-8 md:py-8"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="age-title"
+    >
+      {/* The name is the door: liquid metal across the whole width, nothing else in the room. */}
+      <div className="flex flex-1 items-center">
+        <LiquidWordmark className="rise aspect-[6/1] w-full" />
       </div>
-      <div className="glass rise relative z-[2] w-full max-w-sm rounded-[2rem] px-7 py-10 text-center shadow-lift">
-        <Wordmark />
-        <h1 id="age-title" className="mt-10 font-display text-5xl leading-none tracking-[-0.04em]">
-          Members <em>only.</em>
-        </h1>
-        <p className="mx-auto mt-4 max-w-[30ch] text-muted">Amora contains mature content for adults aged 18 and over.</p>
-        <Button size="lg" className="mt-10 w-full" onClick={enter} autoFocus>
-          I&apos;m 18 or older · Enter
-        </Button>
-        <a href="https://www.google.com" className="mt-5 inline-block text-sm text-faint underline-offset-4 hover:text-muted hover:underline">
-          I&apos;m under 18, leave
-        </a>
-      </div>
-    </div>
-  );
-}
-
-/* ── Hero: she starts typing ──────────────────────────── */
-export function HeroChat() {
-  const reduce = useReducedMotion();
-  const [typed, setTyped] = useState(false);
-  useEffect(() => {
-    const t = setTimeout(() => setTyped(true), reduce ? 0 : 1900);
-    return () => clearTimeout(t);
-  }, [reduce]);
-
-  return (
-    <div className="absolute inset-x-0 bottom-0 z-[2] flex flex-col gap-3 p-4 sm:p-5">
-      <div className="flex min-h-24 flex-col justify-end" aria-live="polite">
-        {typed ? (
-          <Bubble from="her" className="animate-bubble-in">
-            its 1am and im surrounded by boxes i still havent unpacked. somehow ur the one im telling. tell me a 2am thought?
-          </Bubble>
-        ) : (
-          <Typing />
-        )}
-      </div>
-      <div className="glass flex items-center gap-3 rounded-full py-1.5 pr-4 pl-1.5">
-        <Avatar companion={emma} size="sm" />
-        <div className="min-w-0 leading-tight">
-          <p className="font-medium">{emma.name}</p>
-          <p className="text-xs text-sage">online now</p>
+      <div className="grid gap-8 md:grid-cols-12 md:items-end">
+        <div className="md:col-span-7">
+          <h1 id="age-title" className="rise font-display text-head [--i:1]">
+            Adults only
+          </h1>
+          <p className="rise mt-4 max-w-[40ch] text-body [--i:2]">
+            Amora is for people aged 18 and over. Every companion is a fictional
+            adult, and some of what they send is explicit.
+          </p>
         </div>
-        <span className="ml-auto text-xs text-muted">1:04</span>
+        <div className="rise flex flex-col gap-3 [--i:3] md:col-span-4 md:col-start-9">
+          <Button size="lg" className="w-full" onClick={enter} autoFocus>
+            I&apos;m 18 or older, enter
+          </Button>
+          <a
+            href="https://www.google.com"
+            className="press inline-flex h-12 items-center justify-center text-body text-muted hover:text-paper"
+          >
+            I&apos;m under 18, leave
+          </a>
+        </div>
       </div>
     </div>
   );
 }
 
-/* ── Chat demo: plays once when scrolled into view ────── */
-type Step = { from: "her" | "me"; text?: string; photo?: "open" | "locked" };
-const script: Step[] = [
-  { from: "her", text: "you're up late too? good. i didn't want to talk to the ceiling." },
-  { from: "me", text: "Can't sleep. Tell me about your day." },
-  { from: "her", text: "sea swim at 7, pub quiz at 9, we lost on a question about eels. here, proof of the pub" },
-  { from: "her", photo: "open" },
-  { from: "me", text: "You look absolutely stunning" },
-  { from: "her", text: "stop it. ok don't. i saved something for you…" },
-  { from: "her", photo: "locked" },
+/* ── Hero: the counter object, her portrait slowly changing ───── */
+// Light shifting in a room: one framing, four women, 1.6s crossfade, 5.5s hold. Paused while the tab is hidden.
+export function HeroPortraits({ ids }: { ids: string[] }) {
+  const list = ids.map(byId);
+  const [active, setActive] = useState(0);
+  useEffect(() => {
+    if (reduced()) return;
+    let timer = 0;
+    const sync = () => {
+      clearInterval(timer);
+      if (!document.hidden)
+        timer = window.setInterval(
+          () => setActive((n) => (n + 1) % list.length),
+          5500,
+        );
+    };
+    sync();
+    document.addEventListener("visibilitychange", sync);
+    return () => {
+      clearInterval(timer);
+      document.removeEventListener("visibilitychange", sync);
+    };
+  }, [list.length]);
+  const c = list[active];
+  return (
+    <figure className="relative size-full overflow-hidden bg-ink-2">
+      {list.map((p, k) => (
+        <div
+          key={p.id}
+          aria-hidden={k !== active}
+          className={cx(
+            "absolute inset-0 transition-opacity duration-[1600ms] ease-[var(--ease-out)]",
+            k === active ? "opacity-100" : "opacity-0",
+          )}
+        >
+          <Portrait
+            companion={p}
+            priority={k === 0}
+            sizes="(max-width: 768px) 72vw, 30vw"
+          />
+        </div>
+      ))}
+      <div className="scrim-t absolute inset-x-0 top-0 h-1/3" />
+      <figcaption
+        key={c.id}
+        className="absolute top-3 left-3 text-small text-paper motion-safe:animate-[lp-fade_1.6s_var(--ease-out)_both] md:top-4 md:left-4"
+      >
+        {c.name}, {c.age} · {c.city}
+      </figcaption>
+    </figure>
+  );
+}
+
+/* ── The live thing: pick her, watch her first message arrive ─── */
+// Sample openers, written in each companion's voice; the client replaces them with her real first lines.
+const openers: { id: string; text: string }[] = [
+  {
+    id: "emma",
+    text: "its 1am and im surrounded by boxes i still havent unpacked. somehow ur the one im telling. tell me a 2am thought?",
+  },
+  {
+    id: "luna",
+    text: "found a poem on a receipt at work tonight. not mine. want to hear it, or will you write me a better one?",
+  },
+  {
+    id: "anika",
+    text: "ok first question and be honest. what did you actually eat today? crisps do not count",
+  },
+  {
+    id: "margot",
+    text: "I don't usually write first. The bar is too loud tonight, so tell me something quiet.",
+  },
+  {
+    id: "amara",
+    text: "just got out of the studio, ears still ringing. send me one song that says who you are. no skipping",
+  },
 ];
 
-export function ChatDemo() {
-  const reduce = useReducedMotion();
+export function FirstMessage() {
   const root = useRef<HTMLDivElement>(null);
-  const [shown, setShown] = useState(0);
-  const [started, setStarted] = useState(false);
+  const [pick, setPick] = useState(0);
+  // Server and no-script render: the whole first message is already there.
+  const [typing, setTyping] = useState(false);
+  const [shown, setShown] = useState(Infinity);
+  const text = openers[pick].text;
+  const c = byId(openers[pick].id);
 
+  const play = (k: number) => {
+    setPick(k);
+    if (reduced()) return setShown(Infinity);
+    setTyping(true);
+    setShown(0);
+  };
+
+  // Plays once for Emma as the panel comes into view.
   useEffect(() => {
-    if (reduce) return;
-    const io = new IntersectionObserver(([e]) => e.isIntersecting && setStarted(true), { threshold: 0.4 });
-    if (root.current) io.observe(root.current);
+    const el = root.current;
+    if (!el || reduced()) return;
+    const io = new IntersectionObserver(
+      ([e]) => {
+        if (!e.isIntersecting) return;
+        io.disconnect();
+        setTyping(true);
+        setShown(0);
+      },
+      { threshold: 0.6 },
+    );
+    io.observe(el);
     return () => io.disconnect();
-  }, [reduce]);
+  }, []);
 
   useEffect(() => {
-    if (!started || shown >= script.length) return;
-    const next = script[shown];
-    const t = setTimeout(() => setShown((n) => n + 1), next.from === "her" ? 1500 : 900);
+    if (typing) {
+      const t = setTimeout(() => setTyping(false), 1100);
+      return () => clearTimeout(t);
+    }
+    if (shown >= text.length) return;
+    const t = setTimeout(() => setShown((n) => n + 2), 32);
     return () => clearTimeout(t);
-  }, [started, shown]);
-
-  const typing = started && !reduce && shown < script.length && script[shown].from === "her";
+  }, [typing, shown, text.length]);
 
   return (
-    <div ref={root} className="relative mx-auto w-full max-w-md">
-      <div className="absolute -inset-10 rounded-full bg-blush/[0.06] blur-3xl" aria-hidden />
-      <div className="chrome reveal relative overflow-hidden rounded-[2.25rem] shadow-lift">
-        <div className="absolute inset-0" aria-hidden>
-          <Portrait companion={gina} sizes="448px" className="scale-125 opacity-50 blur-2xl" />
-          <div className="absolute inset-0 bg-ink-950/60" />
+    <div className="grid gap-10 lg:grid-cols-12 lg:gap-8">
+      <div className="lg:col-span-5 lg:flex lg:flex-col lg:justify-between">
+        <div>
+          <h2 className="lp-in font-display text-head">Her first message</h2>
+          <p className="lp-in mt-5 max-w-[40ch] text-body [--i:1]">
+            Every companion opens the conversation, in her own voice. Choose one
+            and read what she would send you tonight.
+          </p>
         </div>
-        <div className="glass relative z-[2] flex items-center gap-3 rounded-none border-x-0 border-t-0 px-5 py-4">
-          <Avatar companion={gina} size="sm" />
+        <div
+          role="radiogroup"
+          aria-label="Choose a companion"
+          className="lp-in mt-8 grid grid-cols-5 gap-2 [--i:2]"
+        >
+          {openers.map((o, k) => {
+            const p = byId(o.id);
+            const on = k === pick;
+            return (
+              <button
+                key={o.id}
+                type="button"
+                role="radio"
+                aria-checked={on}
+                aria-label={p.name}
+                onClick={() => play(k)}
+                className={cx(
+                  "press group block text-left",
+                  on ? "text-paper" : "text-muted hover:text-paper",
+                )}
+              >
+                <span
+                  className={cx(
+                    "relative block aspect-[4/5] overflow-hidden bg-ink-3 transition-opacity duration-300",
+                    on ? "opacity-100" : "opacity-45 group-hover:opacity-80",
+                  )}
+                >
+                  <Portrait companion={p} sizes="96px" />
+                </span>
+                <span className="mt-2 block truncate text-small">{p.name}</span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Her, large, with the conversation opening over the foot of the photograph. */}
+      <div
+        ref={root}
+        className="lp-in relative aspect-[4/5] overflow-hidden bg-ink-3 [--i:1] md:aspect-[5/4] lg:col-span-6 lg:col-start-7 lg:aspect-auto lg:min-h-[36rem]"
+      >
+        {openers.map((o, k) => (
+          <div
+            key={o.id}
+            aria-hidden
+            className={cx(
+              "absolute inset-0 transition-opacity duration-[1200ms] ease-[var(--ease-out)]",
+              k === pick ? "opacity-100" : "opacity-0",
+            )}
+          >
+            <Portrait
+              companion={byId(o.id)}
+              sizes="(max-width: 1024px) 100vw, 50vw"
+            />
+          </div>
+        ))}
+        <div className="scrim-b absolute inset-x-0 bottom-0 h-3/4" />
+        <div className="absolute top-3 left-3 flex items-center gap-2 bg-ink/70 py-1.5 pr-3 pl-1.5 md:top-4 md:left-4">
+          <Avatar companion={c} size="sm" showOnline={false} />
           <div className="leading-tight">
-            <p className="font-medium">{gina.name}</p>
-            <p className="text-xs text-sage">online now</p>
+            <p className="text-small font-medium">{c.name}</p>
+            <p className="text-small text-muted">
+              {c.online ? "Online now" : `${c.city}, away`}
+            </p>
           </div>
         </div>
-        <div className="relative z-[2] flex h-[32rem] flex-col justify-end gap-2.5 overflow-hidden px-4 py-5" aria-live="polite">
-          {script.slice(0, reduce ? script.length : shown).map((s, i) =>
-            s.photo ? (
-              <div key={i} className="animate-bubble-in relative aspect-[4/5] w-44 shrink-0 self-start overflow-hidden rounded-2xl rounded-bl-md shadow-lift">
-                <Portrait companion={gina} sizes="176px" className={s.photo === "locked" ? "scale-125 blur-lg brightness-[1.6] saturate-150" : ""} />
-                {s.photo === "locked" && (
-                  <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-ink-950/30">
-                    <LockSimple weight="fill" className="size-5 text-ivory" aria-hidden />
-                    <ButtonLink href="#pricing" className="h-9 px-4 text-sm">
-                      Unlock photo
-                    </ButtonLink>
-                  </div>
-                )}
-              </div>
-            ) : (
-              <Bubble key={i} from={s.from} className="animate-bubble-in shrink-0">
-                {s.text}
-              </Bubble>
-            ),
+        <div className="absolute inset-x-0 bottom-0 flex flex-col gap-3 p-3 md:p-5">
+          <p className="sr-only" aria-live="polite">
+            {typing ? `${c.name} is typing` : `${c.name}: ${text}`}
+          </p>
+          {typing ? (
+            <Typing />
+          ) : (
+            <Bubble from="her" className="animate-bubble-in">
+              <span aria-hidden>
+                {text.slice(0, shown)}
+                <span className="invisible">{text.slice(shown)}</span>
+              </span>
+            </Bubble>
           )}
-          {typing && <Typing className="shrink-0" />}
+          <ButtonLink
+            href={`/app/${c.id}/chat`}
+            variant="secondary"
+            className="mt-1 w-full justify-start text-muted hover:text-paper"
+          >
+            Reply to {c.name}
+          </ButtonLink>
         </div>
       </div>
     </div>
   );
 }
 
-/* ── Pricing ──────────────────────────────────────────── */
-export function Pricing() {
+/* ── Pricing: the ticket ──────────────────────────────── */
+export function Ticket() {
   const [annual, setAnnual] = useState(true);
-  const price = (p: keyof typeof plans) => plans[p][annual ? "annual" : "monthly"];
-  const billed = (p: keyof typeof plans) => (annual ? `$${(plans[p].annual * 12).toFixed(2)} once for 12 months` : "Billed monthly");
-
+  const p = plans.premium;
+  const price = annual ? p.annual : p.monthly;
   return (
     <div>
-      <div role="radiogroup" aria-label="Billing period" className="glass inline-flex rounded-full p-1">
-        {[
-          ["Monthly", false],
-          ["Annual · save 30%", true],
-        ].map(([label, value]) => (
+      <div
+        role="radiogroup"
+        aria-label="Billing period"
+        className="lp-in inline-flex bg-paper-2 p-1 [--i:2]"
+      >
+        {(
+          [
+            ["Twelve months", true],
+            ["One month", false],
+          ] as const
+        ).map(([label, value]) => (
           <button
-            key={String(value)}
+            key={label}
+            type="button"
             role="radio"
             aria-checked={annual === value}
-            onClick={() => setAnnual(value as boolean)}
-            className={`h-9 rounded-full px-4 text-sm transition-colors duration-150 ${annual === value ? "pearl font-medium" : "text-muted hover:text-ivory"}`}
+            onClick={() => setAnnual(value)}
+            className={cx(
+              "press h-10 px-4 text-small",
+              annual === value
+                ? "bg-ink font-medium text-paper"
+                : "text-ink/70 hover:text-ink",
+            )}
           >
-            {label as string}
+            {label}
           </button>
         ))}
       </div>
 
-      <div className="mt-8 grid gap-4 md:grid-cols-[1.35fr_1fr]">
-        {/* The membership card: a white-gold rim and one slow specular pass. */}
-        <article className="panel gilt sheen relative overflow-hidden rounded-[2rem] p-6 shadow-lift sm:p-9">
-          <div className="flex items-center justify-between">
-            <h3 className="font-display text-4xl">Premium</h3>
-            <span className="glass inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium text-ivory">
-              <Crown weight="fill" className="size-3.5 text-gold" aria-hidden />
-              Most chosen
+      {/* The ticket: main part and stub, a perforation where they meet, a notch bitten from each edge. */}
+      <article className="lp-in relative mt-8 grid bg-ink text-paper [--i:3] lg:grid-cols-[7fr_3fr]">
+        <div className="p-6 md:p-10">
+          <h3 className="font-display text-head">Premium</h3>
+          <p className="mt-3 max-w-[36ch] text-body text-paper">
+            Everything she sends, with nothing locked.
+          </p>
+          <ul className="mt-10 grid gap-x-8 gap-y-3 text-body sm:grid-cols-2">
+            {[
+              ...p.perks,
+              "Nothing auto-renews",
+              "Paid in USDT or USDC",
+              "A neutral name on every receipt",
+              "Coins only for gifts and extras",
+            ].map((t) => (
+              <li key={t}>{t}</li>
+            ))}
+          </ul>
+        </div>
+
+        <div className="relative flex flex-col justify-end p-6 md:p-10 lg:pl-8">
+          {/* Perforation along the stub's leading edge (top on phones, left on desktop). */}
+          <div aria-hidden className="pointer-events-none">
+            <span className="absolute top-0 left-0 size-7 -translate-x-1/2 -translate-y-1/2 rounded-full bg-paper" />
+            <span className="absolute top-0 right-0 size-7 translate-x-1/2 -translate-y-1/2 rounded-full bg-paper lg:top-auto lg:right-auto lg:bottom-0 lg:left-0 lg:-translate-x-1/2 lg:translate-y-1/2" />
+            <span className="absolute inset-x-6 top-0 flex -translate-y-1/2 justify-between lg:inset-x-auto lg:inset-y-6 lg:left-0 lg:-translate-x-1/2 lg:translate-y-0 lg:flex-col">
+              {Array.from({ length: 14 }, (_, i) => (
+                <span key={i} className="size-1.5 rounded-full bg-paper" />
+              ))}
             </span>
           </div>
-          <p className="mt-2 text-muted">Everything she sends, with no locks.</p>
-          <p className="mt-8 flex flex-wrap items-baseline gap-x-2">
-            <span className="font-display text-6xl tabular-nums">${price("premium")}</span>
-            <span className="whitespace-nowrap text-muted">/ month</span>
-            {annual && <s className="text-sm text-faint">${plans.premium.monthly}</s>}
+          <p className="font-display text-mega tabular lg:text-head">
+            ${price}
           </p>
-          <p className="mt-1 text-sm text-faint">{billed("premium")}</p>
-          <ul className="mt-7 grid gap-3 sm:grid-cols-2">
-            {plans.premium.perks.map((p) => (
-              <li key={p} className="flex items-center gap-2.5 text-ivory">
-                <span className="pearl grid size-5 shrink-0 place-items-center rounded-full">
-                  <Check weight="bold" className="size-3" aria-hidden />
-                </span>
-                {p}
-              </li>
-            ))}
-          </ul>
-          <ButtonLink href="/app" size="lg" variant="premium" className="relative z-[2] mt-9 w-full">
+          <p className="mt-2 text-body">a month</p>
+          <p className="mt-1 text-small text-muted">
+            {annual
+              ? `$${(p.annual * 12).toFixed(2)} once, covers 12 months`
+              : "$19.99 once, covers one month"}
+          </p>
+          <ButtonLink href="/app" size="lg" className="mt-6 w-full">
             Become a member
           </ButtonLink>
-          <p className="mt-3 text-center text-[0.8125rem] text-faint">30-day money-back guarantee</p>
-        </article>
+        </div>
+      </article>
 
-        <article className="glass flex flex-col rounded-[2rem] p-6 sm:p-9">
-          <h3 className="font-display text-3xl">Starter</h3>
-          <p className="mt-2 text-muted">Talk as much as you like.</p>
-          <p className="mt-8 flex items-baseline gap-2">
-            <span className="font-display text-5xl tabular-nums">${price("starter")}</span>
-            <span className="whitespace-nowrap text-muted">/ month</span>
-          </p>
-          <p className="mt-1 text-sm text-faint">{billed("starter")}</p>
-          <ul className="mt-7 space-y-3">
-            {plans.starter.perks.map((p) => (
-              <li key={p} className="flex items-center gap-2.5 text-muted">
-                <Check weight="bold" className="size-3.5 shrink-0 text-ivory/50" aria-hidden />
-                {p}
-              </li>
-            ))}
-          </ul>
-          <ButtonLink href="/app" variant="secondary" size="lg" className="mt-auto w-full max-md:mt-9">
-            Start Starter
-          </ButtonLink>
-        </article>
-      </div>
+      <p className="lp-in mt-8 max-w-[60ch] text-body text-ink [--i:4]">
+        Just want to talk? Starter is $
+        {annual ? plans.starter.annual : plans.starter.monthly} a month:
+        unlimited messages, photos and videos, {plans.starter.coins} coins.{" "}
+        <Link
+          href="/app"
+          className="press font-medium text-rouge-lo underline underline-offset-4 hover:text-ink"
+        >
+          Choose Starter
+        </Link>
+      </p>
     </div>
+  );
+}
+
+/* ── Footer: the cookie settings link needs the browser ── */
+export function CookiesLink({ className }: { className?: string }) {
+  return (
+    <button type="button" onClick={openCookieSettings} className={className}>
+      Cookies
+    </button>
   );
 }
